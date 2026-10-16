@@ -1,0 +1,26 @@
+# Segredos
+.env
+.env.*
+!.env.example
+
+# .NET
+bin/
+obj/
+*.user
+TestResults/
+
+# Frontend
+node_modules/
+frontend/dist/
+backend/src/Vtt.Api/wwwroot/
+
+# Imagens enviadas ao rodar a API fora do Docker
+backend/src/Vtt.Api/uploads/
+
+# Editores e sistema
+.vs/
+.idea/
+.DS_Store
+
+# Backups gerados por scripts/backup.sh
+backups/

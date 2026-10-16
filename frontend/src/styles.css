@@ -1,0 +1,2066 @@
+/* Identidade: o tapete de batalha. Fundo quadriculado, peças redondas com borda colorida. */
+:root {
+  --mesa: #18262a;
+  --mesa-clara: #213439;
+  --mesa-funda: #0f1a1d;
+  --linha: #30484e;
+  --texto: #eaf0ec;
+  --texto-suave: #a3b5b1;
+  --latao: #e2b23c;
+  --latao-escuro: #1d1704;
+  --perigo: #f08a75;
+  --perigo-fundo: #b23c28;
+
+  --fonte-titulo: 'Grenze', Georgia, serif;
+  --fonte-texto: 'Figtree', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --celula: 32px;
+  --raio: 6px;
+
+  color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background-color: var(--mesa);
+  background-image:
+    linear-gradient(to right, rgb(255 255 255 / 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(255 255 255 / 0.035) 1px, transparent 1px);
+  background-size: var(--celula) var(--celula);
+  color: var(--texto);
+  font-family: var(--fonte-texto);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+h1,
+h2 {
+  margin: 0;
+  font-family: var(--fonte-titulo);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: 0.01em;
+}
+
+h1 {
+  font-size: 2rem;
+}
+
+h2 {
+  font-size: 1.5rem;
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: var(--latao);
+  text-underline-offset: 3px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--latao);
+  outline-offset: 2px;
+}
+
+/* ---------- Botões ---------- */
+
+.botao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 1rem;
+  border: 1px solid var(--linha);
+  border-radius: var(--raio);
+  background: var(--mesa-clara);
+  color: var(--texto);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.botao:hover:not(:disabled) {
+  border-color: var(--texto-suave);
+}
+
+.botao:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.botao-primario {
+  border-color: var(--latao);
+  background: var(--latao);
+  color: var(--latao-escuro);
+  font-weight: 600;
+}
+
+.botao-primario:hover:not(:disabled) {
+  border-color: #f0c659;
+  background: #f0c659;
+}
+
+.botao-discreto {
+  min-height: 40px;
+  padding: 0 0.75rem;
+  background: transparent;
+}
+
+.botao-perigo {
+  color: var(--perigo);
+}
+
+.botao-perigo-cheio {
+  border-color: var(--perigo-fundo);
+  background: var(--perigo-fundo);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* ---------- Campos ---------- */
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  min-width: 0;
+}
+
+.campo label,
+.classes legend {
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+
+.campo input:not([type='color']) {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 0.75rem;
+  border: 1px solid var(--linha);
+  border-radius: var(--raio);
+  background: var(--mesa-funda);
+  color: var(--texto);
+  font: inherit;
+}
+
+.campo input[aria-invalid='true'] {
+  border-color: var(--perigo);
+}
+
+.campo input[type='color'] {
+  width: 100%;
+  height: 44px;
+  padding: 3px;
+  border: 1px solid var(--linha);
+  border-radius: var(--raio);
+  background: var(--mesa-funda);
+  cursor: pointer;
+}
+
+.campo-dica {
+  color: var(--texto-suave);
+  font-size: 0.875rem;
+}
+
+.campo-erro {
+  color: var(--perigo);
+  font-size: 0.875rem;
+}
+
+.aviso-erro {
+  padding: 0.625rem 0.75rem;
+  border-left: 3px solid var(--perigo);
+  background: rgb(240 138 117 / 0.1);
+  color: var(--perigo);
+}
+
+/* ---------- Painel (login, cadastro) ---------- */
+
+.painel {
+  border: 1px solid var(--linha);
+  border-radius: var(--raio);
+  background: var(--mesa-clara);
+}
+
+.pagina-auth {
+  display: grid;
+  place-items: center;
+  min-height: 100dvh;
+  padding: 1.5rem 1rem;
+}
+
+.painel-auth {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: min(100%, 24rem);
+  padding: 1.75rem 1.5rem;
+}
+
+.painel-auth h1 {
+  margin-bottom: 0.25rem;
+}
+
+.painel-auth .botao-primario {
+  margin-top: 0.25rem;
+}
+
+.painel-rodape {
+  color: var(--texto-suave);
+  font-size: 0.9375rem;
+}
+
+/* ---------- Cabeçalho e página ---------- */
+
+.cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid var(--linha);
+  background: var(--mesa-funda);
+}
+
+.cabecalho-marca {
+  font-family: var(--fonte-titulo);
+  font-size: 1.375rem;
+  font-weight: 600;
+}
+
+.cabecalho-conta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.cabecalho-nome {
+  overflow: hidden;
+  color: var(--texto-suave);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pagina {
+  width: min(100%, 68rem);
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+}
+
+.pagina-topo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.estado {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+  max-width: 34rem;
+  padding: 1.25rem;
+  border: 1px dashed var(--linha);
+  border-radius: var(--raio);
+  background: rgb(15 26 29 / 0.6);
+  color: var(--texto-suave);
+}
+
+.estado-pagina {
+  margin: 2rem 1rem;
+}
+
+/* ---------- Personagens ---------- */
+
+.personagens {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.personagem {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.75rem 1rem;
+  align-items: center;
+  padding: 1rem;
+  border: 1px solid var(--linha);
+  border-radius: var(--raio);
+  background: var(--mesa-clara);
+}
+
+.personagem svg {
+  flex: none;
+}
+
+.personagem-dados h2 {
+  overflow-wrap: anywhere;
+}
+
+.personagem-dados p {
+  color: var(--texto-suave);
+}
+
+.personagem-hp-valor {
+  color: var(--texto);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.personagem-acoes {
+  display: flex;
+  gap: 0.5rem;
+  grid-column: 1 / -1;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--linha);
+}
+
+/* ---------- Biblioteca de tokens ---------- */
+
+.pagina-topo-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* Muitas categorias: as abas rolam na horizontal em vez de alargar a página. */
+.abas-rolagem {
+  margin-top: 0;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.abas-rolagem .aba {
+  flex: none;
+  white-space: nowrap;
+}
+
+.aba-contagem {
+  margin-left: 0.25rem;
+  color: var(--texto-suave);
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.biblioteca-barra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.biblioteca-busca {
+  flex: 1 1 14rem;
+  max-width: 24rem;
+  min-height: 44px;
+  padding: 0 0.75rem;
+  border: 1px solid var(--linha);
+  border-radius: var(--raio);
+  background: var(--mesa-funda);
+  color: var(--texto);
+  font: inherit;
+}
+
+/* O disco do modelo com imagem: a imagem recortada em círculo, com a borda da cor do token. */
+.disco-modelo {
+  display: inline-block;
+  flex: none;
+  overflow: hidden;
+  border: 3px solid;
+  border-radius: 50%;
+  background: var(--mesa-funda);
+}
+
+.disco-modelo .miniatura {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: 0;
+}
+
+.biblioteca-opcoes {
+  display: grid;
+  gap: 0.375rem;
+  max-height: 45dvh;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.biblioteca-opcao {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: 52px;
+  padding: 0.375rem 0.625rem;
+  border: 1px solid var(--linha);
+  border-radius: var(--raio);
+  background: var(--mesa-funda);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.biblioteca-opcao:hover {
+  border-color: var(--texto-suave);
+}
+
+.biblioteca-opcao[aria-pressed='true'] {
+  border-color: var(--latao);
+  box-shadow: inset 0 0 0 1px var(--latao);
+}
+
+.biblioteca-opcao-dados {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.biblioteca-opcao-nome {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.biblioteca-opcao-detalhe {
+  color: var(--texto-suave);
+  font-size: 0.875rem;
+}
+
+/* ---------- Diálogos ---------- */
+
+.dialogo {
+  width: min(calc(100% - 2rem), 34rem);
+  max-height: calc(100dvh - 2rem);
+  padding: 0;
+  border: 1px solid var(--linha);
+  border-radius: var(--raio);
+  background: var(--mesa-clara);
+  color: var(--texto);
+}
+
+.dialogo::backdrop {
+  background: rgb(6 12 14 / 0.75);
+}
+
+.dialogo-conteudo {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.5rem;
+}
+
+.dialogo-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.form-personagem {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-linha {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  align-items: start;
+}
+
+.classes {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.classes legend {
+  margin-bottom: 0.375rem;
+  padding: 0;
+}
+
+.classes-grade {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.375rem;
+}
+
+.classe-opcao {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem 0.25rem;
+  border: 1px solid transparent;
+  border-radius: var(--raio);
+  color: var(--texto-suave);
+  font-size: 0.8125rem;
+  text-align: center;
+  cursor: pointer;
+}
+
+.classe-opcao input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.classe-opcao:hover {
+  background: rgb(255 255 255 / 0.04);
+}
+
+.classe-opcao:has(input:checked) {
+  border-color: var(--linha);
+  background: var(--mesa-funda);
+  color: var(--texto);
+}
+
+.classe-opcao:has(input:focus-visible) {
+  outline: 2px solid var(--latao);
+  outline-offset: 2px;
+}
+
+@media (max-width: 26rem) {
+  h1 {
+    font-size: 1.75rem;
+  }
+
+  .classes-grade {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .form-linha {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .campo-cor {
+    grid-column: 1 / -1;
+  }
+
+  .dialogo-conteudo {
+    padding: 1.25rem 1rem;
+  }
+
+  .dialogo-acoes .botao {
+    flex: 1 1 auto;
+  }
+}
+
+/* ---------- Etapa 2: navegação, mesas, lobby e convites ---------- */
+
+.so-leitor {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+a.botao {
+  text-decoration: none;
+}
+
+.cabecalho {
+  flex-wrap: wrap;
+}
+
+.cabecalho-nav {
+  display: flex;
+  flex: 1;
+  gap: 0.25rem;
+}
+
+.cabecalho-nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 0.75rem;
+  border-bottom: 2px solid transparent;
+  color: var(--texto-suave);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.cabecalho-nav a:hover {
+  color: var(--texto);
+}
+
+.cabecalho-nav a.active {
+  border-bottom-color: var(--latao);
+  color: var(--texto);
+}
+
+.pagina-estreita {
+  width: min(100%, 40rem);
+}
+
+.secao {
+  margin-top: 2rem;
+}
+
+.secao > h2 {
+  margin-bottom: 0.75rem;
+}
+
+.aviso {
+  margin-bottom: 1.5rem;
+  padding: 0.625rem 0.75rem;
+  border-left: 3px solid var(--latao);
+  background: rgb(226 178 60 / 0.1);
+}
+
+.campo textarea,
+.campo select {
+  width: 100%;
+  min-height: 44px;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--linha);
+  border-radius: var(--raio);
+  background: var(--mesa-funda);
+  color: var(--texto);
+  font: inherit;
+}
+
+.campo textarea {
+  resize: vertical;
+}
+
+.form-pilha {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.selo {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.5rem;
+  border: 1px solid var(--linha);
+  border-radius: 999px;
+  color: var(--texto-suave);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.selo-ativo {
+  border-color: #5fbf6a;
+  color: #8fdc98;
+}
+
+.selo-mestre {
+  border-color: var(--latao);
+  color: var(--latao);
+}
+
+/* Lista de mesas */
+
+.mesas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mesa-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  height: 100%;
+  padding: 1rem;
+  border: 1px solid var(--linha);
+  border-radius: var(--raio);
+  background: var(--mesa-clara);
+  color: var(--texto);
+  text-decoration: none;
+}
+
+.mesa-card:hover {
+  border-color: var(--texto-suave);
+}
+
+.mesa-card-nome {
+  font-family: var(--fonte-titulo);
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.mesa-card-descricao {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--texto-suave);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.mesa-card-rodape {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: auto;
+  padding-top: 0.5rem;
+  color: var(--texto-suave);
+  font-size: 0.9375rem;
+}
+
+/* Lobby */
+
+.lobby-topo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.lobby-titulo {
+  flex: 1 1 18rem;
+  min-width: 0;
+}
+
+.lobby-titulo h1 {
+  overflow-wrap: anywhere;
+}
+
+.lobby-descricao {
+  max-width: 44rem;
+  margin-top: 0.375rem;
+  color: var(--texto-suave);
+  white-space: pre-line;
+}
+
+.lobby-estado {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  margin-top: 0.75rem;
+}
+
+.lobby-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.status-conexao,
+.presenca {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: var(--texto-suave);
+  font-size: 0.875rem;
+}
+
+.status-conexao-ponto,
+.presenca-ponto {
+  width: 0.5rem;
+  height: 0.5rem;
+  border: 1px solid var(--texto-suave);
+  border-radius: 50%;
+}
+
+.status-conexao-conectado .status-conexao-ponto,
+.presenca-online .presenca-ponto {
+  border-color: #5fbf6a;
+  background: #5fbf6a;
+}
+
+.presenca-online {
+  color: #8fdc98;
+}
+
+.status-conexao-reconectando {
+  color: var(--latao);
+}
+
+.status-conexao-reconectando .status-conexao-ponto {
+  border-color: var(--latao);
+  background: var(--latao);
+  animation: pulsar 1.2s ease-in-out infinite;
+}
+
+@keyframes pulsar {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .status-conexao-reconectando .status-conexao-ponto {
+    animation: none;
+  }
+}
+
+.membros,
+.convites {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.membro {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.5rem 1rem;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--linha);
+  border-radius: var(--raio);
+  background: var(--mesa-clara);
+}
+
+.membro-sem-icone {
+  width: 56px;
+  height: 56px;
+  border: 2px dashed var(--linha);
+  border-radius: 50%;
+}
+
+.membro-nome {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.5rem;
+  font-size: 1.0625rem;
+  overflow-wrap: anywhere;
+}
+
+.membro-voce,
+.membro-personagem {
+  color: var(--texto-suave);
+}
+
+.membro-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.membro-aviso {
+  flex-basis: 100%;
+  max-width: 16rem;
+  margin-left: auto;
+  color: var(--texto-suave);
+  font-size: 0.875rem;
+  text-align: right;
+}
+
+/* Convites */
+
+.convite-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: end;
+  max-width: 44rem;
+  margin-bottom: 1rem;
+}
+
+.convites {
+  max-width: 44rem;
+}
+
+.convite {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--linha);
+  border-radius: var(--raio);
+  background: var(--mesa-clara);
+}
+
+.convite-invalido {
+  background: transparent;
+  color: var(--texto-suave);
+}
+
+.convite-link {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.convite-link input {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 0.75rem;
+  border: 1px solid var(--linha);
+  border-radius: var(--raio);
+  background: var(--mesa-funda);
+  color: inherit;
+  font: inherit;
+  font-size: 0.9375rem;
+}
+
+.convite-invalido .convite-link input {
+  text-decoration: line-through;
+}
+
+.convite-rodape {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-height: 40px;
+  color: var(--texto-suave);
+  font-size: 0.9375rem;
+}
+
+.convite-chamada {
+  margin-bottom: 0.25rem;
+  color: var(--texto-suave);
+}
+
+.convite-jogadores {
+  margin-top: 0.75rem;
+  color: var(--texto-suave);
+}
+
+.convite-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+/* Seletor de personagem */
+
+.seletor-personagem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.seletor-personagem-opcao {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid var(--linha);
+  border-radius: var(--raio);
+  background: var(--mesa-clara);
+  cursor: pointer;
+}
+
+.seletor-personagem-opcao input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.seletor-personagem-opcao:has(input:checked) {
+  border-color: var(--latao);
+  background: var(--mesa-funda);
+}
+
+.seletor-personagem-opcao:has(input:focus-visible) {
+  outline: 2px solid var(--latao);
+  outline-offset: 2px;
+}
+
+.seletor-personagem-texto {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.seletor-personagem-texto span {
+  color: var(--texto-suave);
+  font-size: 0.9375rem;
+}
+
+@media (max-width: 34rem) {
+  .cabecalho-nav {
+    order: 3;
+    flex-basis: 100%;
+  }
+
+  .membro {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .membro-acoes {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
+
+  .membro-aviso {
+    max-width: none;
+    margin-left: 0;
+    text-align: left;
+  }
+
+  .convite-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .convite-form .botao {
+    grid-column: 1 / -1;
+  }
+
+  .convite-link {
+    flex-direction: column;
+  }
+}
+
+/* ---------- Etapa 3: abas da mesa, mapa e painel do Mestre ---------- */
+
+.pagina-larga {
+  width: min(100%, 110rem);
+}
+
+.abas {
+  display: flex;
+  gap: 0.25rem;
+  margin-top: 1.5rem;
+  border-bottom: 1px solid var(--linha);
+}
+
+.aba {
+  min-height: 44px;
+  margin-bottom: -1px;
+  padding: 0 1.25rem;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  background: transparent;
+  color: var(--texto-suave);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.aba:hover {
+  color: var(--texto);
+}
+
+.aba[aria-selected='true'] {
+  border-bottom-color: var(--latao);
+  color: var(--texto);
+}
+
+.mapa-aba {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+  margin-top: 1.5rem;
+}
+
+.mapa-palco {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.mapa-palco .aviso {
+  margin-bottom: 0;
+}
+
+.mapa-barra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+}
+
+.mapa-barra h2 {
+  overflow-wrap: anywhere;
+}
+
+.mapa-barra .botao {
+  margin-left: auto;
+}
+
+.mapa-dimensoes,
+.mapa-dica,
+.mapa-carregando,
+.painel-mestre-vazio,
+.painel-item-detalhe {
+  color: var(--texto-suave);
+  font-size: 0.9375rem;
+}
+
+/* O tabuleiro: ocupa quase toda a altura da janela para sobrar o máximo de mapa. */
+.mapa-moldura {
+  position: relative;
+  height: clamp(20rem, 72dvh, 64rem);
+  overflow: hidden;
+  border: 1px solid var(--linha);
+  border-radius: var(--raio);
+  background: var(--mesa-funda);
+}
+
+.mapa-carregando {
+  padding: 1.25rem;
+}
+
+/* Movimento por blocos: flutua sobre o mapa, embaixo, sem cobrir o centro da cena. */
+.barra-de-movimento {
+  position: absolute;
+  bottom: 0.75rem;
+  left: 50%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem 0.75rem;
+  max-width: calc(100% - 1.5rem);
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--linha);
+  border-radius: var(--raio);
+  background: rgb(15 26 29 / 0.92);
+  transform: translateX(-50%);
+}
+
+.barra-de-movimento-nome {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.barra-de-movimento-valor {
+  color: #8cc0ff;
+  font-variant-numeric: tabular-nums;
+}
+
+.barra-de-movimento-dica {
+  color: var(--texto-suave);
+  font-size: 0.9375rem;
+}
+
+/* Os gestos de toque são do mapa (pan e pinça), não da página. */
+.mapa-canvas,
+.mapa-canvas canvas {
+  touch-action: none;
+}
+
+.mapa-canvas canvas {
+  display: block;
+}
+
+/* Retângulo da seleção de vários tokens no editor, desenhado sobre o canvas durante o arraste. */
+.mapa-area-de-selecao {
+  position: fixed;
+  z-index: 50;
+  pointer-events: none;
+  border: 1px dashed var(--latao);
+  background: rgb(226 178 60 / 0.12);
+  border-radius: 2px;
+}
+
+.estado-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.painel-mestre {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  min-width: 0;
+}
+
+.painel-mestre-secao {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.painel-mestre-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.painel-mestre-topo-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.25rem;
+}
+
+.painel-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.painel-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid var(--linha);
+  border-radius: var(--raio);
+  background: var(--mesa-clara);
+}
+
+.painel-item-atual {
+  border-color: var(--latao);
+}
+
+.painel-item-dados {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.painel-item-nome {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.5rem;
+  overflow-wrap: anywhere;
+}
+
+.painel-item-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.painel-item-acoes .botao {
+  padding: 0 0.625rem;
+}
+
+.painel-token {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  width: 100%;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.painel-token svg {
+  flex: none;
+}
+
+.toast-area {
+  position: fixed;
+  right: 1rem;
+  bottom: 1.25rem;
+  left: 1rem;
+  z-index: 20;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.toast {
+  max-width: 32rem;
+  padding: 0.625rem 1rem;
+  border: 1px solid var(--latao);
+  border-radius: var(--raio);
+  background: var(--mesa-funda);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.45);
+}
+
+@media (min-width: 64rem) {
+  .mapa-aba-mestre:not(.mapa-aba-com-gaveta) {
+    grid-template-columns: minmax(0, 1fr) 22rem;
+  }
+
+  .mapa-aba-mestre:not(.mapa-aba-com-gaveta) .painel-mestre {
+    max-height: calc(72dvh + 8rem);
+    padding-right: 0.25rem;
+    overflow-y: auto;
+  }
+}
+
+/* ---------- Etapa 4: imagens, editor de estruturas e visão do mapa ---------- */
+
+.mapa-barra-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+.mapa-barra .mapa-barra-acoes .botao {
+  margin-left: 0;
+}
+
+/* Alternância de dois estados (Jogar / Editar mapa). */
+.alternancia {
+  display: inline-flex;
+  border: 1px solid var(--linha);
+  border-radius: var(--raio);
+  overflow: hidden;
+}
+
+.alternancia button {
+  min-height: 40px;
+  padding: 0 0.875rem;
+  border: 0;
+  background: transparent;
+  color: var(--texto-suave);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.alternancia button + button {
+  border-left: 1px solid var(--linha);
+}
+
+.alternancia button[aria-pressed='true'] {
+  background: var(--latao);
+  color: var(--latao-escuro);
+  font-weight: 600;
+}
+
+.mapa-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  padding: 0.5rem 0.625rem;
+  border: 1px solid var(--linha);
+  border-radius: var(--raio);
+  background: var(--mesa-clara);
+}
+
+.mapa-editor-ferramentas,
+.mapa-visao,
+.mapa-visao-grupo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.mapa-editor-ferramentas {
+  gap: 0.25rem 0.375rem;
+}
+
+/* A ferramenta ativa precisa saltar aos olhos: é ela que decide o que o próximo clique faz. */
+.mapa-editor-ferramentas .botao[aria-pressed='true'] {
+  border-color: var(--latao);
+  background: var(--latao);
+  color: var(--latao-escuro);
+  font-weight: 600;
+}
+
+.mapa-editor-ferramenta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.mapa-editor-ferramenta kbd {
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+.link-botao {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--latao);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.mapa-editor-separador {
+  align-self: stretch;
+  width: 1px;
+  margin: 0.25rem 0.25rem;
+  background: var(--linha);
+}
+
+.mapa-visao {
+  gap: 0.5rem 1.25rem;
+}
+
+.mapa-visao-grupo {
+  gap: 0.375rem;
+}
+
+.mapa-visao label,
+.mapa-editor label {
+  color: var(--texto-suave);
+  font-size: 0.9375rem;
+}
+
+.mapa-visao output,
+.mapa-editor output {
+  min-width: 3ch;
+  font-variant-numeric: tabular-nums;
+}
+
+.mapa-visao select {
+  min-height: 40px;
+  padding: 0 0.5rem;
+  border: 1px solid var(--linha);
+  border-radius: var(--raio);
+  background: var(--mesa-funda);
+  color: var(--texto);
+  font: inherit;
+}
+
+input[type='range'] {
+  accent-color: var(--latao);
+  min-height: 28px;
+}
+
+/* As abas ficam presas no topo do painel: rolar uma lista longa (imagens, tokens) não as esconde. */
+.abas-painel {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  flex-shrink: 0;
+  margin-top: 0;
+  overflow-x: auto;
+  background: var(--mesa);
+  scrollbar-width: none;
+}
+
+.abas-painel .aba {
+  flex: 1 0 auto;
+  padding: 0 0.5rem;
+}
+
+.campo-rotulo {
+  font-weight: 500;
+}
+
+.campo-imagem {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.campo-caixa {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 40px;
+  cursor: pointer;
+}
+
+.campo-caixa input {
+  width: 1.125rem;
+  height: 1.125rem;
+  accent-color: var(--latao);
+}
+
+.painel-item .campo input[type='range'],
+.painel-item .campo select {
+  width: 100%;
+}
+
+.painel-cor {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--linha);
+  border-radius: 4px;
+}
+
+.miniatura {
+  display: block;
+  flex: none;
+  width: 56px;
+  height: 56px;
+  border: 1px solid var(--linha);
+  border-radius: var(--raio);
+  background: var(--mesa-funda);
+  object-fit: cover;
+}
+
+.galeria {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.galeria-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+  padding: 0.5rem;
+  border: 1px solid var(--linha);
+  border-radius: var(--raio);
+  background: var(--mesa-clara);
+}
+
+.galeria-item .miniatura,
+.galeria-opcao .miniatura {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+}
+
+.galeria-item .painel-item-nome {
+  font-size: 0.9375rem;
+}
+
+.galeria-seletor {
+  max-height: 55dvh;
+  overflow-y: auto;
+}
+
+.galeria-opcao {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  width: 100%;
+  padding: 0.375rem;
+  border: 1px solid var(--linha);
+  border-radius: var(--raio);
+  background: var(--mesa-funda);
+  color: inherit;
+  font: inherit;
+  font-size: 0.875rem;
+  text-align: left;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+.galeria-opcao:hover {
+  border-color: var(--latao);
+}
+
+.envio-progresso {
+  width: 100%;
+  height: 0.5rem;
+  accent-color: var(--latao);
+}
+
+/* ---------- Etapa 5: HP, conexão, gaveta do painel e ajuda ---------- */
+
+.status-conexao-desconectado {
+  color: var(--perigo);
+}
+
+.aviso-conexao {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  margin: 1rem 0 0;
+}
+
+/* Sem conexão o conteúdo fica inerte (atributo inert); o esmaecimento é só o sinal visual disso. */
+.sem-conexao {
+  opacity: 0.55;
+}
+
+.selo-perigo {
+  border-color: var(--perigo);
+  color: var(--perigo);
+}
+
+.botao-cura {
+  color: #8fdc98;
+}
+
+.painel-token-fixo {
+  cursor: default;
+}
+
+.hp-valor {
+  font-size: 1.125rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.hp-rapidos {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.25rem;
+}
+
+.hp-rapidos .botao {
+  padding: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.hp-livre {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.hp-livre label {
+  color: var(--texto-suave);
+  font-size: 0.9375rem;
+}
+
+.hp-livre input,
+.hp-livre select {
+  min-height: 40px;
+  padding: 0 0.5rem;
+  border: 1px solid var(--linha);
+  border-radius: var(--raio);
+  background: var(--mesa-funda);
+  color: var(--texto);
+  font: inherit;
+}
+
+.hp-livre input {
+  width: 5rem;
+}
+
+.hp-livre select {
+  flex: 1 1 8rem;
+}
+
+.painel-item .botao[aria-pressed='true'] {
+  border-color: var(--latao);
+  color: var(--latao);
+}
+
+.ajuda-titulo {
+  margin: 0 0 0.375rem;
+  font-family: var(--fonte-titulo);
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.ajuda-lista {
+  display: grid;
+  gap: 0.375rem;
+  margin: 0;
+}
+
+.ajuda-lista div {
+  display: grid;
+  grid-template-columns: minmax(0, 14rem) minmax(0, 1fr);
+  gap: 0.75rem;
+  align-items: baseline;
+}
+
+.ajuda-lista dd {
+  margin: 0;
+  color: var(--texto-suave);
+}
+
+kbd {
+  padding: 0.125rem 0.375rem;
+  border: 1px solid var(--linha);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  background: var(--mesa-funda);
+  font-family: inherit;
+  font-size: 0.875rem;
+}
+
+/*
+ * Em telas largas o painel do Mestre fica ao lado do mapa. Em telas estreitas e na tela cheia
+ * (mapa-aba-com-gaveta, decidido em MapaAba), ele vira uma gaveta lateral.
+ */
+.gaveta-fundo {
+  display: none;
+}
+
+.gaveta-conteudo {
+  display: contents;
+}
+
+/* Painel do Mestre como gaveta lateral: fora da tela até ser aberto, por cima do mapa. */
+.mapa-aba-com-gaveta .gaveta {
+  position: fixed;
+  inset: 0;
+  z-index: 15;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.mapa-aba-com-gaveta .gaveta-aberta {
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.mapa-aba-com-gaveta .gaveta-fundo {
+  position: absolute;
+  inset: 0;
+  display: block;
+  border: 0;
+  background: rgb(6 12 14 / 0.7);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.mapa-aba-com-gaveta .gaveta-aberta .gaveta-fundo {
+  opacity: 1;
+}
+
+.mapa-aba-com-gaveta .gaveta-conteudo {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: min(100%, 24rem);
+  padding: 1rem;
+  overflow-y: auto;
+  border-left: 1px solid var(--linha);
+  background: var(--mesa);
+  transform: translateX(100%);
+  transition: transform 0.2s;
+}
+
+.mapa-aba-com-gaveta .gaveta-aberta .gaveta-conteudo {
+  transform: none;
+}
+
+.gaveta-fechar,
+.mapa-palco > .botao {
+  align-self: flex-start;
+}
+
+@media (max-width: 63.99rem) {
+  .ajuda-lista div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.125rem;
+  }
+}
+
+/* Tela cheia: o mapa ocupa a janela inteira, e as barras ficam em volta dele, compactas. */
+html.com-tela-cheia,
+html.com-tela-cheia body {
+  overflow: hidden;
+}
+
+.mapa-aba-tela-cheia {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: max(0.5rem, env(safe-area-inset-top)) max(0.75rem, env(safe-area-inset-right))
+    max(0.5rem, env(safe-area-inset-bottom)) max(0.75rem, env(safe-area-inset-left));
+  background: var(--mesa);
+}
+
+.mapa-aba-tela-cheia .mapa-palco {
+  flex: 1;
+  min-height: 0;
+  gap: 0.5rem;
+}
+
+.mapa-aba-tela-cheia .mapa-moldura {
+  flex: 1;
+  height: auto;
+  min-height: 12rem;
+}
+
+.mapa-aba-tela-cheia .mapa-barra h2 {
+  font-size: 1.25rem;
+}
+
+/* A dica longa e as dimensões cedem o espaço ao mapa; os atalhos continuam no "?". */
+.mapa-aba-tela-cheia .mapa-palco > .mapa-dica,
+.mapa-aba-tela-cheia .mapa-dimensoes {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mapa-aba-com-gaveta .gaveta-fundo,
+  .mapa-aba-com-gaveta .gaveta-conteudo {
+    transition: none;
+  }
+}
+
+/* Em telas de toque, todo alvo tem pelo menos 44 px de altura. */
+@media (pointer: coarse) {
+  .botao-discreto,
+  .alternancia button,
+  .hp-livre input,
+  .hp-livre select,
+  .mapa-visao select {
+    min-height: 44px;
+  }
+
+  input[type='range'] {
+    min-height: 44px;
+  }
+}
+
+/* ---------- Texturas prontas e guia de texturas ---------- */
+
+/* Pixel art ampliada sem borrar. */
+.miniatura-pixel,
+.editor-textura-tela,
+.editor-textura-previa {
+  image-rendering: pixelated;
+}
+
+.texturas-prontas {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.texturas-prontas h3 {
+  font-size: 1rem;
+}
+
+.texturas-prontas-grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.galeria-texturas {
+  grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr));
+}
+
+.galeria-texturas .galeria-opcao .miniatura {
+  aspect-ratio: 1;
+}
+
+.guia {
+  max-width: 60rem;
+}
+
+.guia-destaque {
+  padding: 0.75rem 1rem;
+  border-left: 3px solid var(--latao);
+  border-radius: var(--raio);
+  background: var(--mesa-clara);
+}
+
+.guia-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-left: 1.25rem;
+}
+
+.guia-prontas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 0.75rem 0;
+  padding: 0;
+  list-style: none;
+}
+
+.guia-prontas li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  width: 6rem;
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.guia-prontas .miniatura {
+  width: 64px;
+  height: 64px;
+}
+
+.editor-textura {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 0.75rem;
+  padding: 1rem;
+  border: 1px solid var(--linha);
+  border-radius: var(--raio);
+  background: var(--mesa-clara);
+}
+
+.editor-textura-barra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.editor-textura-corpo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.editor-textura-tela {
+  width: min(100%, 384px);
+  height: auto;
+  aspect-ratio: 1;
+  border: 1px solid var(--linha);
+  border-radius: var(--raio);
+  cursor: crosshair;
+  /* Os gestos de toque desenham, não rolam a página. */
+  touch-action: none;
+}
+
+.editor-textura-lado {
+  display: flex;
+  flex: 1 1 14rem;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.editor-textura-paleta {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(32px, 1fr));
+  gap: 0.25rem;
+}
+
+.editor-textura-amostra {
+  aspect-ratio: 1;
+  min-height: 32px;
+  border: 2px solid var(--linha);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.editor-textura-amostra[aria-pressed='true'] {
+  border-color: var(--latao);
+  box-shadow: 0 0 0 2px var(--latao);
+}
+
+.editor-textura-previas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.editor-textura-previas figure {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  margin: 0;
+}
+
+.editor-textura-previas figcaption {
+  max-width: 320px;
+  color: var(--texto-suave);
+  font-size: 0.875rem;
+}
+
+.editor-textura-previa {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--linha);
+  border-radius: var(--raio);
+  background: var(--mesa-funda);
+}
+
+@media (pointer: coarse) {
+  .editor-textura-amostra {
+    min-height: 44px;
+  }
+}
+
+.guia-prontas-grupo h3 {
+  margin-top: 1rem;
+  font-size: 1rem;
+}
+
+.texturas-prontas-grupo > summary {
+  cursor: pointer;
+  padding: 0.25rem 0;
+}
+
+.texturas-prontas-quantidade {
+  color: var(--texto-suave);
+  font-weight: 400;
+}
+
+.guia-filtro {
+  flex-wrap: wrap;
+  margin: 0.75rem 0 0.25rem;
+}
+
+.guia-prontas .miniatura-alta {
+  height: 128px;
+}
+
+.gerar-mapa {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.gerar-mapa select {
+  min-height: 40px;
+  padding: 0 0.5rem;
+  border: 1px solid var(--linha);
+  border-radius: var(--raio);
+  background: var(--mesa-funda);
+  color: var(--texto);
+  font: inherit;
+}
+
+@media (pointer: coarse) {
+  .gerar-mapa select {
+    min-height: 44px;
+  }
+}

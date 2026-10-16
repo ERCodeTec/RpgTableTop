@@ -1,0 +1,73 @@
+name: vtt
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: vtt
+      POSTGRES_USER: vtt
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Defina POSTGRES_PASSWORD no arquivo .env}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      # Só na sua máquina, para rodar a API fora do Docker ou abrir o banco em um cliente SQL.
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vtt -d vtt"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
+      ConnectionStrings__Default: Host=postgres;Port=5432;Database=vtt;Username=vtt;Password=${POSTGRES_PASSWORD}
+      Database__AutoMigrate: ${DATABASE_AUTO_MIGRATE:-true}
+      Jwt__Secret: ${JWT_SECRET:?Defina JWT_SECRET no arquivo .env}
+      Jwt__Issuer: ${JWT_ISSUER:-vtt}
+      Jwt__ExpiracaoMinutos: ${JWT_EXPIRATION_MINUTES:-720}
+      # Vazia, os links de convite usam o host da requisição (localhost ou o endereço do ngrok).
+      App__PublicBaseUrl: ${PUBLIC_BASE_URL:-}
+      Storage__UploadsPath: /app/uploads
+    volumes:
+      - uploads:/app/uploads
+    ports:
+      - "${API_PORT:-8080}:8080"
+    healthcheck:
+      # A imagem da API não traz curl nem wget; o bash abre a conexão e lê a primeira linha da resposta.
+      # /health também consulta o banco, então "healthy" significa API e PostgreSQL respondendo.
+      test:
+        - CMD
+        - bash
+        - -c
+        - "exec 3<>/dev/tcp/127.0.0.1/8080 && printf 'GET /health HTTP/1.0\\r\\nHost: localhost\\r\\n\\r\\n' >&3 && head -n 1 <&3 | grep -q ' 200'"
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+  ngrok:
+    # Só sobe com o profile: docker compose --profile ngrok up -d
+    profiles: ["ngrok"]
+    image: ngrok/ngrok:latest
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      NGROK_AUTHTOKEN: ${NGROK_AUTHTOKEN:-}
+    # Com NGROK_DOMAIN o endereço é fixo; sem ela, o ngrok sorteia um a cada subida.
+    command: http ${NGROK_DOMAIN:+--url=${NGROK_DOMAIN}} api:8080
+    ports:
+      # Painel do ngrok (endereço público e pedidos), só na sua máquina.
+      - "127.0.0.1:${NGROK_INSPECT_PORT:-4040}:4040"
+
+volumes:
+  postgres-data:
+  uploads:

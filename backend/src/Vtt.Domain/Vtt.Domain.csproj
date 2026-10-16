@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Catálogo das texturas prontas, gerado por scripts/texturas/montar_texturas.py. -->
+    <EmbeddedResource Include="Mapas\texturas-prontas.json" LogicalName="texturas-prontas.json" />
+  </ItemGroup>
+
+</Project>

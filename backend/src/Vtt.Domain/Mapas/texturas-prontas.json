@@ -1,0 +1,2206 @@
+{
+ "temas": [
+  {
+   "id": "masmorra",
+   "nome": "Masmorra"
+  },
+  {
+   "id": "castelo",
+   "nome": "Castelo"
+  },
+  {
+   "id": "caverna",
+   "nome": "Caverna"
+  },
+  {
+   "id": "vila",
+   "nome": "Vila"
+  },
+  {
+   "id": "interior",
+   "nome": "Interiores"
+  },
+  {
+   "id": "natureza",
+   "nome": "Natureza"
+  },
+  {
+   "id": "neve",
+   "nome": "Neve"
+  },
+  {
+   "id": "deserto",
+   "nome": "Deserto"
+  },
+  {
+   "id": "vulcao",
+   "nome": "Vulcão"
+  }
+ ],
+ "texturas": [
+  {
+   "chave": "parede-pedra",
+   "nome": "Pedra",
+   "tema": "masmorra",
+   "estruturas": [
+    "Parede",
+    "Pilar"
+   ],
+   "papeis": [
+    "parede",
+    "pilar"
+   ],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Tiny Dungeon"
+  },
+  {
+   "chave": "parede-grade",
+   "nome": "Pedra com grade",
+   "tema": "masmorra",
+   "estruturas": [
+    "Parede"
+   ],
+   "papeis": [],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Tiny Dungeon"
+  },
+  {
+   "chave": "parede-metal",
+   "nome": "Chapas de metal",
+   "tema": "masmorra",
+   "estruturas": [
+    "Parede",
+    "Porta"
+   ],
+   "papeis": [],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Tiny Dungeon"
+  },
+  {
+   "chave": "parede-de-blocos",
+   "nome": "Blocos com friso",
+   "tema": "masmorra",
+   "estruturas": [
+    "Parede",
+    "Pilar"
+   ],
+   "papeis": [
+    "parede"
+   ],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Roguelike Caves & Dungeons"
+  },
+  {
+   "chave": "parede-de-cantaria",
+   "nome": "Cantaria",
+   "tema": "masmorra",
+   "estruturas": [
+    "Parede",
+    "Pilar"
+   ],
+   "papeis": [
+    "parede",
+    "pilar"
+   ],
+   "largura": 64,
+   "altura": 128,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "parede-de-cantaria-relevo",
+   "nome": "Cantaria (relevo)",
+   "tema": "masmorra",
+   "estruturas": [
+    "Parede",
+    "Pilar"
+   ],
+   "papeis": [],
+   "largura": 64,
+   "altura": 128,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "grade-de-prisao",
+   "nome": "Grade de prisão",
+   "tema": "masmorra",
+   "estruturas": [
+    "Parede",
+    "Porta"
+   ],
+   "papeis": [],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Roguelike Caves & Dungeons"
+  },
+  {
+   "chave": "piso-lajotas",
+   "nome": "Lajotas",
+   "tema": "masmorra",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [
+    "piso"
+   ],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Tiny Dungeon"
+  },
+  {
+   "chave": "piso-terra",
+   "nome": "Terra",
+   "tema": "masmorra",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [
+    "corredor"
+   ],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Tiny Dungeon"
+  },
+  {
+   "chave": "piso-de-pedra",
+   "nome": "Piso de pedra",
+   "tema": "masmorra",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [
+    "piso",
+    "corredor"
+   ],
+   "largura": 64,
+   "altura": 64,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "piso-com-grelha",
+   "nome": "Piso com grelha",
+   "tema": "masmorra",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [],
+   "largura": 64,
+   "altura": 64,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "pedra-rachada",
+   "nome": "Pedra rachada",
+   "tema": "masmorra",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [
+    "corredor"
+   ],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Roguelike RPG Pack"
+  },
+  {
+   "chave": "ossos",
+   "nome": "Chão de ossos",
+   "tema": "masmorra",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Roguelike Caves & Dungeons"
+  },
+  {
+   "chave": "caixotes",
+   "nome": "Caixotes",
+   "tema": "masmorra",
+   "estruturas": [
+    "Obstaculo"
+   ],
+   "papeis": [
+    "obstaculo"
+   ],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Roguelike RPG Pack"
+  },
+  {
+   "chave": "porta-madeira",
+   "nome": "Porta de madeira",
+   "tema": "masmorra",
+   "estruturas": [
+    "Porta"
+   ],
+   "papeis": [
+    "porta"
+   ],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Tiny Dungeon"
+  },
+  {
+   "chave": "porta-reforcada",
+   "nome": "Porta reforçada",
+   "tema": "masmorra",
+   "estruturas": [
+    "Porta"
+   ],
+   "papeis": [
+    "porta"
+   ],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Roguelike Caves & Dungeons"
+  },
+  {
+   "chave": "portao-de-grade",
+   "nome": "Portão de grade",
+   "tema": "masmorra",
+   "estruturas": [
+    "Parede",
+    "Porta"
+   ],
+   "papeis": [],
+   "largura": 64,
+   "altura": 128,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "parede-rustica",
+   "nome": "Pedra rústica",
+   "tema": "castelo",
+   "estruturas": [
+    "Parede",
+    "Pilar"
+   ],
+   "papeis": [
+    "parede"
+   ],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Tiny Town"
+  },
+  {
+   "chave": "blocos-de-pedra",
+   "nome": "Blocos de pedra",
+   "tema": "castelo",
+   "estruturas": [
+    "Parede",
+    "Pilar"
+   ],
+   "papeis": [
+    "pilar"
+   ],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Roguelike RPG Pack"
+  },
+  {
+   "chave": "blocos-de-marmore",
+   "nome": "Blocos de mármore",
+   "tema": "castelo",
+   "estruturas": [
+    "Parede",
+    "Pilar"
+   ],
+   "papeis": [
+    "pilar"
+   ],
+   "largura": 18,
+   "altura": 18,
+   "pacote": "Pixel Platformer Blocks"
+  },
+  {
+   "chave": "blocos-de-ardosia",
+   "nome": "Blocos de ardósia",
+   "tema": "castelo",
+   "estruturas": [
+    "Parede",
+    "Pilar"
+   ],
+   "papeis": [],
+   "largura": 18,
+   "altura": 18,
+   "pacote": "Pixel Platformer Blocks"
+  },
+  {
+   "chave": "muralha-de-pedra",
+   "nome": "Muralha de pedra",
+   "tema": "castelo",
+   "estruturas": [
+    "Parede",
+    "Pilar"
+   ],
+   "papeis": [
+    "parede"
+   ],
+   "largura": 64,
+   "altura": 128,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "muralha-de-pedra-relevo",
+   "nome": "Muralha de pedra (relevo)",
+   "tema": "castelo",
+   "estruturas": [
+    "Parede",
+    "Pilar"
+   ],
+   "papeis": [],
+   "largura": 64,
+   "altura": 128,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "muralha-com-estandarte",
+   "nome": "Muralha com estandarte",
+   "tema": "castelo",
+   "estruturas": [
+    "Parede"
+   ],
+   "papeis": [],
+   "largura": 64,
+   "altura": 128,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "tijolinhos-de-pedra",
+   "nome": "Tijolinhos de pedra",
+   "tema": "castelo",
+   "estruturas": [
+    "Parede",
+    "Pilar"
+   ],
+   "papeis": [
+    "parede"
+   ],
+   "largura": 64,
+   "altura": 128,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "tijolinhos-de-pedra-relevo",
+   "nome": "Tijolinhos de pedra (relevo)",
+   "tema": "castelo",
+   "estruturas": [
+    "Parede",
+    "Pilar"
+   ],
+   "papeis": [],
+   "largura": 64,
+   "altura": 128,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "calcada-cinza",
+   "nome": "Calçada cinza",
+   "tema": "castelo",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [
+    "corredor"
+   ],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Roguelike RPG Pack"
+  },
+  {
+   "chave": "lajes-de-pedra",
+   "nome": "Lajes de pedra",
+   "tema": "castelo",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [
+    "piso"
+   ],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Roguelike Caves & Dungeons"
+  },
+  {
+   "chave": "ladrilhos-de-pedra",
+   "nome": "Ladrilhos de pedra",
+   "tema": "castelo",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [
+    "piso"
+   ],
+   "largura": 64,
+   "altura": 64,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "ladrilhos-de-pedra-relevo",
+   "nome": "Ladrilhos de pedra (relevo)",
+   "tema": "castelo",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [],
+   "largura": 64,
+   "altura": 64,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "ladrilhos-pequenos",
+   "nome": "Ladrilhos pequenos",
+   "tema": "castelo",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [
+    "corredor"
+   ],
+   "largura": 64,
+   "altura": 64,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "ladrilhos-pequenos-relevo",
+   "nome": "Ladrilhos pequenos (relevo)",
+   "tema": "castelo",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [],
+   "largura": 64,
+   "altura": 64,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "lajotas-castanhas-grandes",
+   "nome": "Lajotas castanhas grandes",
+   "tema": "castelo",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [
+    "piso"
+   ],
+   "largura": 64,
+   "altura": 64,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "lajotas-castanhas",
+   "nome": "Lajotas castanhas",
+   "tema": "castelo",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [
+    "corredor"
+   ],
+   "largura": 64,
+   "altura": 64,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "lajotas-castanhas-gastas",
+   "nome": "Lajotas castanhas gastas",
+   "tema": "castelo",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [],
+   "largura": 64,
+   "altura": 64,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "porta-de-ferro",
+   "nome": "Porta de ferro",
+   "tema": "castelo",
+   "estruturas": [
+    "Porta"
+   ],
+   "papeis": [
+    "porta"
+   ],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Roguelike Caves & Dungeons"
+  },
+  {
+   "chave": "porta-com-argola",
+   "nome": "Porta com argola",
+   "tema": "castelo",
+   "estruturas": [
+    "Porta"
+   ],
+   "papeis": [
+    "porta"
+   ],
+   "largura": 64,
+   "altura": 128,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "portao-com-cadeado",
+   "nome": "Portão com cadeado",
+   "tema": "castelo",
+   "estruturas": [
+    "Parede",
+    "Porta"
+   ],
+   "papeis": [],
+   "largura": 64,
+   "altura": 128,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "janela-em-arco",
+   "nome": "Janela em arco",
+   "tema": "castelo",
+   "estruturas": [
+    "Parede"
+   ],
+   "papeis": [],
+   "largura": 64,
+   "altura": 128,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "janela-em-arco-acesa",
+   "nome": "Janela em arco acesa",
+   "tema": "castelo",
+   "estruturas": [
+    "Parede"
+   ],
+   "papeis": [],
+   "largura": 64,
+   "altura": 128,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "janela-de-ferro",
+   "nome": "Janela de ferro",
+   "tema": "castelo",
+   "estruturas": [
+    "Parede"
+   ],
+   "papeis": [],
+   "largura": 64,
+   "altura": 64,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "rocha-de-caverna",
+   "nome": "Rocha de caverna",
+   "tema": "caverna",
+   "estruturas": [
+    "Chao",
+    "Parede"
+   ],
+   "papeis": [
+    "piso",
+    "rocha"
+   ],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Roguelike Caves & Dungeons"
+  },
+  {
+   "chave": "rocha-rachada",
+   "nome": "Rocha rachada",
+   "tema": "caverna",
+   "estruturas": [
+    "Chao",
+    "Parede",
+    "Pilar"
+   ],
+   "papeis": [
+    "pilar"
+   ],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Roguelike Caves & Dungeons"
+  },
+  {
+   "chave": "rocha-bruta",
+   "nome": "Rocha bruta",
+   "tema": "caverna",
+   "estruturas": [
+    "Parede",
+    "Pilar"
+   ],
+   "papeis": [
+    "parede",
+    "pilar"
+   ],
+   "largura": 64,
+   "altura": 128,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "rocha-escorada",
+   "nome": "Rocha escorada",
+   "tema": "caverna",
+   "estruturas": [
+    "Parede"
+   ],
+   "papeis": [],
+   "largura": 64,
+   "altura": 128,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "ardosia",
+   "nome": "Ardósia",
+   "tema": "caverna",
+   "estruturas": [
+    "Chao",
+    "Parede"
+   ],
+   "papeis": [
+    "piso"
+   ],
+   "largura": 18,
+   "altura": 18,
+   "pacote": "Pixel Platformer Blocks"
+  },
+  {
+   "chave": "escoras-de-mina",
+   "nome": "Escoras de mina",
+   "tema": "caverna",
+   "estruturas": [
+    "Parede"
+   ],
+   "papeis": [],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Roguelike Caves & Dungeons"
+  },
+  {
+   "chave": "terra-de-caverna",
+   "nome": "Terra de caverna",
+   "tema": "caverna",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [
+    "corredor"
+   ],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Roguelike Caves & Dungeons"
+  },
+  {
+   "chave": "cascalho",
+   "nome": "Cascalho",
+   "tema": "caverna",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [
+    "corredor"
+   ],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Roguelike RPG Pack"
+  },
+  {
+   "chave": "pedregulho",
+   "nome": "Pedregulho",
+   "tema": "caverna",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [
+    "piso"
+   ],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Roguelike RPG Pack"
+  },
+  {
+   "chave": "musgo",
+   "nome": "Musgo",
+   "tema": "caverna",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Roguelike RPG Pack"
+  },
+  {
+   "chave": "veio-de-carvao",
+   "nome": "Veio de carvão",
+   "tema": "caverna",
+   "estruturas": [
+    "Parede",
+    "Obstaculo",
+    "Pilar"
+   ],
+   "papeis": [
+    "obstaculo"
+   ],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Roguelike Caves & Dungeons"
+  },
+  {
+   "chave": "veio-de-ouro",
+   "nome": "Veio de ouro",
+   "tema": "caverna",
+   "estruturas": [
+    "Parede",
+    "Obstaculo",
+    "Pilar"
+   ],
+   "papeis": [
+    "obstaculo"
+   ],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Roguelike Caves & Dungeons"
+  },
+  {
+   "chave": "veio-de-esmeralda",
+   "nome": "Veio de esmeralda",
+   "tema": "caverna",
+   "estruturas": [
+    "Parede",
+    "Obstaculo",
+    "Pilar"
+   ],
+   "papeis": [],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Roguelike Caves & Dungeons"
+  },
+  {
+   "chave": "cristais-de-ametista",
+   "nome": "Cristais de ametista",
+   "tema": "caverna",
+   "estruturas": [
+    "Parede",
+    "Obstaculo",
+    "Pilar"
+   ],
+   "papeis": [
+    "obstaculo"
+   ],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Roguelike Caves & Dungeons"
+  },
+  {
+   "chave": "agua-de-caverna",
+   "nome": "Água de caverna",
+   "tema": "caverna",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [
+    "perigo"
+   ],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Roguelike Caves & Dungeons"
+  },
+  {
+   "chave": "agua-acida",
+   "nome": "Água ácida",
+   "tema": "caverna",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [
+    "perigo"
+   ],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Roguelike Caves & Dungeons"
+  },
+  {
+   "chave": "lodo-magico",
+   "nome": "Lodo mágico",
+   "tema": "caverna",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Roguelike RPG Pack"
+  },
+  {
+   "chave": "parede-tijolo",
+   "nome": "Tijolos",
+   "tema": "vila",
+   "estruturas": [
+    "Parede",
+    "Pilar"
+   ],
+   "papeis": [
+    "parede"
+   ],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Tiny Town"
+  },
+  {
+   "chave": "parede-madeira",
+   "nome": "Madeira",
+   "tema": "vila",
+   "estruturas": [
+    "Parede"
+   ],
+   "papeis": [
+    "parede"
+   ],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Tiny Town"
+  },
+  {
+   "chave": "tijolo-marrom",
+   "nome": "Tijolo marrom",
+   "tema": "vila",
+   "estruturas": [
+    "Parede",
+    "Pilar"
+   ],
+   "papeis": [
+    "pilar"
+   ],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Roguelike RPG Pack"
+  },
+  {
+   "chave": "tabuas",
+   "nome": "Tábuas",
+   "tema": "vila",
+   "estruturas": [
+    "Parede",
+    "Obstaculo"
+   ],
+   "papeis": [],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Roguelike RPG Pack"
+  },
+  {
+   "chave": "parede-de-celeiro",
+   "nome": "Parede de celeiro",
+   "tema": "vila",
+   "estruturas": [
+    "Parede"
+   ],
+   "papeis": [],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Tiny Farm"
+  },
+  {
+   "chave": "parede-de-tabuas",
+   "nome": "Parede de tábuas",
+   "tema": "vila",
+   "estruturas": [
+    "Parede"
+   ],
+   "papeis": [
+    "parede"
+   ],
+   "largura": 64,
+   "altura": 128,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "enxaimel-alto",
+   "nome": "Enxaimel",
+   "tema": "vila",
+   "estruturas": [
+    "Parede"
+   ],
+   "papeis": [
+    "parede"
+   ],
+   "largura": 64,
+   "altura": 128,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "enxaimel-alto-cruzado",
+   "nome": "Enxaimel cruzado",
+   "tema": "vila",
+   "estruturas": [
+    "Parede"
+   ],
+   "papeis": [],
+   "largura": 64,
+   "altura": 128,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "enxaimel-alto-diagonal",
+   "nome": "Enxaimel diagonal",
+   "tema": "vila",
+   "estruturas": [
+    "Parede"
+   ],
+   "papeis": [],
+   "largura": 64,
+   "altura": 128,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "enxaimel-alto-horizontal",
+   "nome": "Enxaimel horizontal",
+   "tema": "vila",
+   "estruturas": [
+    "Parede"
+   ],
+   "papeis": [],
+   "largura": 64,
+   "altura": 128,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "enxaimel-alto-vertical",
+   "nome": "Enxaimel vertical",
+   "tema": "vila",
+   "estruturas": [
+    "Parede"
+   ],
+   "papeis": [],
+   "largura": 64,
+   "altura": 128,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "enxaimel-com-barro",
+   "nome": "Enxaimel com barro",
+   "tema": "vila",
+   "estruturas": [
+    "Parede"
+   ],
+   "papeis": [],
+   "largura": 64,
+   "altura": 64,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "enxaimel-com-barro-diagonal",
+   "nome": "Enxaimel com barro (diagonal)",
+   "tema": "vila",
+   "estruturas": [
+    "Parede"
+   ],
+   "papeis": [],
+   "largura": 64,
+   "altura": 64,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "tabuas-emolduradas",
+   "nome": "Tábuas emolduradas",
+   "tema": "vila",
+   "estruturas": [
+    "Parede",
+    "Obstaculo"
+   ],
+   "papeis": [],
+   "largura": 64,
+   "altura": 64,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "tabuas-pregadas",
+   "nome": "Tábuas pregadas",
+   "tema": "vila",
+   "estruturas": [
+    "Parede",
+    "Obstaculo"
+   ],
+   "papeis": [],
+   "largura": 64,
+   "altura": 64,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "tabuas-em-x",
+   "nome": "Tábuas em X",
+   "tema": "vila",
+   "estruturas": [
+    "Parede",
+    "Obstaculo"
+   ],
+   "papeis": [
+    "obstaculo"
+   ],
+   "largura": 64,
+   "altura": 64,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "tabuas-diagonais",
+   "nome": "Tábuas diagonais",
+   "tema": "vila",
+   "estruturas": [
+    "Parede",
+    "Obstaculo"
+   ],
+   "papeis": [],
+   "largura": 64,
+   "altura": 64,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "telhado-cinza",
+   "nome": "Telhado de cerâmica cinza",
+   "tema": "vila",
+   "estruturas": [
+    "Parede",
+    "Obstaculo"
+   ],
+   "papeis": [],
+   "largura": 64,
+   "altura": 64,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "telhado-vermelho",
+   "nome": "Telhado de cerâmica vermelha",
+   "tema": "vila",
+   "estruturas": [
+    "Parede",
+    "Obstaculo"
+   ],
+   "papeis": [],
+   "largura": 64,
+   "altura": 64,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "telhado-de-palha",
+   "nome": "Telhado de palha",
+   "tema": "vila",
+   "estruturas": [
+    "Parede",
+    "Obstaculo"
+   ],
+   "papeis": [],
+   "largura": 64,
+   "altura": 64,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "janela-alta",
+   "nome": "Janela alta",
+   "tema": "vila",
+   "estruturas": [
+    "Parede"
+   ],
+   "papeis": [],
+   "largura": 64,
+   "altura": 128,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "janela-alta-acesa",
+   "nome": "Janela alta acesa",
+   "tema": "vila",
+   "estruturas": [
+    "Parede"
+   ],
+   "papeis": [],
+   "largura": 64,
+   "altura": 128,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "janela-quadrada",
+   "nome": "Janela quadrada",
+   "tema": "vila",
+   "estruturas": [
+    "Parede"
+   ],
+   "papeis": [],
+   "largura": 64,
+   "altura": 64,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "janela-quadrada-acesa",
+   "nome": "Janela quadrada acesa",
+   "tema": "vila",
+   "estruturas": [
+    "Parede"
+   ],
+   "papeis": [],
+   "largura": 64,
+   "altura": 64,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "janela-fechada",
+   "nome": "Janela fechada",
+   "tema": "vila",
+   "estruturas": [
+    "Parede"
+   ],
+   "papeis": [],
+   "largura": 64,
+   "altura": 64,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "janela-tapada",
+   "nome": "Janela tapada",
+   "tema": "vila",
+   "estruturas": [
+    "Parede"
+   ],
+   "papeis": [],
+   "largura": 64,
+   "altura": 64,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "janela-redonda",
+   "nome": "Janela redonda",
+   "tema": "vila",
+   "estruturas": [
+    "Parede"
+   ],
+   "papeis": [],
+   "largura": 64,
+   "altura": 64,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "assoalho",
+   "nome": "Assoalho",
+   "tema": "vila",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [
+    "piso"
+   ],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Roguelike RPG Pack"
+  },
+  {
+   "chave": "assoalho-de-tabuas",
+   "nome": "Assoalho de tábuas",
+   "tema": "vila",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [
+    "piso"
+   ],
+   "largura": 64,
+   "altura": 64,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "assoalho-gasto",
+   "nome": "Assoalho gasto",
+   "tema": "vila",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [
+    "corredor"
+   ],
+   "largura": 64,
+   "altura": 64,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "assoalho-relevo",
+   "nome": "Assoalho (relevo)",
+   "tema": "vila",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [],
+   "largura": 64,
+   "altura": 64,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "tabuado-largo",
+   "nome": "Tabuado largo",
+   "tema": "vila",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [
+    "piso"
+   ],
+   "largura": 64,
+   "altura": 64,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "tabuado-largo-gasto",
+   "nome": "Tabuado largo gasto",
+   "tema": "vila",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [],
+   "largura": 64,
+   "altura": 64,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "tabuado-largo-relevo",
+   "nome": "Tabuado largo (relevo)",
+   "tema": "vila",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [],
+   "largura": 64,
+   "altura": 64,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "calcada-de-pedra",
+   "nome": "Calçada de pedra",
+   "tema": "vila",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [
+    "corredor"
+   ],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Roguelike RPG Pack"
+  },
+  {
+   "chave": "caixotes-reforcados",
+   "nome": "Caixotes reforçados",
+   "tema": "vila",
+   "estruturas": [
+    "Obstaculo"
+   ],
+   "papeis": [
+    "obstaculo"
+   ],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Tiny Farm"
+  },
+  {
+   "chave": "porta-de-carvalho",
+   "nome": "Porta de carvalho",
+   "tema": "vila",
+   "estruturas": [
+    "Porta"
+   ],
+   "papeis": [
+    "porta"
+   ],
+   "largura": 64,
+   "altura": 128,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "porta-com-janela",
+   "nome": "Porta com janela",
+   "tema": "vila",
+   "estruturas": [
+    "Porta"
+   ],
+   "papeis": [
+    "porta"
+   ],
+   "largura": 64,
+   "altura": 128,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "porta-com-janela-acesa",
+   "nome": "Porta com janela acesa",
+   "tema": "vila",
+   "estruturas": [
+    "Porta"
+   ],
+   "papeis": [],
+   "largura": 64,
+   "altura": 128,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "estante-de-livros",
+   "nome": "Estante de livros",
+   "tema": "interior",
+   "estruturas": [
+    "Parede",
+    "Obstaculo"
+   ],
+   "papeis": [
+    "obstaculo"
+   ],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Roguelike RPG Pack"
+  },
+  {
+   "chave": "prateleira-de-pocoes",
+   "nome": "Prateleira de poções",
+   "tema": "interior",
+   "estruturas": [
+    "Parede",
+    "Obstaculo"
+   ],
+   "papeis": [
+    "obstaculo"
+   ],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Roguelike Indoors"
+  },
+  {
+   "chave": "armario",
+   "nome": "Armário",
+   "tema": "interior",
+   "estruturas": [
+    "Parede",
+    "Obstaculo"
+   ],
+   "papeis": [
+    "obstaculo"
+   ],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Roguelike Indoors"
+  },
+  {
+   "chave": "assoalho-vermelho",
+   "nome": "Assoalho avermelhado",
+   "tema": "interior",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [
+    "piso"
+   ],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Roguelike Indoors"
+  },
+  {
+   "chave": "tapete-vermelho",
+   "nome": "Tapete vermelho",
+   "tema": "interior",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [
+    "piso"
+   ],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Roguelike Indoors"
+  },
+  {
+   "chave": "tapete-verde",
+   "nome": "Tapete verde",
+   "tema": "interior",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Roguelike Indoors"
+  },
+  {
+   "chave": "lajota-bege",
+   "nome": "Lajota bege",
+   "tema": "interior",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [
+    "corredor"
+   ],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "RPG Urban Pack"
+  },
+  {
+   "chave": "azulejos-azuis-grandes",
+   "nome": "Azulejos azuis grandes",
+   "tema": "interior",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [
+    "piso"
+   ],
+   "largura": 64,
+   "altura": 64,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "azulejos-azuis",
+   "nome": "Azulejos azuis",
+   "tema": "interior",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [],
+   "largura": 64,
+   "altura": 64,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "azulejos-azuis-gastos",
+   "nome": "Azulejos azuis gastos",
+   "tema": "interior",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [],
+   "largura": 64,
+   "altura": 64,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "grama",
+   "nome": "Grama",
+   "tema": "natureza",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [
+    "piso"
+   ],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Tiny Town"
+  },
+  {
+   "chave": "grama-florida",
+   "nome": "Grama florida",
+   "tema": "natureza",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [
+    "piso"
+   ],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Tiny Town"
+  },
+  {
+   "chave": "grama-viva",
+   "nome": "Grama viva",
+   "tema": "natureza",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [
+    "piso"
+   ],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Roguelike RPG Pack"
+  },
+  {
+   "chave": "gramado",
+   "nome": "Gramado",
+   "tema": "natureza",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [],
+   "largura": 64,
+   "altura": 64,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "flores-vermelhas",
+   "nome": "Flores vermelhas",
+   "tema": "natureza",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Roguelike RPG Pack"
+  },
+  {
+   "chave": "flores-brancas",
+   "nome": "Flores brancas",
+   "tema": "natureza",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Roguelike RPG Pack"
+  },
+  {
+   "chave": "flores-azuis",
+   "nome": "Flores azuis",
+   "tema": "natureza",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Roguelike RPG Pack"
+  },
+  {
+   "chave": "lavoura",
+   "nome": "Lavoura",
+   "tema": "natureza",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Tiny Farm"
+  },
+  {
+   "chave": "caminho-pedras",
+   "nome": "Caminho de pedras",
+   "tema": "natureza",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [
+    "corredor"
+   ],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Tiny Town"
+  },
+  {
+   "chave": "trilha",
+   "nome": "Trilha",
+   "tema": "natureza",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [
+    "corredor"
+   ],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Tiny Town"
+  },
+  {
+   "chave": "terra-batida",
+   "nome": "Terra batida",
+   "tema": "natureza",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [
+    "corredor"
+   ],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Roguelike RPG Pack"
+  },
+  {
+   "chave": "terra-umida",
+   "nome": "Terra úmida",
+   "tema": "natureza",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [],
+   "largura": 64,
+   "altura": 64,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "agua",
+   "nome": "Água",
+   "tema": "natureza",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [
+    "perigo"
+   ],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Tiny Battle"
+  },
+  {
+   "chave": "agua-rasa",
+   "nome": "Água rasa",
+   "tema": "natureza",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [
+    "perigo"
+   ],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Roguelike RPG Pack"
+  },
+  {
+   "chave": "agua-profunda",
+   "nome": "Água profunda",
+   "tema": "natureza",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [
+    "perigo"
+   ],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Roguelike RPG Pack"
+  },
+  {
+   "chave": "agua-limpa",
+   "nome": "Água limpa",
+   "tema": "natureza",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [],
+   "largura": 64,
+   "altura": 64,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "agua-de-pantano",
+   "nome": "Água de pântano",
+   "tema": "natureza",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [],
+   "largura": 64,
+   "altura": 64,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "rochas-na-agua",
+   "nome": "Rochas na água",
+   "tema": "natureza",
+   "estruturas": [
+    "Chao",
+    "Obstaculo"
+   ],
+   "papeis": [],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Roguelike RPG Pack"
+  },
+  {
+   "chave": "floresta",
+   "nome": "Floresta",
+   "tema": "natureza",
+   "estruturas": [
+    "Parede",
+    "Obstaculo",
+    "Pilar"
+   ],
+   "papeis": [
+    "parede",
+    "rocha",
+    "obstaculo"
+   ],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Tiny Town"
+  },
+  {
+   "chave": "floresta-outono",
+   "nome": "Floresta de outono",
+   "tema": "natureza",
+   "estruturas": [
+    "Parede",
+    "Obstaculo",
+    "Pilar"
+   ],
+   "papeis": [
+    "obstaculo"
+   ],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Tiny Town"
+  },
+  {
+   "chave": "copas-de-arvore",
+   "nome": "Copas de árvore",
+   "tema": "natureza",
+   "estruturas": [
+    "Parede",
+    "Obstaculo",
+    "Pilar"
+   ],
+   "papeis": [
+    "pilar",
+    "obstaculo"
+   ],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "RPG Urban Pack"
+  },
+  {
+   "chave": "copas-de-outono",
+   "nome": "Copas de outono",
+   "tema": "natureza",
+   "estruturas": [
+    "Parede",
+    "Obstaculo",
+    "Pilar"
+   ],
+   "papeis": [],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "RPG Urban Pack"
+  },
+  {
+   "chave": "neve",
+   "nome": "Neve",
+   "tema": "neve",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [
+    "piso"
+   ],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Tiny Ski"
+  },
+  {
+   "chave": "gelo",
+   "nome": "Gelo",
+   "tema": "neve",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [
+    "corredor"
+   ],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Tiny Ski"
+  },
+  {
+   "chave": "gelo-cristalino",
+   "nome": "Gelo cristalino",
+   "tema": "neve",
+   "estruturas": [
+    "Chao",
+    "Parede",
+    "Pilar"
+   ],
+   "papeis": [
+    "parede",
+    "pilar"
+   ],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Roguelike Caves & Dungeons"
+  },
+  {
+   "chave": "rocha-nevada",
+   "nome": "Rocha nevada",
+   "tema": "neve",
+   "estruturas": [
+    "Parede",
+    "Pilar"
+   ],
+   "papeis": [
+    "rocha"
+   ],
+   "largura": 18,
+   "altura": 18,
+   "pacote": "Pixel Platformer Blocks"
+  },
+  {
+   "chave": "pinheiro-neve",
+   "nome": "Pinheiros na neve",
+   "tema": "neve",
+   "estruturas": [
+    "Parede",
+    "Obstaculo",
+    "Pilar"
+   ],
+   "papeis": [
+    "obstaculo"
+   ],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Tiny Ski"
+  },
+  {
+   "chave": "piso-areia",
+   "nome": "Areia",
+   "tema": "deserto",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [
+    "corredor"
+   ],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Tiny Dungeon"
+  },
+  {
+   "chave": "areia-clara",
+   "nome": "Areia clara",
+   "tema": "deserto",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [
+    "piso"
+   ],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Roguelike RPG Pack"
+  },
+  {
+   "chave": "areia-do-deserto",
+   "nome": "Areia do deserto",
+   "tema": "deserto",
+   "estruturas": [
+    "Chao",
+    "Parede"
+   ],
+   "papeis": [
+    "corredor",
+    "rocha"
+   ],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Roguelike RPG Pack"
+  },
+  {
+   "chave": "areia-grossa",
+   "nome": "Areia grossa",
+   "tema": "deserto",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [],
+   "largura": 64,
+   "altura": 64,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "calcada-de-arenito",
+   "nome": "Calçada de arenito",
+   "tema": "deserto",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [
+    "piso"
+   ],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Roguelike RPG Pack"
+  },
+  {
+   "chave": "arenito-rachado",
+   "nome": "Arenito rachado",
+   "tema": "deserto",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Roguelike RPG Pack"
+  },
+  {
+   "chave": "lajes-de-arenito",
+   "nome": "Lajes de arenito",
+   "tema": "deserto",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [
+    "piso"
+   ],
+   "largura": 64,
+   "altura": 64,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "lajes-de-arenito-relevo",
+   "nome": "Lajes de arenito (relevo)",
+   "tema": "deserto",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [],
+   "largura": 64,
+   "altura": 64,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "arenito-com-moldura",
+   "nome": "Arenito com moldura",
+   "tema": "deserto",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [],
+   "largura": 64,
+   "altura": 64,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "arenito-com-grelha",
+   "nome": "Arenito com grelha",
+   "tema": "deserto",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [],
+   "largura": 64,
+   "altura": 64,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "lajotas-de-areia-grandes",
+   "nome": "Lajotas de areia grandes",
+   "tema": "deserto",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [
+    "piso"
+   ],
+   "largura": 64,
+   "altura": 64,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "lajotas-de-areia",
+   "nome": "Lajotas de areia",
+   "tema": "deserto",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [],
+   "largura": 64,
+   "altura": 64,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "lajotas-de-areia-gastas",
+   "nome": "Lajotas de areia gastas",
+   "tema": "deserto",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [],
+   "largura": 64,
+   "altura": 64,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "blocos-de-arenito",
+   "nome": "Blocos de arenito",
+   "tema": "deserto",
+   "estruturas": [
+    "Parede",
+    "Pilar"
+   ],
+   "papeis": [
+    "pilar"
+   ],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Roguelike RPG Pack"
+  },
+  {
+   "chave": "blocos-de-arenito-claro",
+   "nome": "Blocos de arenito claro",
+   "tema": "deserto",
+   "estruturas": [
+    "Parede",
+    "Pilar"
+   ],
+   "papeis": [],
+   "largura": 18,
+   "altura": 18,
+   "pacote": "Pixel Platformer Blocks"
+  },
+  {
+   "chave": "tijolos-de-arenito",
+   "nome": "Tijolos de arenito",
+   "tema": "deserto",
+   "estruturas": [
+    "Parede",
+    "Pilar"
+   ],
+   "papeis": [
+    "parede"
+   ],
+   "largura": 64,
+   "altura": 128,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "tijolos-de-arenito-relevo",
+   "nome": "Tijolos de arenito (relevo)",
+   "tema": "deserto",
+   "estruturas": [
+    "Parede",
+    "Pilar"
+   ],
+   "papeis": [],
+   "largura": 64,
+   "altura": 128,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "tijolos-de-arenito-estandarte",
+   "nome": "Arenito com estandarte",
+   "tema": "deserto",
+   "estruturas": [
+    "Parede"
+   ],
+   "papeis": [],
+   "largura": 64,
+   "altura": 128,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "tijolinhos-de-arenito",
+   "nome": "Tijolinhos de arenito",
+   "tema": "deserto",
+   "estruturas": [
+    "Parede",
+    "Pilar"
+   ],
+   "papeis": [
+    "parede"
+   ],
+   "largura": 64,
+   "altura": 128,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "tijolinhos-de-arenito-relevo",
+   "nome": "Tijolinhos de arenito (relevo)",
+   "tema": "deserto",
+   "estruturas": [
+    "Parede",
+    "Pilar"
+   ],
+   "papeis": [],
+   "largura": 64,
+   "altura": 128,
+   "pacote": "Retro Textures Fantasy"
+  },
+  {
+   "chave": "lava",
+   "nome": "Lava",
+   "tema": "vulcao",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [
+    "perigo"
+   ],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Tiny Battle"
+  },
+  {
+   "chave": "lava-borbulhante",
+   "nome": "Lava borbulhante",
+   "tema": "vulcao",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [
+    "perigo"
+   ],
+   "largura": 16,
+   "altura": 16,
+   "pacote": "Roguelike RPG Pack"
+  },
+  {
+   "chave": "terra-vermelha",
+   "nome": "Terra vermelha",
+   "tema": "vulcao",
+   "estruturas": [
+    "Chao"
+   ],
+   "papeis": [
+    "piso"
+   ],
+   "largura": 18,
+   "altura": 18,
+   "pacote": "Pixel Platformer Blocks"
+  },
+  {
+   "chave": "rocha-vulcanica",
+   "nome": "Rocha vulcânica",
+   "tema": "vulcao",
+   "estruturas": [
+    "Chao",
+    "Parede",
+    "Obstaculo",
+    "Pilar"
+   ],
+   "papeis": [
+    "corredor",
+    "obstaculo"
+   ],
+   "largura": 18,
+   "altura": 18,
+   "pacote": "Pixel Platformer Blocks"
+  },
+  {
+   "chave": "basalto",
+   "nome": "Basalto",
+   "tema": "vulcao",
+   "estruturas": [
+    "Chao",
+    "Parede",
+    "Obstaculo",
+    "Pilar"
+   ],
+   "papeis": [
+    "parede",
+    "rocha",
+    "pilar"
+   ],
+   "largura": 18,
+   "altura": 18,
+   "pacote": "Pixel Platformer Blocks"
+  }
+ ]
+}
