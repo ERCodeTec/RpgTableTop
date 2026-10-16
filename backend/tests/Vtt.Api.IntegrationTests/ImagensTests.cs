@@ -18,7 +18,7 @@ public class ImagensTests(VttApiFactory factory)
         return (mestre, (await mestre.CriarMesaAsync()).Id);
     }
 
-    private static async Task<string> DetalheAsync(HttpResponseMessage resposta)
+    internal static async Task<string> DetalheAsync(HttpResponseMessage resposta)
     {
         var problema = await resposta.Content.ReadFromJsonAsync<ValidationProblemDetails>();
         return string.Join(" ", problema!.Errors.SelectMany(erro => erro.Value)) + problema.Detail;
@@ -107,7 +107,7 @@ public class ImagensTests(VttApiFactory factory)
     }
 
     [Fact]
-    public async Task ArquivoAcimaDoLimite_OuComDimensoesAcimaDoMaximo_ERejeitado()
+    public async Task SemLimitePadrao_ArquivoGrandeELargo_EAceito()
     {
         var (mestre, mesaId) = await CriarMesaAsync();
         var acimaDe5Mb = new byte[5 * 1024 * 1024 + 1];
@@ -115,13 +115,9 @@ public class ImagensTests(VttApiFactory factory)
 
         var grande = await mestre.EnviarImagemAsync(mesaId, acimaDe5Mb, "enorme.png");
         var larga = await mestre.EnviarImagemAsync(mesaId, ImagensDeTeste.Png(4097, 8), "larga.png");
-        var noLimite = await mestre.EnviarImagemAsync(mesaId, ImagensDeTeste.Png(4096, 8), "limite.png");
 
-        Assert.Equal(HttpStatusCode.BadRequest, grande.StatusCode);
-        Assert.Contains("limite de 5 MB", await DetalheAsync(grande));
-        Assert.Equal(HttpStatusCode.BadRequest, larga.StatusCode);
-        Assert.Contains("4097 × 8", await DetalheAsync(larga));
-        Assert.Equal(HttpStatusCode.Created, noLimite.StatusCode);
+        Assert.Equal(HttpStatusCode.Created, grande.StatusCode);
+        Assert.Equal(HttpStatusCode.Created, larga.StatusCode);
     }
 
     [Fact]
@@ -211,7 +207,7 @@ public class ImagensTests(VttApiFactory factory)
 
         Assert.Equal(new[] { primeira.Id, segunda.Id }.Order(), galeria.Imagens.Select(i => i.Id).Order());
         Assert.Equal(primeira.TamanhoBytes + segunda.TamanhoBytes, galeria.BytesUsados);
-        Assert.Equal((100, 200L * 1024 * 1024, 5L * 1024 * 1024, 4096), (galeria.CotaImagens, galeria.CotaBytes, galeria.TamanhoMaximoBytes, galeria.DimensaoMaxima));
+        Assert.Equal(((int?)null, (long?)null, (long?)null, 16384), (galeria.CotaImagens, galeria.CotaBytes, galeria.TamanhoMaximoBytes, galeria.DimensaoMaxima));
     }
 
     [Fact]
@@ -331,9 +327,9 @@ public class ImagensTests(VttApiFactory factory)
 
 public class CotaBaixaFactory : VttApiFactory
 {
-    protected override int CotaImagensPorMesa => 2;
+    protected override int? CotaImagensPorMesa => 2;
 
-    protected override long CotaBytesPorMesa => 6_000;
+    protected override long? CotaBytesPorMesa => 6_000;
 }
 
 public class CotaDeImagensTests(CotaBaixaFactory factory) : IClassFixture<CotaBaixaFactory>
@@ -377,7 +373,7 @@ public class UploadLimitadoFactory : VttApiFactory
 {
     public const int Limite = 2;
 
-    protected override int UploadsPorMinuto => Limite;
+    protected override int? UploadsPorMinuto => Limite;
 }
 
 public class UploadLimitadoTests(UploadLimitadoFactory factory) : IClassFixture<UploadLimitadoFactory>
@@ -408,7 +404,7 @@ public class UploadLimitadoTests(UploadLimitadoFactory factory) : IClassFixture<
 public class AnimacaoLimitadaFactory : VttApiFactory
 {
     /// <summary>Cabem 2 quadros de 40 × 30.</summary>
-    protected override long PixelsMaximosDaAnimacao => 40 * 30 * 2;
+    protected override long? PixelsMaximosDaAnimacao => 40 * 30 * 2;
 }
 
 public class AnimacaoLimitadaTests(AnimacaoLimitadaFactory factory) : IClassFixture<AnimacaoLimitadaFactory>
@@ -430,5 +426,34 @@ public class AnimacaoLimitadaTests(AnimacaoLimitadaFactory factory) : IClassFixt
         var detalhe = string.Join(" ", problema.Errors.SelectMany(erro => erro.Value));
         Assert.Contains("3 quadros de 40 × 30 pixels; nesse tamanho, o máximo é 2 quadros", detalhe);
         Assert.Equal(HttpStatusCode.Created, parada.StatusCode);
+    }
+}
+
+public class ArquivoLimitadoFactory : VttApiFactory
+{
+    protected override long? TamanhoMaximoBytes => 5L * 1024 * 1024;
+
+    protected override int? DimensaoMaxima => 4096;
+}
+
+public class ArquivoLimitadoTests(ArquivoLimitadoFactory factory) : IClassFixture<ArquivoLimitadoFactory>
+{
+    [Fact]
+    public async Task ArquivoAcimaDoLimite_OuComDimensoesAcimaDoMaximo_ERejeitado()
+    {
+        var mestre = await factory.CriarSessaoAsync();
+        var mesaId = (await mestre.CriarMesaAsync()).Id;
+        var acimaDe5Mb = new byte[5 * 1024 * 1024 + 1];
+        ImagensDeTeste.Png().CopyTo(acimaDe5Mb, 0);
+
+        var grande = await mestre.EnviarImagemAsync(mesaId, acimaDe5Mb, "enorme.png");
+        var larga = await mestre.EnviarImagemAsync(mesaId, ImagensDeTeste.Png(4097, 8), "larga.png");
+        var noLimite = await mestre.EnviarImagemAsync(mesaId, ImagensDeTeste.Png(4096, 8), "limite.png");
+
+        Assert.Equal(HttpStatusCode.BadRequest, grande.StatusCode);
+        Assert.Contains("limite de 5 MB", await ImagensTests.DetalheAsync(grande));
+        Assert.Equal(HttpStatusCode.BadRequest, larga.StatusCode);
+        Assert.Contains("4097 × 8", await ImagensTests.DetalheAsync(larga));
+        Assert.Equal(HttpStatusCode.Created, noLimite.StatusCode);
     }
 }

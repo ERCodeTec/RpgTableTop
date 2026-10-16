@@ -53,8 +53,8 @@ public class PersonagensController(IPersonagemService personagens) : ControllerB
     /// <summary>Envia a foto do personagem, substituindo a anterior.</summary>
     [HttpPut("{id:guid}/foto")]
     [EnableRateLimiting(RateLimitingOptions.PoliticaUpload)]
-    [RequestSizeLimit(MesasController.LimiteDoCorpoDoUpload)]
-    [RequestFormLimits(MultipartBodyLengthLimit = MesasController.LimiteDoCorpoDoUpload)]
+    [DisableRequestSizeLimit]
+    [RequestFormLimits(MultipartBodyLengthLimit = long.MaxValue)]
     [ProducesResponseType<PersonagemDto>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]

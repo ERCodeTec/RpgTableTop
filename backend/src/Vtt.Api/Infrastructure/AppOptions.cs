@@ -19,8 +19,8 @@ public class RateLimitingOptions
 
     public int AuthJanelaSegundos { get; set; } = 60;
 
-    /// <summary>Uploads de imagem permitidos por usuário a cada minuto.</summary>
-    public int UploadsPorMinuto { get; set; } = 30;
+    /// <summary>Uploads de imagem permitidos por usuário a cada minuto; null é sem limite (o padrão).</summary>
+    public int? UploadsPorMinuto { get; set; }
 
     /// <summary>Chamadas de MoverToken permitidas por conexão do Hub a cada segundo.</summary>
     public int MovimentosPorSegundo { get; set; } = 20;

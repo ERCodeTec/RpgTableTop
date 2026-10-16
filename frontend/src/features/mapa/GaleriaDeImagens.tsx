@@ -107,8 +107,10 @@ export function GaleriaDeImagens({ mesaId }: { mesaId: string }) {
 
       {dados && (
         <p className="painel-item-detalhe">
-          {dados.imagens.length} de {dados.cotaImagens} imagens · {formatarTamanho(dados.bytesUsados)} de{' '}
-          {formatarTamanho(dados.cotaBytes)}. PNG, JPEG, WebP ou GIF, até {formatarTamanho(dados.tamanhoMaximoBytes)} e{' '}
+          {dados.imagens.length}
+          {dados.cotaImagens !== null && ` de ${dados.cotaImagens}`} imagens · {formatarTamanho(dados.bytesUsados)}
+          {dados.cotaBytes !== null ? ` de ${formatarTamanho(dados.cotaBytes)}` : ' usados'}. PNG, JPEG, WebP ou GIF, até{' '}
+          {dados.tamanhoMaximoBytes !== null && `${formatarTamanho(dados.tamanhoMaximoBytes)} e `}
           {dados.dimensaoMaxima} × {dados.dimensaoMaxima} px.
         </p>
       )}

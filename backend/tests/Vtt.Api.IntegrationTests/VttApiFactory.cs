@@ -24,15 +24,18 @@ public class VttApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
     /// <summary>Limite dos demais métodos do Hub por conexão; alto por padrão pelo mesmo motivo.</summary>
     protected virtual int ChamadasDoHubPorSegundo => 10_000;
 
-    /// <summary>Limite de uploads por usuário por minuto; alto por padrão pelo mesmo motivo.</summary>
-    protected virtual int UploadsPorMinuto => 10_000;
+    /// <summary>Limites de upload; null mantém o de produção (sem limite, nos opcionais).</summary>
+    protected virtual int? UploadsPorMinuto => null;
 
-    /// <summary>Cotas de imagens por mesa; as de produção por padrão.</summary>
-    protected virtual int CotaImagensPorMesa => 100;
+    protected virtual int? CotaImagensPorMesa => null;
 
-    protected virtual long CotaBytesPorMesa => 200L * 1024 * 1024;
+    protected virtual long? CotaBytesPorMesa => null;
 
-    protected virtual long PixelsMaximosDaAnimacao => 64L * 1024 * 1024;
+    protected virtual long? TamanhoMaximoBytes => null;
+
+    protected virtual int? DimensaoMaxima => null;
+
+    protected virtual long? PixelsMaximosDaAnimacao => null;
 
     /// <summary>Pasta temporária que faz o papel do volume de uploads; apagada ao fim dos testes.</summary>
     public string PastaDeUploads { get; } = Path.Combine(Path.GetTempPath(), $"vtt-uploads-{Guid.NewGuid():N}");
@@ -47,12 +50,22 @@ public class VttApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         builder.UseSetting("RateLimiting:AuthLimite", AuthLimite.ToString());
         builder.UseSetting("RateLimiting:MovimentosPorSegundo", MovimentosPorSegundo.ToString());
         builder.UseSetting("RateLimiting:ChamadasDoHubPorSegundo", ChamadasDoHubPorSegundo.ToString());
-        builder.UseSetting("RateLimiting:UploadsPorMinuto", UploadsPorMinuto.ToString());
-        builder.UseSetting("Uploads:CotaImagensPorMesa", CotaImagensPorMesa.ToString());
-        builder.UseSetting("Uploads:CotaBytesPorMesa", CotaBytesPorMesa.ToString());
-        builder.UseSetting("Uploads:PixelsMaximosDaAnimacao", PixelsMaximosDaAnimacao.ToString());
+        UsarSeDefinido(builder, "RateLimiting:UploadsPorMinuto", UploadsPorMinuto);
+        UsarSeDefinido(builder, "Uploads:CotaImagensPorMesa", CotaImagensPorMesa);
+        UsarSeDefinido(builder, "Uploads:CotaBytesPorMesa", CotaBytesPorMesa);
+        UsarSeDefinido(builder, "Uploads:TamanhoMaximoBytes", TamanhoMaximoBytes);
+        UsarSeDefinido(builder, "Uploads:DimensaoMaxima", DimensaoMaxima);
+        UsarSeDefinido(builder, "Uploads:PixelsMaximosDaAnimacao", PixelsMaximosDaAnimacao);
         builder.UseSetting("Storage:UploadsPath", PastaDeUploads);
         builder.UseSetting("App:PublicBaseUrl", UrlPublica + "/");
+    }
+
+    private static void UsarSeDefinido<T>(IWebHostBuilder builder, string chave, T? valor) where T : struct
+    {
+        if (valor is { } definido)
+        {
+            builder.UseSetting(chave, definido.ToString());
+        }
     }
 
     public Task InitializeAsync() => _postgres.StartAsync();

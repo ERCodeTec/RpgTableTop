@@ -17,8 +17,8 @@ public class BibliotecaImagensController(IImagemService imagens) : ControllerBas
 {
     [HttpPost]
     [EnableRateLimiting(RateLimitingOptions.PoliticaUpload)]
-    [RequestSizeLimit(MesasController.LimiteDoCorpoDoUpload)]
-    [RequestFormLimits(MultipartBodyLengthLimit = MesasController.LimiteDoCorpoDoUpload)]
+    [DisableRequestSizeLimit]
+    [RequestFormLimits(MultipartBodyLengthLimit = long.MaxValue)]
     [ProducesResponseType<ImagemDto>(StatusCodes.Status201Created)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]

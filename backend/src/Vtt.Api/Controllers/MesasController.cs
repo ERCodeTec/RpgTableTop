@@ -13,12 +13,6 @@ namespace Vtt.Api.Controllers;
 [Route("api/mesas")]
 public class MesasController(IMesaService mesas, IConviteService convites, IMapaService mapas, IImagemService imagens) : ControllerBase
 {
-    /// <summary>
-    /// Teto do corpo da requisição de upload, acima do qual o servidor nem lê o arquivo (413).
-    /// O limite por arquivo, configurável e menor, é conferido pelo serviço.
-    /// </summary>
-    internal const long LimiteDoCorpoDoUpload = 32 * 1024 * 1024;
-
     [HttpPost]
     [ProducesResponseType<MesaDetalheDto>(StatusCodes.Status201Created)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
@@ -185,8 +179,8 @@ public class MesasController(IMesaService mesas, IConviteService convites, IMapa
     /// </summary>
     [HttpPost("{id:guid}/imagens")]
     [EnableRateLimiting(RateLimitingOptions.PoliticaUpload)]
-    [RequestSizeLimit(LimiteDoCorpoDoUpload)]
-    [RequestFormLimits(MultipartBodyLengthLimit = LimiteDoCorpoDoUpload)]
+    [DisableRequestSizeLimit]
+    [RequestFormLimits(MultipartBodyLengthLimit = long.MaxValue)]
     [ProducesResponseType<ImagemDto>(StatusCodes.Status201Created)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]

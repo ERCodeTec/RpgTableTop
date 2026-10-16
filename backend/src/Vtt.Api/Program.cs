@@ -102,12 +102,13 @@ builder.Services.AddOptions<RateLimiterOptions>()
                 }));
 
         // Por usuário: o limitador roda depois da autenticação, então o "sub" do token já está disponível.
-        limiter.AddPolicy(RateLimitingOptions.PoliticaUpload, httpContext =>
-            RateLimitPartition.GetFixedWindowLimiter(
+        limiter.AddPolicy(RateLimitingOptions.PoliticaUpload, httpContext => limite.UploadsPorMinuto is not { } uploadsPorMinuto
+            ? RateLimitPartition.GetNoLimiter("sem-limite")
+            : RateLimitPartition.GetFixedWindowLimiter(
                 httpContext.User.FindFirst("sub")?.Value ?? httpContext.Connection.RemoteIpAddress?.ToString() ?? "desconhecido",
                 _ => new FixedWindowRateLimiterOptions
                 {
-                    PermitLimit = limite.UploadsPorMinuto,
+                    PermitLimit = uploadsPorMinuto,
                     Window = TimeSpan.FromMinutes(1),
                     QueueLimit = 0
                 }));

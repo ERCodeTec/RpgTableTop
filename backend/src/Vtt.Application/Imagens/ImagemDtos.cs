@@ -27,9 +27,9 @@ public record ImagemDto(
 public record GaleriaDto(
     IReadOnlyList<ImagemDto> Imagens,
     long BytesUsados,
-    long CotaBytes,
-    int CotaImagens,
-    long TamanhoMaximoBytes,
+    long? CotaBytes,
+    int? CotaImagens,
+    long? TamanhoMaximoBytes,
     int DimensaoMaxima);
 
 /// <summary>Um arquivo pronto para ser devolvido; quem recebe fecha o <paramref name="Conteudo"/>.</summary>

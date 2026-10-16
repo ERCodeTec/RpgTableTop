@@ -218,13 +218,13 @@ public class ImagemService(
 
         if (tamanho > _limites.TamanhoMaximoBytes)
         {
-            return Rejeitar(escopo, $"O arquivo passa do limite de {EmMegabytes(_limites.TamanhoMaximoBytes)} MB.");
+            return Rejeitar(escopo, $"O arquivo passa do limite de {EmMegabytes(_limites.TamanhoMaximoBytes.Value)} MB.");
         }
 
         var dados = await LerAsync(conteudo, _limites.TamanhoMaximoBytes, cancellationToken);
         if (dados is null)
         {
-            return Rejeitar(escopo, $"O arquivo passa do limite de {EmMegabytes(_limites.TamanhoMaximoBytes)} MB.");
+            return Rejeitar(escopo, $"O arquivo passa do limite de {EmMegabytes(_limites.TamanhoMaximoBytes!.Value)} MB.");
         }
 
         if (TipoDeImagem.Detectar(dados) is not { } tipo)
@@ -392,8 +392,8 @@ public class ImagemService(
         return memoria.ToArray();
     }
 
-    /// <summary>A mesa ou a galeria pessoal: onde a imagem fica e que cota vale.</summary>
-    private sealed record Escopo(Guid? MesaId, Guid? UsuarioId, long CotaBytes, int CotaImagens, string Sujeito);
+    /// <summary>A mesa ou a galeria pessoal: onde a imagem fica e que cota vale (null é sem cota).</summary>
+    private sealed record Escopo(Guid? MesaId, Guid? UsuarioId, long? CotaBytes, int? CotaImagens, string Sujeito);
 
     private Escopo EscopoDaMesa(Guid mesaId) =>
         new(mesaId, null, _limites.CotaBytesPorMesa, _limites.CotaImagensPorMesa, "A mesa");
@@ -416,7 +416,7 @@ public class ImagemService(
 
         if (bytesNovos > 0 && uso.Bytes + bytesNovos > escopo.CotaBytes)
         {
-            return Erro.Conflito($"{escopo.Sujeito} passaria do limite de {EmMegabytes(escopo.CotaBytes)} MB em imagens. Exclua alguma para enviar outra.");
+            return Erro.Conflito($"{escopo.Sujeito} passaria do limite de {EmMegabytes(escopo.CotaBytes.Value)} MB em imagens. Exclua alguma para enviar outra.");
         }
 
         return null;
@@ -504,7 +504,7 @@ public class ImagemService(
     }
 
     /// <summary>Lê o conteúdo inteiro, ou devolve null se ele passar do limite (o tamanho declarado pode mentir).</summary>
-    private static async Task<byte[]?> LerAsync(Stream conteudo, long limite, CancellationToken cancellationToken)
+    private static async Task<byte[]?> LerAsync(Stream conteudo, long? limite, CancellationToken cancellationToken)
     {
         using var memoria = new MemoryStream();
         var buffer = new byte[81920];

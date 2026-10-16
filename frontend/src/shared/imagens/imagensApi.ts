@@ -13,13 +13,13 @@ export interface Imagem {
   criadaEm: string
 }
 
-/** A galeria (da mesa ou a pessoal) e os limites que o servidor aplica. */
+/** A galeria (da mesa ou a pessoal) e os limites que o servidor aplica; null é sem limite. */
 export interface Galeria {
   imagens: Imagem[]
   bytesUsados: number
-  cotaBytes: number
-  cotaImagens: number
-  tamanhoMaximoBytes: number
+  cotaBytes: number | null
+  cotaImagens: number | null
+  tamanhoMaximoBytes: number | null
   dimensaoMaxima: number
 }
 
