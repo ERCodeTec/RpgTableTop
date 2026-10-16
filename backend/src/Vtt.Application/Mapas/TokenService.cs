@@ -177,7 +177,9 @@ public class TokenService(IAppDbContext db, IMapaNotifier notifier, IImagemServi
             return erro!;
         }
 
-        if (request.ImagemId is { } imagemId
+        // No token de um jogador, a imagem é a foto da ficha: o pedido não a troca.
+        if (token.DonoUsuarioId is null
+            && request.ImagemId is { } imagemId
             && imagemId != token.ImagemId
             && !await db.ImagemEhDaMesaAsync(imagemId, mapa!.MesaId, cancellationToken))
         {
@@ -187,7 +189,7 @@ public class TokenService(IAppDbContext db, IMapaNotifier notifier, IImagemServi
         var antes = ProjecoesDoToken.De(token);
         if (token.DonoUsuarioId is not null)
         {
-            // Nome, ícone, cor e HP máximo vêm do personagem do jogador.
+            // Nome, ícone, cor, imagem e HP máximo vêm do personagem do jogador.
             if (request.HpAtual > token.HpMaximo)
             {
                 return Erro.Invalido("hpAtual", "O HP atual deve ficar entre 0 e o HP máximo.");
@@ -210,10 +212,10 @@ public class TokenService(IAppDbContext db, IMapaNotifier notifier, IImagemServi
             }
 
             token.Visao = request.Visao ?? token.Visao;
+            token.ImagemId = request.ImagemId;
         }
 
         token.HpAtual = request.HpAtual;
-        token.ImagemId = request.ImagemId;
         token.ExibicaoHp = request.ExibicaoHp ?? token.ExibicaoHp;
         if (request.Visivel is { } visivel && visivel != token.Visivel)
         {
@@ -362,10 +364,19 @@ public class TokenService(IAppDbContext db, IMapaNotifier notifier, IImagemServi
             return falha!.Value;
         }
 
-        // O arraste livre é do Mestre; o jogador anda pelo movimento por blocos, que cobra o custo.
-        if (papel == PapelNaMesa.Jogador)
+        // O arraste livre é do Mestre; o jogador só arrasta o próprio token se a mesa estiver com a
+        // movimentação livre. Senão, anda pelo movimento por blocos, que cobra o custo.
+        var jogador = papel == PapelNaMesa.Jogador;
+        if (jogador)
         {
-            return MovimentoResultado.Rejeitado(UseOsBlocos, token, visao);
+            var movimentacao = await db.Mesas
+                .Where(mesa => mesa.Id == mapa!.MesaId)
+                .Select(mesa => mesa.Movimentacao)
+                .FirstAsync(cancellationToken);
+            if (movimentacao != ModoDeMovimentacao.Livre)
+            {
+                return MovimentoResultado.Rejeitado(UseOsBlocos, token, visao);
+            }
         }
 
         if (!mapa!.Contem(x, y))
@@ -383,10 +394,25 @@ public class TokenService(IAppDbContext db, IMapaNotifier notifier, IImagemServi
             return MovimentoResultado.Ok(token, visao);
         }
 
-        // O Mestre vê todos os tokens, então para ele todos ocupam. As estruturas não o barram.
-        if (await db.Tokens.AnyAsync(
-                t => t.MapaId == token.MapaId && t.Id != token.Id && t.X == x && t.Y == y,
-                cancellationToken))
+        // O Mestre vê todos os tokens, então para ele todos ocupam, e as estruturas não o barram. Para o
+        // jogador, como no movimento por blocos, um token oculto não ocupa e as estruturas barram.
+        if (jogador)
+        {
+            var ocupadas = await db.CelulasOcupadasAsync(token.MapaId, somenteVisiveis: true, cancellationToken);
+            ocupadas.Remove((token.X, token.Y));
+            if (ocupadas.Contains((x, y)))
+            {
+                return MovimentoResultado.Rejeitado(CelulaOcupada, token, visao);
+            }
+
+            if ((await db.CelulasBloqueadasAsync(token.MapaId, cancellationToken)).Contains((x, y)))
+            {
+                return MovimentoResultado.Rejeitado(EstruturaBloqueando, token, visao);
+            }
+        }
+        else if (await db.Tokens.AnyAsync(
+                     t => t.MapaId == token.MapaId && t.Id != token.Id && t.X == x && t.Y == y,
+                     cancellationToken))
         {
             return MovimentoResultado.Rejeitado(CelulaOcupada, token, visao);
         }

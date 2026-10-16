@@ -99,7 +99,7 @@ export function TokenFormDialogo({ mesaId, mapaId, token, aoFechar }: TokenFormD
         {deJogador ? (
           <>
             <p className="campo-dica">
-              Este é o token de um jogador. Nome, ícone, cor, HP máximo ({token!.hpMaximo}), deslocamento
+              Este é o token de um jogador. Nome, ícone, foto, cor, HP máximo ({token!.hpMaximo}), deslocamento
               ({token!.deslocamento} células) e visão ({token!.visao} células) acompanham o personagem dele.
             </p>
             <Campo
@@ -114,7 +114,6 @@ export function TokenFormDialogo({ mesaId, mapaId, token, aoFechar }: TokenFormD
               autoFocus
               required
             />
-            {campoDeImagem}
           </>
         ) : (
           <>

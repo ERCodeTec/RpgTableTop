@@ -1,4 +1,5 @@
 using Vtt.Application.Common;
+using Vtt.Domain.Mesas;
 
 namespace Vtt.Application.Mesas;
 
@@ -21,6 +22,8 @@ public interface IMesaService
     Task<Resultado> ExcluirAsync(Guid usuarioId, Guid mesaId, CancellationToken cancellationToken = default);
 
     Task<Resultado<MesaDetalheDto>> DefinirSessaoAsync(Guid usuarioId, Guid mesaId, bool ativa, CancellationToken cancellationToken = default);
+
+    Task<Resultado<MesaDetalheDto>> DefinirMovimentacaoAsync(Guid usuarioId, Guid mesaId, ModoDeMovimentacao modo, CancellationToken cancellationToken = default);
 
     /// <summary>O jogador troca o próprio personagem; bloqueado (Conflito) com a sessão ativa.</summary>
     Task<Resultado<MembroDto>> DefinirMeuPersonagemAsync(Guid usuarioId, Guid mesaId, Guid personagemId, CancellationToken cancellationToken = default);

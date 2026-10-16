@@ -744,6 +744,14 @@ namespace Vtt.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(500)")
                         .HasColumnName("descricao");
 
+                    b.Property<string>("Movimentacao")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("PorBlocos")
+                        .HasColumnName("movimentacao");
+
                     b.Property<string>("Nome")
                         .IsRequired()
                         .HasMaxLength(80)
@@ -845,6 +853,10 @@ namespace Vtt.Infrastructure.Persistence.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("hp_maximo");
 
+                    b.Property<Guid?>("ImagemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("imagem_id");
+
                     b.Property<int>("Nivel")
                         .HasColumnType("integer")
                         .HasColumnName("nivel");
@@ -867,6 +879,9 @@ namespace Vtt.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_personagens");
+
+                    b.HasIndex("ImagemId")
+                        .HasDatabaseName("ix_personagens_imagem_id");
 
                     b.HasIndex("UsuarioId")
                         .HasDatabaseName("ix_personagens_usuario_id");
@@ -1182,6 +1197,12 @@ namespace Vtt.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Vtt.Domain.Personagens.Personagem", b =>
                 {
+                    b.HasOne("Vtt.Domain.Imagens.ImagemUpload", null)
+                        .WithMany()
+                        .HasForeignKey("ImagemId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_personagens_imagens_imagem_id");
+
                     b.HasOne("Vtt.Infrastructure.Identity.Usuario", null)
                         .WithMany()
                         .HasForeignKey("UsuarioId")

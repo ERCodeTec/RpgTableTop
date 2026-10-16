@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.SignalR;
 using Vtt.Application.Mesas;
+using Vtt.Domain.Mesas;
 
 namespace Vtt.Api.Hubs;
 
@@ -38,6 +39,9 @@ public class MesaNotifier(
 
     public Task SessaoAlteradaAsync(Guid mesaId, bool ativa) =>
         EnviarAsync(mesaId, nameof(IMesaClient.SessaoAlterada), grupo => grupo.SessaoAlterada(mesaId, ativa));
+
+    public Task MovimentacaoAlteradaAsync(Guid mesaId, ModoDeMovimentacao modo) =>
+        EnviarAsync(mesaId, nameof(IMesaClient.MovimentacaoAlterada), grupo => grupo.MovimentacaoAlterada(mesaId, modo));
 
     public Task MesaExcluidaAsync(Guid mesaId) =>
         EnviarAsync(mesaId, nameof(IMesaClient.MesaExcluida), async grupo =>

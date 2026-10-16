@@ -13,6 +13,8 @@ public class Mesa
     /// <summary>Com a sessão ativa, jogadores não trocam o próprio personagem.</summary>
     public bool SessaoAtiva { get; set; }
 
+    public ModoDeMovimentacao Movimentacao { get; set; } = ModoDeMovimentacao.PorBlocos;
+
     public DateTimeOffset CriadaEm { get; set; }
 
     public List<MesaMembro> Membros { get; set; } = [];

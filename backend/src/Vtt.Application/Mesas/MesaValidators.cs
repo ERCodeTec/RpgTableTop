@@ -58,3 +58,13 @@ public class SessaoRequestValidator : AbstractValidator<SessaoRequest>
         RuleFor(x => x.Ativa).NotNull().WithMessage("Informe se a sessão fica ativa.");
     }
 }
+
+public class MovimentacaoRequestValidator : AbstractValidator<MovimentacaoRequest>
+{
+    public MovimentacaoRequestValidator()
+    {
+        RuleFor(x => x.Modo)
+            .NotNull().WithMessage("Informe o modo de movimentação.")
+            .IsInEnum().WithMessage("Modo de movimentação inválido.");
+    }
+}

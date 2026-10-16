@@ -27,6 +27,7 @@ Em todas as linhas a autenticação é o `[Authorize]` do controller ou do Hub (
 | `PUT /api/mesas/{id}` | Mestre | `MesaAcesso.ExigirMestreAsync` |
 | `DELETE /api/mesas/{id}` | Mestre | `MesaAcesso.ExigirMestreAsync` |
 | `PUT /api/mesas/{id}/sessao` | Mestre | `MesaAcesso.ExigirMestreAsync` |
+| `PUT /api/mesas/{id}/movimentacao` | Mestre | `MesaAcesso.ExigirMestreAsync` |
 | `PUT /api/mesas/{id}/meu-personagem` | membro, com personagem próprio | `MesaService.DefinirMeuPersonagemAsync`; jogador bloqueado com a sessão ativa |
 | `PUT /api/mesas/{id}/membros/{usuarioId}/personagem` | Mestre | `MesaAcesso.ExigirMestreAsync`; o personagem precisa ser do membro |
 | `GET /api/mesas/{id}/membros/{usuarioId}/personagens` | Mestre | `MesaAcesso.ExigirMestreAsync` |
@@ -72,7 +73,7 @@ Nos endpoints de token (`/api/tokens/{id}...`), o jogador recebe 403 só para to
 | conexão | usuário logado | `[Authorize]` no Hub; o token chega em `?access_token=`, aceito só nas rotas `/hubs` |
 | `EntrarNaMesa(mesaId)` | membro | `MesaService.ObterAsync`; o papel define o grupo (Mestre ou jogadores) e o estado devolvido é filtrado pela visão de quem chama |
 | `SairDoLobby(mesaId)` | qualquer conexão | age só sobre a própria conexão |
-| `MoverToken(tokenId, x, y, versao)` | Só o Mestre (arraste livre); o jogador recebe movimento rejeitado | `TokenService.MoverAsync`; limites, célula livre e versão |
+| `MoverToken(tokenId, x, y, versao)` | Mestre; o jogador só no próprio token e com a movimentação da mesa em `Livre` (senão, movimento rejeitado) | `TokenService.MoverAsync`; limites, célula livre, estruturas (para o jogador) e versão |
 | `MoverPorBlocos(tokenId, x, y, versao)`, `DesfazerMovimento(tokenId, versao)`, `ConcluirMovimento(tokenId, versao)` | Mestre: qualquer token. Jogador: só o próprio, em mapa ativo | `TokenService.MoverPorBlocosAsync` e afins; limites, célula livre, estruturas, alcance pelo movimento restante, pendência e versão |
 | `ExplorarCelulas(mapaId, celulas)` | Jogador, no mapa ativo com a névoa ligada; grava só na memória do grupo ou na dele. Do Mestre, é ignorado | `NevoaService.ExplorarAsync`; camada do tamanho do mapa; limite dos movimentos (acima dele, a chamada é ignorada) |
 | `NovaRodada(mapaId)`, `RestaurarMovimento(tokenId)` | Só o Mestre | `TokenService.NovaRodadaAsync` / `RestaurarMovimentoAsync` (`ExigirMestreAsync`, `ObterComoMestreAsync`) |
@@ -83,7 +84,7 @@ Todos os métodos têm limite de chamadas por conexão (`LimitadorDoHub`) e as m
 
 | Evento | Quem recebe |
 |---|---|
-| Lobby (`MembroEntrou`, `MembroSaiu`, `MembroOnline`, `MembroOffline`, `PersonagemAtivoAlterado`, `SessaoAlterada`, `MesaExcluida`) | o grupo da mesa; não trazem HP |
+| Lobby (`MembroEntrou`, `MembroSaiu`, `MembroOnline`, `MembroOffline`, `PersonagemAtivoAlterado`, `SessaoAlterada`, `MovimentacaoAlterada`, `MesaExcluida`) | o grupo da mesa; não trazem HP |
 | `RemovidoDaMesa` | só o usuário removido |
 | `TokenCriado`, `TokenAtualizado`, `TokenMovido`, `TokenRemovido`, `HpAlterado` | cada público recebe a própria projeção: Mestre (tudo), dono (tudo do próprio token) e demais jogadores (nada de tokens ocultos; HP conforme a exibição). Montado em `ProjecoesDoToken`, enviado por `MapaNotifier` |
 | `MapaAtivoAlterado` | cada usuário conectado recebe o estado montado para ele |

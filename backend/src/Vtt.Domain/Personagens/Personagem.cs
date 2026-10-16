@@ -36,6 +36,10 @@ public class Personagem
 
     /// <summary>Até onde o personagem enxerga, em células, quando o mapa tem névoa; o token dele usa este valor.</summary>
     public int Visao { get; set; } = VisaoPadrao;
+
+    /// <summary>A foto do personagem: uma imagem pessoal do dono. O token do jogador a espelha.</summary>
+    public Guid? ImagemId { get; set; }
+
     public DateTimeOffset CriadoEm { get; set; }
     public DateTimeOffset AtualizadoEm { get; set; }
 }

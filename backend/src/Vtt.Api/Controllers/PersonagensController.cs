@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Vtt.Api.Infrastructure;
 using Vtt.Application.Personagens;
 
@@ -48,4 +49,32 @@ public class PersonagensController(IPersonagemService personagens) : ControllerB
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Excluir(Guid id, CancellationToken cancellationToken) =>
         await personagens.ExcluirAsync(User.ObterUsuarioId(), id, cancellationToken) ? NoContent() : NotFound();
+
+    /// <summary>Envia a foto do personagem, substituindo a anterior.</summary>
+    [HttpPut("{id:guid}/foto")]
+    [EnableRateLimiting(RateLimitingOptions.PoliticaUpload)]
+    [RequestSizeLimit(MesasController.LimiteDoCorpoDoUpload)]
+    [RequestFormLimits(MultipartBodyLengthLimit = MesasController.LimiteDoCorpoDoUpload)]
+    [ProducesResponseType<PersonagemDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status413PayloadTooLarge)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status429TooManyRequests)]
+    public async Task<IActionResult> DefinirFoto(Guid id, IFormFile? arquivo, CancellationToken cancellationToken)
+    {
+        await using var conteudo = arquivo?.OpenReadStream() ?? Stream.Null;
+        var resultado = await personagens.DefinirFotoAsync(
+            User.ObterUsuarioId(), id, arquivo?.FileName, conteudo, arquivo?.Length ?? 0, cancellationToken);
+        return resultado.Sucesso ? Ok(resultado.Valor) : this.Problema(resultado.Erro!);
+    }
+
+    [HttpDelete("{id:guid}/foto")]
+    [ProducesResponseType<PersonagemDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> RemoverFoto(Guid id, CancellationToken cancellationToken)
+    {
+        var personagem = await personagens.RemoverFotoAsync(User.ObterUsuarioId(), id, cancellationToken);
+        return personagem is null ? NotFound() : Ok(personagem);
+    }
 }

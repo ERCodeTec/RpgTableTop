@@ -1,11 +1,12 @@
 using Microsoft.EntityFrameworkCore;
 using Vtt.Application.Common;
+using Vtt.Application.Imagens;
 using Vtt.Application.Mapas;
 using Vtt.Domain.Personagens;
 
 namespace Vtt.Application.Personagens;
 
-public class PersonagemService(IAppDbContext db, TokensDeJogador tokensDeJogador, TimeProvider relogio) : IPersonagemService
+public class PersonagemService(IAppDbContext db, TokensDeJogador tokensDeJogador, IImagemService imagens, TimeProvider relogio) : IPersonagemService
 {
     public async Task<IReadOnlyList<PersonagemDto>> ListarAsync(Guid usuarioId, CancellationToken cancellationToken = default)
     {
@@ -83,7 +84,54 @@ public class PersonagemService(IAppDbContext db, TokensDeJogador tokensDeJogador
         }
 
         await tokensDeJogador.AvisarRemocaoAsync(tokensRemovidos);
+        if (personagem.ImagemId is { } foto)
+        {
+            await imagens.ExcluirSeSemUsoAsync(foto, cancellationToken);
+        }
+
         return true;
+    }
+
+    public async Task<Resultado<PersonagemDto>> DefinirFotoAsync(Guid usuarioId, Guid id, string? nomeDoArquivo, Stream conteudo, long tamanho, CancellationToken cancellationToken = default)
+    {
+        var personagem = await db.Personagens
+            .FirstOrDefaultAsync(p => p.Id == id && p.UsuarioId == usuarioId, cancellationToken);
+        if (personagem is null)
+        {
+            return Erro.NaoEncontrado();
+        }
+
+        var enviada = await imagens.EnviarPessoalAsync(usuarioId, nomeDoArquivo, conteudo, tamanho, cancellationToken);
+        if (!enviada.Sucesso)
+        {
+            return enviada.Erro!;
+        }
+
+        return await TrocarFotoAsync(personagem, enviada.Valor!.Id, cancellationToken);
+    }
+
+    public async Task<PersonagemDto?> RemoverFotoAsync(Guid usuarioId, Guid id, CancellationToken cancellationToken = default)
+    {
+        var personagem = await db.Personagens
+            .FirstOrDefaultAsync(p => p.Id == id && p.UsuarioId == usuarioId, cancellationToken);
+        return personagem is null ? null : await TrocarFotoAsync(personagem, null, cancellationToken);
+    }
+
+    /// <summary>Grava a nova foto, leva-a aos tokens e só então apaga a anterior, que eles deixaram de usar.</summary>
+    private async Task<PersonagemDto> TrocarFotoAsync(Personagem personagem, Guid? novaImagemId, CancellationToken cancellationToken)
+    {
+        var anterior = personagem.ImagemId;
+        personagem.ImagemId = novaImagemId;
+        personagem.AtualizadoEm = relogio.GetUtcNow();
+        await db.SaveChangesAsync(cancellationToken);
+        await tokensDeJogador.SincronizarPersonagemAsync(personagem, cancellationToken);
+
+        if (anterior is { } antiga && antiga != novaImagemId)
+        {
+            await imagens.ExcluirSeSemUsoAsync(antiga, cancellationToken);
+        }
+
+        return PersonagemDto.De(personagem);
     }
 
     // O request já passou pelo PersonagemRequestValidator; aqui só normalizamos.

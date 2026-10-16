@@ -31,11 +31,15 @@ export interface MesaResumo {
   criadaEm: string
 }
 
+/** Como os jogadores movem os próprios tokens. O Mestre arrasta qualquer token nos dois. */
+export type ModoDeMovimentacao = 'PorBlocos' | 'Livre'
+
 export interface MesaDetalhe {
   id: string
   nome: string
   descricao: string | null
   sessaoAtiva: boolean
+  movimentacao: ModoDeMovimentacao
   meuPapel: PapelNaMesa
   criadaEm: string
   membros: Membro[]
@@ -87,6 +91,9 @@ export const excluirMesa = (id: string) => api<void>(`/api/mesas/${id}`, { metho
 
 export const definirSessao = (id: string, ativa: boolean) =>
   api<MesaDetalhe>(`/api/mesas/${id}/sessao`, { method: 'PUT', body: { ativa } })
+
+export const definirMovimentacao = (id: string, modo: ModoDeMovimentacao) =>
+  api<MesaDetalhe>(`/api/mesas/${id}/movimentacao`, { method: 'PUT', body: { modo } })
 
 export const definirMeuPersonagem = (mesaId: string, personagemId: string) =>
   api<Membro>(`/api/mesas/${mesaId}/meu-personagem`, { method: 'PUT', body: { personagemId } })

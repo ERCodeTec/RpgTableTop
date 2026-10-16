@@ -73,6 +73,17 @@ public class MesasController(IMesaService mesas, IConviteService convites, IMapa
         return resultado.Sucesso ? Ok(resultado.Valor) : this.Problema(resultado.Erro!);
     }
 
+    [HttpPut("{id:guid}/movimentacao")]
+    [ProducesResponseType<MesaDetalheDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DefinirMovimentacao(Guid id, MovimentacaoRequest request, CancellationToken cancellationToken)
+    {
+        var resultado = await mesas.DefinirMovimentacaoAsync(User.ObterUsuarioId(), id, request.Modo!.Value, cancellationToken);
+        return resultado.Sucesso ? Ok(resultado.Valor) : this.Problema(resultado.Erro!);
+    }
+
     [HttpPut("{id:guid}/meu-personagem")]
     [ProducesResponseType<MembroDto>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]

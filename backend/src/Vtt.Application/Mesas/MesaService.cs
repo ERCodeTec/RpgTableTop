@@ -127,6 +127,24 @@ public class MesaService(
         return await MontarDetalheAsync(mesa, usuarioId, cancellationToken);
     }
 
+    public async Task<Resultado<MesaDetalheDto>> DefinirMovimentacaoAsync(Guid usuarioId, Guid mesaId, ModoDeMovimentacao modo, CancellationToken cancellationToken = default)
+    {
+        var (mesa, erro) = await ObterMesaComoMestreAsync(usuarioId, mesaId, cancellationToken);
+        if (mesa is null)
+        {
+            return erro!;
+        }
+
+        if (mesa.Movimentacao != modo)
+        {
+            mesa.Movimentacao = modo;
+            await db.SaveChangesAsync(cancellationToken);
+            await notifier.MovimentacaoAlteradaAsync(mesaId, modo);
+        }
+
+        return await MontarDetalheAsync(mesa, usuarioId, cancellationToken);
+    }
+
     public async Task<Resultado<MembroDto>> DefinirMeuPersonagemAsync(Guid usuarioId, Guid mesaId, Guid personagemId, CancellationToken cancellationToken = default)
     {
         var membro = await ObterMembroAsync(mesaId, usuarioId, cancellationToken);
@@ -294,7 +312,7 @@ public class MesaService(
 
         var meuPapel = mesa.Membros.First(membro => membro.UsuarioId == usuarioId).Papel;
 
-        return new MesaDetalheDto(mesa.Id, mesa.Nome, mesa.Descricao, mesa.SessaoAtiva, meuPapel, mesa.CriadaEm, membros);
+        return new MesaDetalheDto(mesa.Id, mesa.Nome, mesa.Descricao, mesa.SessaoAtiva, mesa.Movimentacao, meuPapel, mesa.CriadaEm, membros);
     }
 
     // O request já passou pelo MesaRequestValidator; aqui só normalizamos.

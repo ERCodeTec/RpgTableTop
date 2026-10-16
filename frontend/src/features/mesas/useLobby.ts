@@ -5,7 +5,7 @@ import { CABECALHOS_PADRAO, perderSessao } from '../../shared/api/http'
 import { lerToken } from '../../shared/api/tokenStorage'
 import type { StatusDaConexao } from '../../shared/realtime/StatusConexao'
 import type { MapaEstado } from '../mapa/mapaApi'
-import { CHAVE_MESAS, chaveDaMesa, type Membro, type MesaDetalhe, type PersonagemResumo } from './mesasApi'
+import { CHAVE_MESAS, chaveDaMesa, type Membro, type MesaDetalhe, type ModoDeMovimentacao, type PersonagemResumo } from './mesasApi'
 
 export type MotivoDoEncerramento = 'removido' | 'saiu' | 'excluida' | 'sem-acesso'
 
@@ -137,6 +137,10 @@ export function useLobby({ mesaId, meuUsuarioId, aoEncerrar, extensao }: OpcoesD
       ),
     )
     conexao.on('SessaoAlterada', daMesa((ativa: boolean) => atualizarMesa((mesa) => ({ ...mesa, sessaoAtiva: ativa }))))
+    conexao.on(
+      'MovimentacaoAlterada',
+      daMesa((movimentacao: ModoDeMovimentacao) => atualizarMesa((mesa) => ({ ...mesa, movimentacao }))),
+    )
     conexao.on('MesaExcluida', daMesa(() => encerrar('excluida')))
     conexao.on('RemovidoDaMesa', daMesa(() => encerrar('removido')))
     extensao?.registrar(conexao)

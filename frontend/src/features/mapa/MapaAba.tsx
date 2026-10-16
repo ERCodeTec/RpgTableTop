@@ -6,6 +6,7 @@ import { AtalhosDoMapa } from './AtalhosDoMapa'
 import { BarraDaNevoa } from './BarraDaNevoa'
 import { BarraDoEditor } from './BarraDoEditor'
 import { BarraDoFundo } from './BarraDoFundo'
+import { BotaoNovaRodada } from './BotaoNovaRodada'
 import { ControlesDeVisao } from './ControlesDeVisao'
 import { useEditorStore } from './editorStore'
 import { ativarMapa, chaveDosMapas, gerarMapaProcedural, listarMapas } from './mapaApi'
@@ -13,10 +14,13 @@ import { MapaFormDialogo } from './MapaFormDialogo'
 import { useMapaStore } from './mapaStore'
 import { BarraDeMovimento } from './BarraDeMovimento'
 import { GerarMapa } from './GerarMapa'
+import { FotoDoToken } from './FotoDoToken'
 import { PainelDoMestre } from './PainelDoMestre'
+import { SeletorDeMovimentacao } from './SeletorDeMovimentacao'
 import { useNevoa } from './useNevoa'
 import { useTelaCheia, useTelaEstreita } from './useTelaCheia'
 import type { AcoesDeMovimento } from './useMapaTempoReal'
+import type { ModoDeMovimentacao } from '../mesas/mesasApi'
 
 // O three.js só é baixado quando alguém abre um mapa.
 const CenaDoMapa = lazy(() => import('./CenaDoMapa'))
@@ -25,7 +29,9 @@ interface MapaAbaProps {
   mesaId: string
   meuUsuarioId: string
   souMestre: boolean
-  /** Arraste livre do Mestre. */
+  /** Livre: os jogadores também arrastam o próprio token, sem movimento por blocos. */
+  movimentacao: ModoDeMovimentacao
+  /** Arraste livre do Mestre, e do jogador com a movimentação livre. */
   aoMover: (tokenId: string, x: number, y: number) => void
   movimento: AcoesDeMovimento
   /** Informa ao servidor o que os tokens do jogador veem, com a névoa ligada. */
@@ -34,7 +40,7 @@ interface MapaAbaProps {
   aoAvisar: (mensagem: string) => void
 }
 
-export function MapaAba({ mesaId, meuUsuarioId, souMestre, aoMover, movimento, aoExplorar, aoAvisar }: MapaAbaProps) {
+export function MapaAba({ mesaId, meuUsuarioId, souMestre, movimentacao, aoMover, movimento, aoExplorar, aoAvisar }: MapaAbaProps) {
   const mapa = useMapaStore((estado) => estado.mapa)
   const enquadrar = useMapaStore((estado) => estado.enquadrar)
   const modo = useEditorStore((estado) => estado.modo)
@@ -49,6 +55,12 @@ export function MapaAba({ mesaId, meuUsuarioId, souMestre, aoMover, movimento, a
   const mapaId = mapa?.id
   const queryClient = useQueryClient()
   useNevoa({ meuUsuarioId, souMestre, aoExplorar })
+  const movimentoLivre = movimentacao === 'Livre'
+
+  // Ao liberar a movimentação, some o alcance do token que estava em movimento por blocos.
+  useEffect(() => {
+    if (movimentoLivre) useMapaStore.getState().mover(null)
+  }, [movimentoLivre])
 
   // Cada clique gera um mapa novo (semente sorteada no servidor) no tema escolhido, que já abre para o Mestre preparar.
   const gerarMapa = useMutation({
@@ -153,19 +165,33 @@ export function MapaAba({ mesaId, meuUsuarioId, souMestre, aoMover, movimento, a
                 <CenaDoMapa
                   meuUsuarioId={meuUsuarioId}
                   souMestre={souMestre}
+                  movimentoLivre={movimentoLivre}
                   aoMover={aoMover}
                   aoMoverPorBlocos={movimento.moverPorBlocos}
                   aoAvisar={aoAvisar}
                 />
               </Suspense>
-              <BarraDeMovimento meuUsuarioId={meuUsuarioId} souMestre={souMestre} movimento={movimento} />
+              {!movimentoLivre && <BarraDeMovimento meuUsuarioId={meuUsuarioId} souMestre={souMestre} movimento={movimento} />}
+              <FotoDoToken />
             </div>
-            <ControlesDeVisao />
+            <div className="mapa-rodape">
+              <ControlesDeVisao />
+              {souMestre && modo === 'jogar' && (
+                <div className="mapa-rodada">
+                  <SeletorDeMovimentacao mesaId={mesaId} movimentacao={movimentacao} aoAvisar={aoAvisar} />
+                  {!movimentoLivre && <BotaoNovaRodada mapaId={mapa.id} movimento={movimento} />}
+                </div>
+              )}
+            </div>
             {modo === 'jogar' && (
               <p className="mapa-dica">
                 {souMestre
-                  ? 'Arraste qualquer token para movê-lo livremente, ou clique nele para mover por blocos com o custo de movimento; clique em uma porta para abrir ou fechar.'
-                  : 'Clique no seu token para ver as células que ele alcança e clique em uma delas para mover.'}{' '}
+                  ? movimentoLivre
+                    ? 'Arraste qualquer token para movê-lo; os jogadores também arrastam os próprios tokens, sem custo de movimento. Clique em uma porta para abrir ou fechar.'
+                    : 'Arraste qualquer token para movê-lo livremente, ou clique nele para mover por blocos com o custo de movimento; clique em uma porta para abrir ou fechar.'
+                  : movimentoLivre
+                    ? 'Arraste o seu token para qualquer célula livre do mapa para movê-lo.'
+                    : 'Clique no seu token para ver as células que ele alcança e clique em uma delas para mover.'}{' '}
                 Arraste o fundo (ou use dois dedos) para deslocar o mapa; role ou faça a pinça para aproximar. Arraste com
                 o botão direito para girar e inclinar a visão; Q e E giram 90°.
               </p>
@@ -214,7 +240,7 @@ export function MapaAba({ mesaId, meuUsuarioId, souMestre, aoMover, movimento, a
         </div>
       )}
 
-      {ajudaAberta && <AjudaDeAtalhos souMestre={souMestre} aoFechar={() => setAjudaAberta(false)} />}
+      {ajudaAberta && <AjudaDeAtalhos souMestre={souMestre} movimentoLivre={movimentoLivre} aoFechar={() => setAjudaAberta(false)} />}
 
       {criandoMapa && (
         <MapaFormDialogo

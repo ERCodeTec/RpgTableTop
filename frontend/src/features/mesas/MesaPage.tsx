@@ -205,6 +205,7 @@ function Lobby({ mesa }: { mesa: MesaDetalhe }) {
           mesaId={mesa.id}
           meuUsuarioId={meuUsuarioId}
           souMestre={souMestre}
+          movimentacao={mesa.movimentacao}
           aoMover={moverToken}
           movimento={acoesDeMovimento}
           aoExplorar={explorar}

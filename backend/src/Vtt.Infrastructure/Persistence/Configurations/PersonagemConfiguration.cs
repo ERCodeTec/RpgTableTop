@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Vtt.Domain.Imagens;
 using Vtt.Domain.Personagens;
 using Vtt.Infrastructure.Identity;
 
@@ -31,6 +32,13 @@ public class PersonagemConfiguration : IEntityTypeConfiguration<Personagem>
             .HasConstraintName("fk_personagens_usuarios_usuario_id")
             .OnDelete(DeleteBehavior.Cascade);
 
+        // A exclusão do personagem apaga a foto pelo serviço; o SetNull é só a rede de segurança.
+        builder.HasOne<ImagemUpload>()
+            .WithMany()
+            .HasForeignKey(p => p.ImagemId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         builder.HasIndex(p => p.UsuarioId);
+        builder.HasIndex(p => p.ImagemId);
     }
 }

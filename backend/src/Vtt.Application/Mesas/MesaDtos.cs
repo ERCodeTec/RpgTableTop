@@ -9,6 +9,8 @@ public record DefinirPersonagemRequest(Guid PersonagemId);
 
 public record SessaoRequest(bool? Ativa);
 
+public record MovimentacaoRequest(ModoDeMovimentacao? Modo);
+
 /// <param name="HpMaximo">
 /// Só na lista que o Mestre usa para escolher o personagem de um jogador. No lobby vem nulo: é o
 /// mesmo número do token do jogador, que o Mestre pode ter escolhido não mostrar ao grupo.
@@ -51,6 +53,7 @@ public record MesaDetalheDto(
     string Nome,
     string? Descricao,
     bool SessaoAtiva,
+    ModoDeMovimentacao Movimentacao,
     PapelNaMesa MeuPapel,
     DateTimeOffset CriadaEm,
     IReadOnlyList<MembroDto> Membros);

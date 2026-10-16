@@ -1,9 +1,11 @@
 import { Miniatura } from '../../shared/imagens/Miniatura'
+import type { TipoToken } from '../mapa/mapaApi'
 import { TokenIcone } from '../mapa/TokenIcone'
 import type { ModeloDeToken } from './bibliotecaApi'
 
 interface DiscoDoModeloProps {
-  modelo: Pick<ModeloDeToken, 'tipo' | 'icone' | 'imagemId' | 'corBorda'>
+  /** Um modelo da biblioteca, ou um personagem (a foto dele, ou o ícone da classe). */
+  modelo: Pick<ModeloDeToken, 'icone' | 'imagemId' | 'corBorda'> & { tipo: TipoToken }
   tamanho: number
 }
 

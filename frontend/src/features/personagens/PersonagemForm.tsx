@@ -13,6 +13,7 @@ import {
   type DadosDoPersonagem,
   type Personagem,
 } from './personagensApi'
+import { FotoDoPersonagem } from './FotoDoPersonagem'
 
 interface PersonagemFormProps {
   /** Personagem em edição; ausente ao criar um novo. */
@@ -74,6 +75,12 @@ export function PersonagemForm({ personagem, aoFechar }: PersonagemFormProps) {
           autoFocus
           required
         />
+
+        {personagem ? (
+          <FotoDoPersonagem personagem={personagem} classe={classe} corBorda={corBorda} />
+        ) : (
+          <p className="campo-dica">Depois de criar o personagem, edite-o para enviar a foto.</p>
+        )}
 
         <fieldset className="classes">
           <legend>Classe</legend>

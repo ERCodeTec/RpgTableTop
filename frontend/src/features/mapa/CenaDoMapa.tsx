@@ -23,7 +23,9 @@ import { useVisaoStore } from './visaoStore'
 interface CenaDoMapaProps {
   meuUsuarioId: string
   souMestre: boolean
-  /** Arraste livre do Mestre: chamado ao soltar um token em uma célula livre diferente da atual. */
+  /** Movimentação livre: o jogador também arrasta o próprio token, e não há movimento por blocos. */
+  movimentoLivre: boolean
+  /** Arraste livre: chamado ao soltar um token em uma célula livre diferente da atual. */
   aoMover: (tokenId: string, x: number, y: number) => void
   /** Chamado ao clicar em uma célula do alcance do token em movimento por blocos. */
   aoMoverPorBlocos: (tokenId: string, x: number, y: number) => Promise<void>
@@ -277,7 +279,7 @@ function PreviaDoEditor() {
 }
 
 /** Escolhe o que os ponteiros fazem conforme o modo: jogar, editar o mapa ou ajustar o fundo. */
-function Interacoes({ meuUsuarioId, souMestre, aoMover, aoMoverPorBlocos, aoAvisar }: CenaDoMapaProps) {
+function Interacoes({ meuUsuarioId, souMestre, movimentoLivre, aoMover, aoMoverPorBlocos, aoAvisar }: CenaDoMapaProps) {
   const rig = useRig()
   const modo = useEditorStore((estado) => estado.modo)
 
@@ -288,6 +290,7 @@ function Interacoes({ meuUsuarioId, souMestre, aoMover, aoMoverPorBlocos, aoAvis
     return criarModoDeJogo(rig, {
       meuUsuarioId,
       souMestre,
+      movimentoLivre,
       aoMover,
       aoMoverPorBlocos,
       aoAlternarPorta: (porta: Estrutura) => {
@@ -296,7 +299,7 @@ function Interacoes({ meuUsuarioId, souMestre, aoMover, aoMoverPorBlocos, aoAvis
           .catch((erro: Error) => aoAvisar(erro.message || 'Não foi possível abrir ou fechar a porta.'))
       },
     })
-  }, [rig, modo, meuUsuarioId, souMestre, aoMover, aoMoverPorBlocos, aoAvisar])
+  }, [rig, modo, meuUsuarioId, souMestre, movimentoLivre, aoMover, aoMoverPorBlocos, aoAvisar])
 
   return <Interacao modo={interacao} />
 }

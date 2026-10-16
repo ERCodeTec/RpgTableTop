@@ -17,6 +17,7 @@ public record PersonagemDto(
     string CorBorda,
     int Deslocamento,
     int Visao,
+    Guid? ImagemId,
     DateTimeOffset CriadoEm,
     DateTimeOffset AtualizadoEm)
 {
@@ -29,6 +30,7 @@ public record PersonagemDto(
         personagem.CorBorda,
         personagem.Deslocamento,
         personagem.Visao,
+        personagem.ImagemId,
         personagem.CriadoEm,
         personagem.AtualizadoEm);
 }

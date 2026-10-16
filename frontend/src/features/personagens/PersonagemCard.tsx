@@ -1,5 +1,5 @@
 import { NOME_DA_CLASSE } from '../../shared/classes'
-import { ClassIcon } from '../../shared/icones/ClassIcon'
+import { DiscoDoModelo } from '../biblioteca/DiscoDoModelo'
 import type { Personagem } from './personagensApi'
 
 interface PersonagemCardProps {
@@ -11,7 +11,10 @@ interface PersonagemCardProps {
 export function PersonagemCard({ personagem, aoEditar, aoExcluir }: PersonagemCardProps) {
   return (
     <li className="personagem">
-      <ClassIcon classe={personagem.classe} corBorda={personagem.corBorda} tamanho={72} />
+      <DiscoDoModelo
+        modelo={{ tipo: 'Personagem', icone: personagem.classe, imagemId: personagem.imagemId, corBorda: personagem.corBorda }}
+        tamanho={72}
+      />
       <div className="personagem-dados">
         <h2>{personagem.nome}</h2>
         <p>

@@ -1,5 +1,6 @@
 using Vtt.Application.Mapas;
 using Vtt.Application.Mesas;
+using Vtt.Domain.Mesas;
 
 namespace Vtt.Api.Hubs;
 
@@ -20,6 +21,8 @@ public interface IMesaClient
     Task PersonagemAtivoAlterado(Guid mesaId, Guid usuarioId, PersonagemResumoDto? personagem);
 
     Task SessaoAlterada(Guid mesaId, bool ativa);
+
+    Task MovimentacaoAlterada(Guid mesaId, ModoDeMovimentacao modo);
 
     Task MesaExcluida(Guid mesaId);
 

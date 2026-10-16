@@ -5,6 +5,7 @@ using Vtt.Application.Common;
 using Vtt.Application.Mapas;
 using Vtt.Application.Mesas;
 using Vtt.Domain.Imagens;
+using Vtt.Domain.Mesas;
 
 namespace Vtt.Application.Imagens;
 
@@ -112,6 +113,29 @@ public class ImagemService(
 
         await ExcluirArquivosAsync(imagem);
         return Resultado.Ok;
+    }
+
+    public async Task ExcluirSeSemUsoAsync(Guid imagemId, CancellationToken cancellationToken = default)
+    {
+        var imagem = await db.Imagens.FirstOrDefaultAsync(i => i.Id == imagemId, cancellationToken);
+        if (imagem is null || (await ListarUsosAsync(imagemId, cancellationToken)).Count > 0)
+        {
+            return;
+        }
+
+        db.Imagens.Remove(imagem);
+        try
+        {
+            await db.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException)
+        {
+            // Passou a ser usada entre a checagem e a exclusão: fica.
+            db.Imagens.Entry(imagem).State = EntityState.Detached;
+            return;
+        }
+
+        await ExcluirArquivosAsync(imagem);
     }
 
     public async Task<Resultado<Guid>> ObterCopiaNaMesaAsync(Guid usuarioId, Guid imagemPessoalId, Guid mesaId, CancellationToken cancellationToken = default)
@@ -292,11 +316,27 @@ public class ImagemService(
             _limites.DimensaoMaxima);
     }
 
-    /// <summary>Imagem de mesa: qualquer membro. Imagem pessoal: só o dono.</summary>
-    private async Task<bool> PodeVerAsync(Guid usuarioId, ImagemUpload imagem, CancellationToken cancellationToken) =>
-        imagem.Pessoal
-            ? imagem.UsuarioId == usuarioId
-            : await db.ObterPapelAsync(usuarioId, imagem.MesaId!.Value, cancellationToken) is not null;
+    /// <summary>
+    /// Imagem de mesa: qualquer membro. Imagem pessoal: o dono e, quando ela é a foto de um token de
+    /// jogador, quem está na mesa desse token (os demais jogadores só enquanto ele está visível).
+    /// </summary>
+    private async Task<bool> PodeVerAsync(Guid usuarioId, ImagemUpload imagem, CancellationToken cancellationToken)
+    {
+        if (!imagem.Pessoal)
+        {
+            return await db.ObterPapelAsync(usuarioId, imagem.MesaId!.Value, cancellationToken) is not null;
+        }
+
+        return imagem.UsuarioId == usuarioId
+            || await db.Tokens
+                .Where(token => token.ImagemId == imagem.Id && token.DonoUsuarioId != null)
+                .Join(db.Mapas, token => token.MapaId, mapa => mapa.Id, (token, mapa) => new { token.Visivel, mapa.MesaId })
+                .AnyAsync(
+                    uso => db.MesaMembros.Any(membro => membro.MesaId == uso.MesaId
+                        && membro.UsuarioId == usuarioId
+                        && (uso.Visivel || membro.Papel == PapelNaMesa.Mestre)),
+                    cancellationToken);
+    }
 
     private Task<Guid?> BuscarCopiaAsync(Guid imagemPessoalId, Guid mesaId, CancellationToken cancellationToken) =>
         db.Imagens
@@ -378,6 +418,12 @@ public class ImagemService(
             .Select(modelo => modelo.Nome)
             .ToListAsync(cancellationToken);
         usos.AddRange(modelos.Select(nome => $"modelo \"{nome}\" da biblioteca"));
+
+        var personagens = await db.Personagens
+            .Where(personagem => personagem.ImagemId == imagemId)
+            .Select(personagem => personagem.Nome)
+            .ToListAsync(cancellationToken);
+        usos.AddRange(personagens.Select(nome => $"foto do personagem \"{nome}\""));
 
         return usos;
     }

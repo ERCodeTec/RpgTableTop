@@ -4,7 +4,8 @@ namespace Vtt.Application.Imagens;
 
 /// <summary>
 /// Imagens de mesa: enviar, listar e excluir são do Mestre; qualquer membro da mesa baixa as imagens dela.
-/// Imagens pessoais (a galeria da biblioteca de tokens): tudo é só do dono. Para os demais, a imagem não existe.
+/// Imagens pessoais (a galeria da biblioteca de tokens e as fotos de personagem): tudo é só do dono, exceto
+/// que a foto no token de um jogador é baixada por quem está na mesa. Para os demais, a imagem não existe.
 /// </summary>
 public interface IImagemService
 {
@@ -25,6 +26,9 @@ public interface IImagemService
 
     Task<Resultado<ArquivoDeImagem>> AbrirAsync(Guid usuarioId, Guid imagemId, bool miniatura, CancellationToken cancellationToken = default);
 
-    /// <summary>Conflito enquanto a imagem for fundo de mapa, imagem de token, textura de estrutura ou imagem de modelo.</summary>
+    /// <summary>Conflito enquanto a imagem for fundo de mapa, imagem de token, textura de estrutura, imagem de modelo ou foto de personagem.</summary>
     Task<Resultado> ExcluirAsync(Guid usuarioId, Guid imagemId, CancellationToken cancellationToken = default);
+
+    /// <summary>Apaga a imagem que ninguém usa mais (a foto trocada de um personagem); se ainda tiver uso, ela fica.</summary>
+    Task ExcluirSeSemUsoAsync(Guid imagemId, CancellationToken cancellationToken = default);
 }

@@ -216,6 +216,7 @@ public class TokensDeJogador(IAppDbContext db, IMapaNotifier notifier, ILogger<T
         CorBorda = personagem.CorBorda,
         Icone = personagem.Classe.ToString(),
         PersonagemId = personagem.Id,
+        ImagemId = personagem.ImagemId,
         DonoUsuarioId = usuarioId,
         ExibicaoHp = Token.ExibicaoHpPadrao(TipoToken.Personagem),
         Deslocamento = personagem.Deslocamento,
@@ -234,11 +235,13 @@ public class TokensDeJogador(IAppDbContext db, IMapaNotifier notifier, ILogger<T
         var hpMaximo = personagem.HpMaximo;
         var deslocamento = personagem.Deslocamento;
         var visao = personagem.Visao;
+        var imagemId = personagem.ImagemId;
         return tokens.ExecuteUpdateAsync(
             s => s.SetProperty(t => t.Nome, personagem.Nome)
                 .SetProperty(t => t.Icone, icone)
                 .SetProperty(t => t.CorBorda, personagem.CorBorda)
                 .SetProperty(t => t.PersonagemId, personagem.Id)
+                .SetProperty(t => t.ImagemId, imagemId)
                 .SetProperty(t => t.HpMaximo, hpMaximo)
                 .SetProperty(t => t.HpAtual, t => reiniciarHp || t.HpAtual > hpMaximo ? hpMaximo : t.HpAtual)
                 // Com a Disparada usada, o máximo é o dobro, e a diferença do deslocamento conta em dobro.

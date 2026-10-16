@@ -16,6 +16,10 @@ public class MesaConfiguration : IEntityTypeConfiguration<Mesa>
         builder.Property(m => m.Nome).HasMaxLength(Mesa.NomeTamanhoMaximo).IsRequired();
         builder.Property(m => m.Descricao).HasMaxLength(Mesa.DescricaoTamanhoMaximo);
         builder.Property(m => m.SessaoAtiva).HasDefaultValue(false);
+        builder.Property(m => m.Movimentacao)
+            .HasConversion<string>()
+            .HasMaxLength(20)
+            .HasDefaultValue(ModoDeMovimentacao.PorBlocos);
 
         // O criador é só um registro histórico; quem manda na mesa é o MesaMembro com papel Mestre.
         builder.HasOne<Usuario>()

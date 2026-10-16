@@ -66,7 +66,6 @@ export function PainelDoMestre({ mesaId, movimento, aoCriarMapa, aoGerarMapa, ge
   const fechar = () => setDialogo(null)
   const [aba, setAba] = useState<Aba>('mapas')
   const editando = useEditorStore((estado) => estado.modo === 'editar')
-  const [iniciandoRodada, setIniciandoRodada] = useState(false)
   const painelRef = useRef<HTMLElement>(null)
 
   // A aba nova começa do topo: sem isso, quem trocava de aba no meio de uma lista longa caía no meio da outra.
@@ -265,18 +264,6 @@ export function PainelDoMestre({ mesaId, movimento, aoCriarMapa, aoGerarMapa, ge
         <section className="painel-mestre-secao">
           <div className="painel-mestre-topo">
             <h2>Tokens</h2>
-            <button
-              className="botao botao-discreto"
-              type="button"
-              disabled={iniciandoRodada}
-              title="Devolve o movimento inteiro a todos os tokens deste mapa"
-              onClick={() => {
-                setIniciandoRodada(true)
-                void movimento.novaRodada(mapaNaTela.id).finally(() => setIniciandoRodada(false))
-              }}
-            >
-              Nova rodada
-            </button>
             <button className="botao botao-discreto" type="button" onClick={() => setDialogo({ tipo: 'da-biblioteca' })}>
               Da biblioteca
             </button>

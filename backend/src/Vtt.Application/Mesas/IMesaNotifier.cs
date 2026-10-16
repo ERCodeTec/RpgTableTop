@@ -1,3 +1,5 @@
+using Vtt.Domain.Mesas;
+
 namespace Vtt.Application.Mesas;
 
 /// <summary>
@@ -14,6 +16,8 @@ public interface IMesaNotifier
     Task PersonagemAtivoAlteradoAsync(Guid mesaId, Guid usuarioId, PersonagemResumoDto? personagem);
 
     Task SessaoAlteradaAsync(Guid mesaId, bool ativa);
+
+    Task MovimentacaoAlteradaAsync(Guid mesaId, ModoDeMovimentacao modo);
 
     Task MesaExcluidaAsync(Guid mesaId);
 }

@@ -10,7 +10,9 @@ import type { Rig } from './rig'
 interface OpcoesDoJogo {
   meuUsuarioId: string
   souMestre: boolean
-  /** Arraste livre do Mestre: chamado ao soltar um token em uma célula válida diferente da atual. */
+  /** Movimentação livre da mesa: o jogador arrasta o próprio token e ninguém move por blocos. */
+  movimentoLivre: boolean
+  /** Arraste livre: chamado ao soltar um token em uma célula válida diferente da atual. */
   aoMover: (tokenId: string, x: number, y: number) => void
   /** Movimento por blocos: chamado ao clicar em uma célula do alcance do token em movimento. */
   aoMoverPorBlocos: (tokenId: string, x: number, y: number) => Promise<void>
@@ -38,7 +40,9 @@ export function arrastarToken(
   rig.chao(clienteX, clienteY, ponto)
   const folgaX = ponto.x - (inicial.x + 0.5)
   const folgaZ = ponto.z - (inicial.y + 0.5)
-  const grupo = store().grupo.includes(tokenId) ? store().grupo.filter((id) => id !== tokenId && store().tokens[id]) : []
+  // O jogador arrasta só o próprio token; o grupo é coisa do Mestre.
+  const grupo =
+    souMestre && store().grupo.includes(tokenId) ? store().grupo.filter((id) => id !== tokenId && store().tokens[id]) : []
   const movidos = new Set([tokenId, ...grupo])
 
   return {
@@ -94,11 +98,12 @@ export function arrastarToken(
 /**
  * Jogar, com movimento por blocos: clicar em um token que eu posso mover destaca as células que ele
  * alcança, e clicar em uma delas o move. O Mestre ainda arrasta qualquer token livremente, sem
- * custo; o jogador só anda por blocos. O Mestre também abre e fecha portas com um clique.
+ * custo; o jogador só anda por blocos. Com a movimentação livre, não há blocos: o jogador também
+ * arrasta o próprio token, e o clique só seleciona. O Mestre também abre e fecha portas com um clique.
  */
 export function criarModoDeJogo(
   rig: Rig,
-  { meuUsuarioId, souMestre, aoMover, aoMoverPorBlocos, aoAlternarPorta }: OpcoesDoJogo,
+  { meuUsuarioId, souMestre, movimentoLivre, aoMover, aoMoverPorBlocos, aoAlternarPorta }: OpcoesDoJogo,
 ): ModoDeInteracao {
   const store = useMapaStore.getState
   const ponto = new Vector3()
@@ -109,10 +114,10 @@ export function criarModoDeJogo(
     return souMestre || (token?.donoUsuarioId === meuUsuarioId && !token.caido)
   }
 
-  /** Seleciona o token e, se ele é meu (ou sou o Mestre), mostra o alcance dele. */
+  /** Seleciona o token e, se ele é meu (ou sou o Mestre) e o movimento é por blocos, mostra o alcance dele. */
   const escolherToken = (tokenId: string) => {
     store().selecionar(tokenId)
-    if (possoMover(tokenId)) store().mover(tokenId)
+    if (!movimentoLivre && possoMover(tokenId)) store().mover(tokenId)
   }
 
   /** A célula alcançável sob o ponteiro, se houver token em movimento. */
@@ -127,10 +132,10 @@ export function criarModoDeJogo(
 
   return {
     iniciar(clienteX, clienteY) {
-      if (!souMestre) return null
+      if (!souMestre && !movimentoLivre) return null
       const alvo = apontar(rig, clienteX, clienteY)
-      if (alvo?.tipo !== 'token') return null
-      // O arraste do Mestre continua livre; um clique sem arrastar entra no movimento por blocos.
+      if (alvo?.tipo !== 'token' || !possoMover(alvo.id)) return null
+      // O arraste é livre; um clique sem arrastar entra no movimento por blocos (se a mesa usa blocos).
       return { ...arrastarToken(rig, alvo.id, clienteX, clienteY, { souMestre, aoMover }), clicar: () => escolherToken(alvo.id) }
     },
 

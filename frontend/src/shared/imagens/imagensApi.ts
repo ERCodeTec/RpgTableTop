@@ -42,7 +42,7 @@ export const chaveDaFonte = (fonte: FonteDeImagem) => (fonte === 'pessoal' ? CHA
 export const listarDaFonte = (fonte: FonteDeImagem) => (fonte === 'pessoal' ? listarImagensPessoais() : listarImagens(fonte.mesaId))
 
 export const enviarParaAFonte = (fonte: FonteDeImagem, arquivo: File, aoProgredir: (fracao: number) => void) =>
-  enviarPara(fonte === 'pessoal' ? '/api/biblioteca/imagens' : `/api/mesas/${fonte.mesaId}/imagens`, arquivo, aoProgredir)
+  enviarArquivo<Imagem>(fonte === 'pessoal' ? '/api/biblioteca/imagens' : `/api/mesas/${fonte.mesaId}/imagens`, arquivo, aoProgredir)
 
 export const excluirImagem = (id: string) => api<void>(`/api/imagens/${id}`, { method: 'DELETE' })
 
@@ -51,13 +51,19 @@ export const excluirImagem = (id: string) => api<void>(`/api/imagens/${id}`, { m
  * envio; `aoProgredir` recebe a fração enviada, de 0 a 1.
  */
 export function enviarImagem(mesaId: string, arquivo: File, aoProgredir: (fracao: number) => void): Promise<Imagem> {
-  return enviarPara(`/api/mesas/${mesaId}/imagens`, arquivo, aoProgredir)
+  return enviarArquivo<Imagem>(`/api/mesas/${mesaId}/imagens`, arquivo, aoProgredir)
 }
 
-function enviarPara(url: string, arquivo: File, aoProgredir: (fracao: number) => void): Promise<Imagem> {
+/** Envia o arquivo no campo "arquivo" de um formulário multipart; também usado pela foto do personagem. */
+export function enviarArquivo<T>(
+  url: string,
+  arquivo: File,
+  aoProgredir: (fracao: number) => void,
+  metodo: 'POST' | 'PUT' = 'POST',
+): Promise<T> {
   return new Promise((resolver, rejeitar) => {
     const pedido = new XMLHttpRequest()
-    pedido.open('POST', url)
+    pedido.open(metodo, url)
     pedido.responseType = 'json'
     pedido.setRequestHeader('Accept', 'application/json')
     for (const [nome, valor] of Object.entries(CABECALHOS_PADRAO)) pedido.setRequestHeader(nome, valor)
@@ -70,7 +76,7 @@ function enviarPara(url: string, arquivo: File, aoProgredir: (fracao: number) =>
     pedido.onerror = () => rejeitar(new ApiError(0, 'Sem conexão com o servidor. O envio não terminou.'))
     pedido.onload = () => {
       if (pedido.status >= 200 && pedido.status < 300) {
-        resolver(pedido.response as Imagem)
+        resolver(pedido.response as T)
       } else if (pedido.status === 413) {
         rejeitar(new ApiError(413, 'O arquivo é grande demais para ser enviado.'))
       } else {
