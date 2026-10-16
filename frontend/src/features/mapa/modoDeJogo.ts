@@ -1,6 +1,7 @@
 import { Vector3 } from 'three'
 import { foraDaVez } from '../iniciativa/iniciativaStore'
 import { useEditorStore } from './editorStore'
+import { useInteracaoStore } from './interacaoStore'
 import { celulaBloqueada, chaveDaCelula } from './geometria'
 import type { Gesto, ModoDeInteracao } from './gestos'
 import type { Estrutura } from './mapaApi'
@@ -135,6 +136,9 @@ export function criarModoDeJogo(
   }
 
   return {
+    // Jogando, cliques repetidos no mesmo ponto não têm outro uso; no editor, têm.
+    pingaComToqueDuplo: true,
+
     iniciar(clienteX, clienteY) {
       if (!souMestre && !movimentoLivre) return null
       const alvo = apontar(rig, clienteX, clienteY)
@@ -146,6 +150,13 @@ export function criarModoDeJogo(
     clicarNoFundo(clienteX, clienteY) {
       const alvo = apontar(rig, clienteX, clienteY)
       if (alvo?.tipo === 'token') {
+        // O jogador não move objetos de interação: o clique é para examiná-los. O Mestre os move
+        // como qualquer token e vê o conteúdo pelo painel.
+        if (!souMestre && store().tokens[alvo.id]?.tipo === 'Interacao') {
+          store().selecionar(alvo.id)
+          useInteracaoStore.getState().examinar(alvo.id)
+          return
+        }
         escolherToken(alvo.id)
         return
       }

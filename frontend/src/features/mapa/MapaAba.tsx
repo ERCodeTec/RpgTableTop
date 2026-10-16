@@ -16,6 +16,9 @@ import { MapaFormDialogo } from './MapaFormDialogo'
 import { useMapaStore } from './mapaStore'
 import { BarraDeMovimento } from './BarraDeMovimento'
 import { GerarMapa } from './GerarMapa'
+import type { AoPingar } from './Interacao'
+import { usePingStore } from './pingStore'
+import { DialogoDeInteracao } from './DialogoDeInteracao'
 import { FotoDoToken } from './FotoDoToken'
 import { PainelDoMestre } from './PainelDoMestre'
 import { SeletorDeMovimentacao } from './SeletorDeMovimentacao'
@@ -38,11 +41,23 @@ interface MapaAbaProps {
   movimento: AcoesDeMovimento
   /** Informa ao servidor o que os tokens do jogador veem, com a névoa ligada. */
   aoExplorar: (mapaId: string, celulas: string) => void
+  /** Aponta um ponto do mapa para a mesa; `focar` (só o Mestre) leva a visão de todos até ele. */
+  aoPingar: AoPingar
   /** Mostra um aviso curto (porta que não abriu, ação do editor recusada). */
   aoAvisar: (mensagem: string) => void
 }
 
-export function MapaAba({ mesaId, meuUsuarioId, souMestre, movimentacao, aoMover, movimento, aoExplorar, aoAvisar }: MapaAbaProps) {
+export function MapaAba({
+  mesaId,
+  meuUsuarioId,
+  souMestre,
+  movimentacao,
+  aoMover,
+  movimento,
+  aoExplorar,
+  aoPingar,
+  aoAvisar,
+}: MapaAbaProps) {
   const mapa = useMapaStore((estado) => estado.mapa)
   const enquadrar = useMapaStore((estado) => estado.enquadrar)
   const modo = useEditorStore((estado) => estado.modo)
@@ -60,6 +75,7 @@ export function MapaAba({ mesaId, meuUsuarioId, souMestre, movimentacao, aoMover
   const movimentoLivre = movimentacao === 'Livre'
   const emCombate = useIniciativaStore((estado) => estado.iniciativa.estado === 'EmCombate')
   const vezDoTokenId = useIniciativaStore((estado) => estado.iniciativa.vezDoTokenId)
+  const anuncioDoPing = usePingStore((estado) => estado.anuncio)
 
   // Ao liberar a movimentação, some o alcance do token que estava em movimento por blocos.
   useEffect(() => {
@@ -179,8 +195,12 @@ export function MapaAba({ mesaId, meuUsuarioId, souMestre, movimentacao, aoMover
                   aoMover={aoMover}
                   aoMoverPorBlocos={movimento.moverPorBlocos}
                   aoAvisar={aoAvisar}
+                  aoPingar={aoPingar}
                 />
               </Suspense>
+              <p className="so-leitor" aria-live="polite">
+                {anuncioDoPing}
+              </p>
               <TrilhaDeIniciativa
                 mesaId={mesaId}
                 meuUsuarioId={meuUsuarioId}
@@ -190,6 +210,7 @@ export function MapaAba({ mesaId, meuUsuarioId, souMestre, movimentacao, aoMover
               />
               {!movimentoLivre && <BarraDeMovimento meuUsuarioId={meuUsuarioId} souMestre={souMestre} movimento={movimento} />}
               <FotoDoToken />
+              <DialogoDeInteracao meuUsuarioId={meuUsuarioId} souMestre={souMestre} aoAvisar={aoAvisar} />
             </div>
             <div className="mapa-rodape">
               <ControlesDeVisao />
@@ -210,11 +231,14 @@ export function MapaAba({ mesaId, meuUsuarioId, souMestre, movimentacao, aoMover
                   : movimentoLivre
                     ? 'Arraste o seu token para qualquer célula livre do mapa para movê-lo.'
                     : 'Clique no seu token para ver as células que ele alcança e clique em uma delas para mover.'}{' '}
+                {!souMestre && 'Clique em um objeto marcado ao lado do seu token para examiná-lo. '}
                 {emCombate &&
                   !movimentoLivre &&
                   'Em combate, só o token da vez anda por blocos; ao terminar, use "Encerrar vez" na trilha da iniciativa. '}
                 Arraste o fundo (ou use dois dedos) para deslocar o mapa; role ou faça a pinça para aproximar. Arraste com
-                o botão direito para girar e inclinar a visão; Q e E giram 90°.
+                o botão direito para girar e inclinar a visão; Q e E giram 90°. Para apontar um lugar à mesa, dê um duplo
+                clique ou toque duplo (ou Alt + clique)
+                {souMestre ? '; com Shift + Alt + clique, a visão de todos vai até o ponto.' : '.'}
               </p>
             )}
             <AtalhosDoMapa

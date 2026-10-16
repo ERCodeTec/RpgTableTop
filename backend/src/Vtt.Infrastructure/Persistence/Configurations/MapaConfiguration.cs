@@ -72,6 +72,9 @@ public class TokenConfiguration : IEntityTypeConfiguration<Token>
         builder.Property(t => t.Deslocamento).HasDefaultValue(Personagem.DeslocamentoPadrao);
         builder.Property(t => t.Visao).HasDefaultValue(0);
         builder.Property(t => t.JogouNaRodada).HasDefaultValue(false);
+        builder.Property(t => t.Descricao).HasMaxLength(Token.DescricaoTamanhoMaximo);
+        builder.Property(t => t.Revelado).HasDefaultValue(false);
+        builder.Ignore(t => t.EhInteracao);
         builder.Ignore(t => t.MovimentoPendente);
         builder.Ignore(t => t.MovimentoMaximo);
         // Sentinel fora do enum: sem ele, Oculto (o valor 0) contaria como "não informado" e o banco gravaria o padrão.
@@ -96,6 +99,11 @@ public class TokenConfiguration : IEntityTypeConfiguration<Token>
             .HasForeignKey(t => t.ImagemId)
             .OnDelete(DeleteBehavior.NoAction);
 
+        builder.HasOne<ImagemUpload>()
+            .WithMany()
+            .HasForeignKey(t => t.ConteudoImagemId)
+            .OnDelete(DeleteBehavior.NoAction);
+
         builder.HasOne<Usuario>()
             .WithMany()
             .HasForeignKey(t => t.DonoUsuarioId)
@@ -113,6 +121,7 @@ public class TokenConfiguration : IEntityTypeConfiguration<Token>
 
         builder.HasIndex(t => t.PersonagemId);
         builder.HasIndex(t => t.DonoUsuarioId);
+        builder.HasIndex(t => t.ConteudoImagemId);
     }
 }
 

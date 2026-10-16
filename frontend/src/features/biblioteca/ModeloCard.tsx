@@ -10,6 +10,11 @@ interface ModeloCardProps {
   aoExcluir: () => void
 }
 
+function resumoDoConteudo(modelo: ModeloDeToken): string {
+  const partes = [modelo.conteudoImagemId && 'imagem', modelo.descricao && 'descrição'].filter(Boolean)
+  return partes.length ? `Ao examinar: ${partes.join(' e ')}` : 'Sem conteúdo para examinar'
+}
+
 export function ModeloCard({ modelo, categoria, aoEditar, aoExcluir }: ModeloCardProps) {
   return (
     <li className="personagem">
@@ -20,14 +25,20 @@ export function ModeloCard({ modelo, categoria, aoEditar, aoExcluir }: ModeloCar
           {NOME_DO_TIPO[modelo.tipo]}
           {categoria && ` · ${categoria}`}
         </p>
-        <p className="personagem-hp">
-          <span className="personagem-hp-valor">{modelo.hpMaximo}</span> de HP · jogadores veem:{' '}
-          {NOME_DA_EXIBICAO[modelo.exibicaoHp].toLocaleLowerCase('pt-BR')}
-        </p>
-        <p>
-          Deslocamento de {modelo.deslocamento} células
-          {modelo.visao > 0 && ` · visão de aliado de ${modelo.visao} células`}
-        </p>
+        {modelo.tipo === 'Interacao' ? (
+          <p>{resumoDoConteudo(modelo)}</p>
+        ) : (
+          <>
+            <p className="personagem-hp">
+              <span className="personagem-hp-valor">{modelo.hpMaximo}</span> de HP · jogadores veem:{' '}
+              {NOME_DA_EXIBICAO[modelo.exibicaoHp].toLocaleLowerCase('pt-BR')}
+            </p>
+            <p>
+              Deslocamento de {modelo.deslocamento} células
+              {modelo.visao > 0 && ` · visão de aliado de ${modelo.visao} células`}
+            </p>
+          </>
+        )}
       </div>
       <div className="personagem-acoes">
         <button className="botao botao-discreto" type="button" onClick={aoEditar} aria-label={`Editar ${modelo.nome}`}>

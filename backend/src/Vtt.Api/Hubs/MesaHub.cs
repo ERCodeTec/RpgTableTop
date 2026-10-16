@@ -164,6 +164,30 @@ public class MesaHub(
         }
     }
 
+    /// <summary>
+    /// Aponta um ponto do mapa para a mesa. Não passa pelo banco: só quem está no lobby pinga, e
+    /// cada cliente ignora o ping de um mapa que não está na tela dele. Acima do limite, o ping é
+    /// só descartado. Só o Mestre pode levar a câmera de todos até o ponto.
+    /// </summary>
+    public async Task Pingar(Guid mesaId, Guid mapaId, double x, double y, bool focar)
+    {
+        if (!double.IsFinite(x) || !double.IsFinite(y)
+            || !limitador.Permitir(Context.ConnectionId, nameof(Pingar), limites.Value.ChamadasDoHubPorSegundo))
+        {
+            return;
+        }
+
+        var usuarioId = Context.User!.ObterUsuarioId();
+        if (!presenca.ConexoesDoUsuario(mesaId, usuarioId).Contains(Context.ConnectionId))
+        {
+            throw new HubException("Entre na mesa antes de pingar.");
+        }
+
+        var ehMestre = presenca.MestresOnline(mesaId).Contains(usuarioId);
+        var ping = new PingDto(mapaId, usuarioId, x, y, focar && ehMestre);
+        await Clients.OthersInGroup(Grupo(mesaId)).PingNoMapa(mesaId, ping);
+    }
+
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
         limitador.Esquecer(Context.ConnectionId);

@@ -14,6 +14,8 @@ function modelo(nome: string, categoriaId: string | null): ModeloDeToken {
     deslocamento: 6,
     visao: 0,
     exibicaoHp: 'Barra',
+    descricao: null,
+    conteudoImagemId: null,
     criadoEm: '',
     atualizadoEm: '',
   }

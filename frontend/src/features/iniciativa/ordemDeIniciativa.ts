@@ -37,7 +37,8 @@ export function ordemDeIniciativa(valores: ValorDeIniciativa[], tokens: Token[])
 
   const itens: { token: Token; valor: number; tipo: number; nome: string; sequencia: number }[] = []
   for (const token of tokens) {
-    if (!token.visivel) continue
+    // Objetos de interação não jogam, como no servidor (OrdemDeIniciativa.Calcular).
+    if (!token.visivel || token.tipo === 'Interacao') continue
     if (token.donoUsuarioId) {
       const valor = dosJogadores.get(token.donoUsuarioId)
       if (valor !== undefined) itens.push({ token, valor, tipo: 0, nome: chaveDoGrupo(token.nome), sequencia: 0 })
@@ -65,7 +66,7 @@ export function ordemDeIniciativa(valores: ValorDeIniciativa[], tokens: Token[])
 export function gruposNoMapa(tokens: Token[]): { chave: string; nome: string; tokens: Token[] }[] {
   const grupos = new Map<string, { chave: string; nome: string; tokens: Token[] }>()
   for (const token of tokens) {
-    if (token.donoUsuarioId) continue
+    if (token.donoUsuarioId || token.tipo === 'Interacao') continue
     const { chave, nome } = grupoDeIniciativa(token.nome)
     const grupo = grupos.get(chave) ?? { chave, nome, tokens: [] }
     grupo.tokens.push(token)

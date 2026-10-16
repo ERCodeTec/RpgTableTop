@@ -2335,3 +2335,40 @@ button.trilha-de-iniciativa-item:hover {
     max-width: none;
   }
 }
+
+/* Objetos de interação: o conteúdo para quem examina e os campos do Mestre. */
+.campo-grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin: 0;
+  padding: 0.75rem;
+  border: 1px solid var(--linha);
+  border-radius: var(--raio);
+}
+
+.campo-grupo legend {
+  padding: 0 0.25rem;
+  font-weight: 600;
+}
+
+.interacao-conteudo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.interacao-descricao {
+  margin: 0;
+  max-height: 40dvh;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.5;
+}
+
+.interacao-quem-ve {
+  margin: 0;
+  color: var(--texto-suave);
+  font-size: 0.875rem;
+}

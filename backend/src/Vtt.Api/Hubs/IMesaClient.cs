@@ -60,7 +60,16 @@ public interface IMesaClient
 
     /// <summary>A iniciativa inteira: estado, rodada, vez e valores, como o destinatário pode vê-la.</summary>
     Task IniciativaAlterada(Guid mesaId, IniciativaDto iniciativa);
+
+    /// <summary>Alguém da mesa apontou um ponto do mapa. Vai para todos, menos quem pingou.</summary>
+    Task PingNoMapa(Guid mesaId, PingDto ping);
 }
+
+/// <summary>
+/// Um ping: ponto do chão (em células, com fração) do mapa <paramref name="MapaId"/>. Com
+/// <paramref name="Focar"/>, que só o Mestre pode pedir, a câmera de quem recebe vai até o ponto.
+/// </summary>
+public record PingDto(Guid MapaId, Guid UsuarioId, double X, double Y, bool Focar);
 
 /// <summary>Estado completo da mesa, devolvido ao entrar ou reconectar: lobby e mapa ativo (se houver).</summary>
 public record LobbyDto(MesaDetalheDto Mesa, IReadOnlyCollection<Guid> UsuariosOnline, MapaEstadoDto? MapaAtivo, IniciativaDto Iniciativa);

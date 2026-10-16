@@ -92,7 +92,11 @@ function Lobby({ mesa }: { mesa: MesaDetalhe }) {
     [navigate],
   )
   // O mapa usa a mesma conexão do lobby, então continua sincronizado com qualquer aba aberta.
-  const { extensao, moverToken, acoesDeMovimento, explorar } = useMapaTempoReal({ mesaId: mesa.id, aoAvisar: setAviso })
+  const { extensao, moverToken, acoesDeMovimento, explorar, pingar } = useMapaTempoReal({
+    mesaId: mesa.id,
+    meuUsuarioId,
+    aoAvisar: setAviso,
+  })
   const { status, online, reconectar } = useLobby({ mesaId: mesa.id, meuUsuarioId, aoEncerrar, extensao })
   // Sem conexão, o que se vê pode estar desatualizado e o que se faz não chega aos outros.
   const semConexao = status !== 'conectado'
@@ -209,6 +213,7 @@ function Lobby({ mesa }: { mesa: MesaDetalhe }) {
           aoMover={moverToken}
           movimento={acoesDeMovimento}
           aoExplorar={explorar}
+          aoPingar={pingar}
           aoAvisar={setAviso}
         />
       )}

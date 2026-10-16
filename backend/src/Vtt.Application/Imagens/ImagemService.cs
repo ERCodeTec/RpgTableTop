@@ -5,6 +5,7 @@ using Vtt.Application.Common;
 using Vtt.Application.Mapas;
 using Vtt.Application.Mesas;
 using Vtt.Domain.Imagens;
+using Vtt.Domain.Mapas;
 using Vtt.Domain.Mesas;
 
 namespace Vtt.Application.Imagens;
@@ -317,14 +318,17 @@ public class ImagemService(
     }
 
     /// <summary>
-    /// Imagem de mesa: qualquer membro. Imagem pessoal: o dono e, quando ela é a foto de um token de
+    /// Imagem de mesa: qualquer membro, menos quando ela é o conteúdo de uma Interação: aí o jogador só
+    /// a baixa se puder examinar alguma delas (ou se ela também estiver à vista em outro lugar). Imagem pessoal: o dono e, quando ela é a foto de um token de
     /// jogador, quem está na mesa desse token (os demais jogadores só enquanto ele está visível).
     /// </summary>
     private async Task<bool> PodeVerAsync(Guid usuarioId, ImagemUpload imagem, CancellationToken cancellationToken)
     {
         if (!imagem.Pessoal)
         {
-            return await db.ObterPapelAsync(usuarioId, imagem.MesaId!.Value, cancellationToken) is not null;
+            var papel = await db.ObterPapelAsync(usuarioId, imagem.MesaId!.Value, cancellationToken);
+            return papel == PapelNaMesa.Mestre
+                || papel == PapelNaMesa.Jogador && await JogadorVeConteudoAsync(usuarioId, imagem.Id, cancellationToken);
         }
 
         return imagem.UsuarioId == usuarioId
@@ -336,6 +340,37 @@ public class ImagemService(
                         && membro.UsuarioId == usuarioId
                         && (uso.Visivel || membro.Papel == PapelNaMesa.Mestre)),
                     cancellationToken);
+    }
+
+    /// <summary>false só quando a imagem é conteúdo de Interação, não aparece em outro lugar e nenhuma delas está ao alcance do jogador.</summary>
+    private async Task<bool> JogadorVeConteudoAsync(Guid usuarioId, Guid imagemId, CancellationToken cancellationToken)
+    {
+        var interacoes = await db.Tokens.AsNoTracking()
+            .Where(token => token.ConteudoImagemId == imagemId && token.Tipo == TipoToken.Interacao)
+            .Select(token => new { Token = token, Ativo = db.Mapas.Any(mapa => mapa.Id == token.MapaId && mapa.Ativo) })
+            .ToListAsync(cancellationToken);
+        if (interacoes.Count == 0)
+        {
+            return true;
+        }
+
+        var aVista = await db.Tokens.AnyAsync(token => token.ImagemId == imagemId && token.Visivel, cancellationToken)
+            || await db.Estruturas.AnyAsync(estrutura => estrutura.TexturaImagemId == imagemId, cancellationToken)
+            || await db.Mapas.AnyAsync(mapa => mapa.ImagemFundoId == imagemId, cancellationToken);
+        if (aVista)
+        {
+            return true;
+        }
+
+        foreach (var interacao in interacoes.Where(uso => uso.Ativo))
+        {
+            if (await db.JogadorPodeExaminarAsync(interacao.Token, usuarioId, cancellationToken))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private Task<Guid?> BuscarCopiaAsync(Guid imagemPessoalId, Guid mesaId, CancellationToken cancellationToken) =>
@@ -403,6 +438,12 @@ public class ImagemService(
             .ToListAsync(cancellationToken);
         usos.AddRange(tokens.Select(uso => $"token \"{uso.Token}\" no mapa \"{uso.Mapa}\""));
 
+        var conteudos = await db.Tokens
+            .Where(token => token.ConteudoImagemId == imagemId)
+            .Join(db.Mapas, token => token.MapaId, mapa => mapa.Id, (token, mapa) => new { Token = token.Nome, Mapa = mapa.Nome })
+            .ToListAsync(cancellationToken);
+        usos.AddRange(conteudos.Select(uso => $"conteúdo da interação \"{uso.Token}\" no mapa \"{uso.Mapa}\""));
+
         var estruturas = await db.Estruturas
             .Where(estrutura => estrutura.TexturaImagemId == imagemId)
             .Join(db.Mapas, estrutura => estrutura.MapaId, mapa => mapa.Id, (_, mapa) => mapa.Nome)
@@ -418,6 +459,12 @@ public class ImagemService(
             .Select(modelo => modelo.Nome)
             .ToListAsync(cancellationToken);
         usos.AddRange(modelos.Select(nome => $"modelo \"{nome}\" da biblioteca"));
+
+        var conteudosDeModelos = await db.ModelosDeToken
+            .Where(modelo => modelo.ConteudoImagemId == imagemId)
+            .Select(modelo => modelo.Nome)
+            .ToListAsync(cancellationToken);
+        usos.AddRange(conteudosDeModelos.Select(nome => $"conteúdo do modelo \"{nome}\" da biblioteca"));
 
         var personagens = await db.Personagens
             .Where(personagem => personagem.ImagemId == imagemId)

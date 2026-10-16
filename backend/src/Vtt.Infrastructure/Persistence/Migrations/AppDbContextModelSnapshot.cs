@@ -146,6 +146,10 @@ namespace Vtt.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("categoria_id");
 
+                    b.Property<Guid?>("ConteudoImagemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("conteudo_imagem_id");
+
                     b.Property<string>("CorBorda")
                         .IsRequired()
                         .HasMaxLength(7)
@@ -155,6 +159,11 @@ namespace Vtt.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset>("CriadoEm")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("criado_em");
+
+                    b.Property<string>("Descricao")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("descricao");
 
                     b.Property<int>("Deslocamento")
                         .HasColumnType("integer")
@@ -206,6 +215,9 @@ namespace Vtt.Infrastructure.Persistence.Migrations
                     b.HasIndex("CategoriaId")
                         .HasDatabaseName("ix_modelos_de_token_categoria_id");
 
+                    b.HasIndex("ConteudoImagemId")
+                        .HasDatabaseName("ix_modelos_de_token_conteudo_imagem_id");
+
                     b.HasIndex("ImagemId")
                         .HasDatabaseName("ix_modelos_de_token_imagem_id");
 
@@ -218,7 +230,7 @@ namespace Vtt.Infrastructure.Persistence.Migrations
 
                             t.HasCheckConstraint("ck_modelos_de_token_hp_maximo", "hp_maximo BETWEEN 1 AND 999");
 
-                            t.HasCheckConstraint("ck_modelos_de_token_tipo", "tipo IN ('Inimigo', 'Npc')");
+                            t.HasCheckConstraint("ck_modelos_de_token_tipo", "tipo IN ('Inimigo', 'Npc', 'Interacao')");
 
                             t.HasCheckConstraint("ck_modelos_de_token_visao", "visao BETWEEN 0 AND 60");
                         });
@@ -531,6 +543,10 @@ namespace Vtt.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<Guid?>("ConteudoImagemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("conteudo_imagem_id");
+
                     b.Property<string>("CorBorda")
                         .IsRequired()
                         .HasMaxLength(7)
@@ -540,6 +556,11 @@ namespace Vtt.Infrastructure.Persistence.Migrations
                     b.Property<int>("CustoPendente")
                         .HasColumnType("integer")
                         .HasColumnName("custo_pendente");
+
+                    b.Property<string>("Descricao")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("descricao");
 
                     b.Property<int>("Deslocamento")
                         .ValueGeneratedOnAdd()
@@ -613,6 +634,12 @@ namespace Vtt.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("personagem_id");
 
+                    b.Property<bool>("Revelado")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("revelado");
+
                     b.Property<string>("Tipo")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -646,6 +673,9 @@ namespace Vtt.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_tokens");
+
+                    b.HasIndex("ConteudoImagemId")
+                        .HasDatabaseName("ix_tokens_conteudo_imagem_id");
 
                     b.HasIndex("DonoUsuarioId")
                         .HasDatabaseName("ix_tokens_dono_usuario_id");
@@ -1112,6 +1142,12 @@ namespace Vtt.Infrastructure.Persistence.Migrations
 
                     b.HasOne("Vtt.Domain.Imagens.ImagemUpload", null)
                         .WithMany()
+                        .HasForeignKey("ConteudoImagemId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .HasConstraintName("fk_modelos_de_token_imagens_conteudo_imagem_id");
+
+                    b.HasOne("Vtt.Domain.Imagens.ImagemUpload", null)
+                        .WithMany()
                         .HasForeignKey("ImagemId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .HasConstraintName("fk_modelos_de_token_imagens_imagem_id");
@@ -1196,6 +1232,12 @@ namespace Vtt.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Vtt.Domain.Mapas.Token", b =>
                 {
+                    b.HasOne("Vtt.Domain.Imagens.ImagemUpload", null)
+                        .WithMany()
+                        .HasForeignKey("ConteudoImagemId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .HasConstraintName("fk_tokens_imagens_conteudo_imagem_id");
+
                     b.HasOne("Vtt.Infrastructure.Identity.Usuario", null)
                         .WithMany()
                         .HasForeignKey("DonoUsuarioId")

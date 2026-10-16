@@ -3,7 +3,7 @@ import { useId, useState, type FormEvent } from 'react'
 import { ApiError } from '../../shared/api/http'
 import { Campo } from '../../shared/ui/Campo'
 import { Dialogo } from '../../shared/ui/Dialogo'
-import { CampoDeImagem, ICONE_INICIAL, SeletorDeIcone } from '../mapa/CamposDoToken'
+import { CampoDeImagem, CamposDoConteudo, ICONE_INICIAL, SeletorDeIcone } from '../mapa/CamposDoToken'
 import {
   COR_TOKEN_PADRAO,
   DESLOCAMENTO_MAXIMO,
@@ -24,7 +24,7 @@ import {
   type TipoDoModelo,
 } from './bibliotecaApi'
 
-const TIPOS: TipoDoModelo[] = ['Inimigo', 'Npc']
+const TIPOS: TipoDoModelo[] = ['Inimigo', 'Npc', 'Interacao']
 const EXIBICOES: ExibicaoHp[] = ['Oculto', 'Barra', 'Completo']
 
 interface ModeloFormDialogoProps {
@@ -52,6 +52,10 @@ export function ModeloFormDialogo({ categorias, modelo, categoriaInicial = null,
   const [deslocamento, setDeslocamento] = useState(String(modelo?.deslocamento ?? DESLOCAMENTO_PADRAO))
   const [visao, setVisao] = useState(String(modelo?.visao ?? 0))
   const [exibicaoHp, setExibicaoHp] = useState<ExibicaoHp>(modelo?.exibicaoHp ?? 'Barra')
+  const [descricao, setDescricao] = useState(modelo?.descricao ?? '')
+  const [conteudoImagemId, setConteudoImagemId] = useState(modelo?.conteudoImagemId ?? null)
+  // Um objeto de interação não tem HP nem movimento: no lugar, o conteúdo que os jogadores examinam.
+  const interacao = tipo === 'Interacao'
 
   const salvar = useMutation({
     mutationFn: () => {
@@ -66,6 +70,8 @@ export function ModeloFormDialogo({ categorias, modelo, categoriaInicial = null,
         deslocamento: Number(deslocamento) || 0,
         visao: Number(visao) || 0,
         exibicaoHp,
+        descricao: interacao ? descricao.trim() || null : null,
+        conteudoImagemId: interacao ? conteudoImagemId : null,
       }
       return modelo ? atualizarModelo(modelo.id, dados) : criarModelo(dados)
     },
@@ -146,52 +152,73 @@ export function ModeloFormDialogo({ categorias, modelo, categoriaInicial = null,
           erros={erro?.erros.imagemId}
         />
 
+        {interacao && (
+          <>
+            <p className="campo-dica">
+              No mapa, o objeto ocupa a célula. Os jogadores examinam o conteúdo clicando nele com o token ao lado, ou de
+              qualquer lugar quando você o revelar a todos.
+            </p>
+            <CamposDoConteudo
+              fonte="pessoal"
+              descricao={descricao}
+              conteudoImagemId={conteudoImagemId}
+              aoMudarDescricao={setDescricao}
+              aoMudarImagem={setConteudoImagemId}
+              erros={erro?.erros}
+            />
+          </>
+        )}
+
         <div className="form-linha">
-          <Campo
-            rotulo="HP máximo"
-            type="number"
-            inputMode="numeric"
-            min={1}
-            max={999}
-            value={hpMaximo}
-            onChange={(evento) => setHpMaximo(evento.target.value)}
-            erros={erro?.erros.hpMaximo}
-            dica="Cada token colocado começa com o HP cheio."
-            required
-          />
-          <Campo
-            rotulo="Deslocamento"
-            type="number"
-            inputMode="numeric"
-            min={DESLOCAMENTO_MINIMO}
-            max={DESLOCAMENTO_MAXIMO}
-            value={deslocamento}
-            onChange={(evento) => setDeslocamento(evento.target.value)}
-            erros={erro?.erros.deslocamento}
-            dica="Células por rodada: 6 = 30 ft."
-            required
-          />
-          <Campo
-            rotulo="Visão de aliado"
-            type="number"
-            inputMode="numeric"
-            min={0}
-            max={VISAO_MAXIMA}
-            value={visao}
-            onChange={(evento) => setVisao(evento.target.value)}
-            erros={erro?.erros.visao}
-            dica="Com a névoa ligada, os jogadores enxergam também por este token. 0 = não empresta visão."
-          />
-          <div className="campo">
-            <label htmlFor={idExibicao}>HP para os jogadores</label>
-            <select id={idExibicao} value={exibicaoHp} onChange={(evento) => setExibicaoHp(evento.target.value as ExibicaoHp)}>
-              {EXIBICOES.map((opcao) => (
-                <option key={opcao} value={opcao}>
-                  {NOME_DA_EXIBICAO[opcao]}
-                </option>
-              ))}
-            </select>
-          </div>
+          {!interacao && (
+            <>
+              <Campo
+                rotulo="HP máximo"
+                type="number"
+                inputMode="numeric"
+                min={1}
+                max={999}
+                value={hpMaximo}
+                onChange={(evento) => setHpMaximo(evento.target.value)}
+                erros={erro?.erros.hpMaximo}
+                dica="Cada token colocado começa com o HP cheio."
+                required
+              />
+              <Campo
+                rotulo="Deslocamento"
+                type="number"
+                inputMode="numeric"
+                min={DESLOCAMENTO_MINIMO}
+                max={DESLOCAMENTO_MAXIMO}
+                value={deslocamento}
+                onChange={(evento) => setDeslocamento(evento.target.value)}
+                erros={erro?.erros.deslocamento}
+                dica="Células por rodada: 6 = 30 ft."
+                required
+              />
+              <Campo
+                rotulo="Visão de aliado"
+                type="number"
+                inputMode="numeric"
+                min={0}
+                max={VISAO_MAXIMA}
+                value={visao}
+                onChange={(evento) => setVisao(evento.target.value)}
+                erros={erro?.erros.visao}
+                dica="Com a névoa ligada, os jogadores enxergam também por este token. 0 = não empresta visão."
+              />
+              <div className="campo">
+                <label htmlFor={idExibicao}>HP para os jogadores</label>
+                <select id={idExibicao} value={exibicaoHp} onChange={(evento) => setExibicaoHp(evento.target.value as ExibicaoHp)}>
+                  {EXIBICOES.map((opcao) => (
+                    <option key={opcao} value={opcao}>
+                      {NOME_DA_EXIBICAO[opcao]}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </>
+          )}
           <div className="campo campo-cor">
             <label htmlFor={idCor}>Cor da borda</label>
             <input id={idCor} type="color" value={corBorda} onChange={(evento) => setCorBorda(evento.target.value.toUpperCase())} />

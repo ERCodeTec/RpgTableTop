@@ -17,4 +17,6 @@ export interface ModoDeInteracao {
   clicarNoFundo: (clienteX: number, clienteY: number) => void
   /** O ponteiro passa sobre o mapa sem nada pressionado; null quando sai dele. */
   pairar?: (ponto: { clienteX: number; clienteY: number } | null) => void
+  /** Duplo clique ou toque duplo no mesmo ponto pinga, em vez de clicar de novo. */
+  pingaComToqueDuplo?: boolean
 }

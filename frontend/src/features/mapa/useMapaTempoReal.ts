@@ -3,6 +3,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useMemo, useRef } from 'react'
 import type { Iniciativa } from '../iniciativa/iniciativaApi'
 import { useIniciativaStore } from '../iniciativa/iniciativaStore'
+import { chaveDaMesa, type MesaDetalhe } from '../mesas/mesasApi'
 import type { ExtensaoDoLobby } from '../mesas/useLobby'
 import { chaveDaCelula } from './geometria'
 import {
@@ -18,6 +19,7 @@ import {
   type Token,
 } from './mapaApi'
 import { alcanceAtual, useMapaStore } from './mapaStore'
+import { corDoPing, usePingStore } from './pingStore'
 
 /** O movimento por blocos e a rodada, pelo Hub. Os erros viram aviso; nada aqui lança. */
 export interface AcoesDeMovimento {
@@ -42,8 +44,21 @@ function mensagemDoServidor(erro: unknown, padrao: string) {
   return inicio >= 0 ? mensagem.slice(inicio + 'HubException: '.length) : padrao
 }
 
+/** Intervalo mínimo entre dois pings meus: segurar Alt e clicar sem parar não inunda a mesa. */
+const INTERVALO_ENTRE_PINGS_MS = 250
+
+/** Um ping como o servidor o repassa. */
+interface PingRecebido {
+  mapaId: string
+  usuarioId: string
+  x: number
+  y: number
+  focar: boolean
+}
+
 interface OpcoesDoMapaTempoReal {
   mesaId: string
+  meuUsuarioId: string
   /** Mostra um aviso curto (movimento rejeitado, falha de conexão). */
   aoAvisar: (mensagem: string) => void
 }
@@ -52,11 +67,26 @@ interface OpcoesDoMapaTempoReal {
  * Mantém o mapa sincronizado pela mesma conexão do lobby. Os eventos do Hub alimentam o store;
  * a cada (re)conexão o estado local é trocado por inteiro pelo que o EntrarNaMesa devolve.
  */
-export function useMapaTempoReal({ mesaId, aoAvisar }: OpcoesDoMapaTempoReal) {
+export function useMapaTempoReal({ mesaId, meuUsuarioId, aoAvisar }: OpcoesDoMapaTempoReal) {
   const queryClient = useQueryClient()
   const conexaoRef = useRef<HubConnection | null>(null)
   const aoAvisarRef = useRef(aoAvisar)
   aoAvisarRef.current = aoAvisar
+  const ultimoPingRef = useRef(0)
+
+  /** Mostra um ping com o nome e a cor de quem pingou, tirados dos membros da mesa já carregados. */
+  const mostrarPing = useCallback(
+    (mapaId: string, usuarioId: string, x: number, y: number, focar: boolean) => {
+      const mapa = useMapaStore.getState().mapa
+      // Um ping de outro mapa (o Mestre preparando um) ou fora da grade não aparece.
+      if (mapa?.id !== mapaId || x < 0 || y < 0 || x > mapa.largura || y > mapa.altura) return
+      const membro = queryClient.getQueryData<MesaDetalhe>(chaveDaMesa(mesaId))?.membros.find((m) => m.usuarioId === usuarioId)
+      const ehMestre = membro?.papel === 'Mestre'
+      const nome = membro ? (ehMestre ? 'Mestre' : (membro.personagemAtivo?.nome ?? membro.nomeExibicao)) : 'Alguém'
+      usePingStore.getState().mostrar({ mapaId, nome, cor: corDoPing(usuarioId, ehMestre), x, y }, focar)
+    },
+    [mesaId, queryClient],
+  )
 
   const extensao = useMemo<ExtensaoDoLobby>(() => {
     const store = useMapaStore.getState
@@ -102,6 +132,10 @@ export function useMapaTempoReal({ mesaId, aoAvisar }: OpcoesDoMapaTempoReal) {
           daMesa((mapaId: string, estruturaId: string) => store().estruturaRemovida(mapaId, estruturaId)),
         )
         conexao.on('MemoriaDeNevoaAlterada', daMesa((memoria: MemoriaDeNevoa) => store().memoriaAlterada(memoria)))
+        conexao.on(
+          'PingNoMapa',
+          daMesa((ping: PingRecebido) => mostrarPing(ping.mapaId, ping.usuarioId, ping.x, ping.y, ping.focar)),
+        )
         conexao.on('IniciativaAlterada', daMesa((iniciativa: Iniciativa) => useIniciativaStore.getState().definir(iniciativa)))
         conexao.on(
           'MapaAtivoAlterado',
@@ -139,7 +173,7 @@ export function useMapaTempoReal({ mesaId, aoAvisar }: OpcoesDoMapaTempoReal) {
           .catch(() => store().exibir(mapaAtivo))
       },
     }
-  }, [mesaId, queryClient])
+  }, [mesaId, queryClient, mostrarPing])
 
   useEffect(
     () => () => {
@@ -276,5 +310,23 @@ export function useMapaTempoReal({ mesaId, aoAvisar }: OpcoesDoMapaTempoReal) {
     conexaoRef.current?.invoke('ExplorarCelulas', mapaId, celulas).catch(() => undefined)
   }, [])
 
-  return { extensao, moverToken, acoesDeMovimento, explorar }
+  /**
+   * Aponta um ponto do mapa na tela: aparece aqui na hora e vai para os outros pelo Hub. Ping é
+   * efêmero: se a conexão falhar, ele só não chega, sem aviso. `focar` só vale para o Mestre.
+   */
+  const pingar = useCallback(
+    (x: number, y: number, focar: boolean) => {
+      const mapa = useMapaStore.getState().mapa
+      const agora = performance.now()
+      if (!mapa || agora - ultimoPingRef.current < INTERVALO_ENTRE_PINGS_MS) return
+      if (x < 0 || y < 0 || x > mapa.largura || y > mapa.altura) return
+      ultimoPingRef.current = agora
+      // Quem pede o foco já está olhando para o ponto: a própria câmera não se mexe.
+      mostrarPing(mapa.id, meuUsuarioId, x, y, false)
+      conexaoRef.current?.invoke('Pingar', mesaId, mapa.id, x, y, focar).catch(() => undefined)
+    },
+    [mesaId, meuUsuarioId, mostrarPing],
+  )
+
+  return { extensao, moverToken, acoesDeMovimento, explorar, pingar }
 }

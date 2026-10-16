@@ -205,6 +205,13 @@ public class BibliotecaService(IAppDbContext db, TimeProvider relogio) : IBiblio
             return Erro.Invalido("imagemId", "Escolha uma imagem da sua galeria da biblioteca.");
         }
 
+        if (request.Tipo == TipoToken.Interacao
+            && request.ConteudoImagemId is { } conteudoId
+            && !await db.Imagens.AnyAsync(i => i.Id == conteudoId && i.UsuarioId == usuarioId, cancellationToken))
+        {
+            return Erro.Invalido("conteudoImagemId", "Escolha uma imagem da sua galeria da biblioteca.");
+        }
+
         return null;
     }
 
@@ -241,5 +248,21 @@ public class BibliotecaService(IAppDbContext db, TimeProvider relogio) : IBiblio
         modelo.Deslocamento = request.Deslocamento;
         modelo.Visao = request.Visao;
         modelo.CorBorda = string.IsNullOrEmpty(request.CorBorda) ? Token.CorBordaPadrao : request.CorBorda.ToUpperInvariant();
+
+        if (modelo.Tipo == TipoToken.Interacao)
+        {
+            // Sem HP nem movimento; as colunas pedem o mínimo.
+            modelo.HpMaximo = Token.HpMaximoMinimo;
+            modelo.Deslocamento = 1;
+            modelo.Visao = 0;
+            modelo.ExibicaoHp = ExibicaoHp.Oculto;
+            modelo.Descricao = string.IsNullOrWhiteSpace(request.Descricao) ? null : request.Descricao.Trim();
+            modelo.ConteudoImagemId = request.ConteudoImagemId;
+        }
+        else
+        {
+            modelo.Descricao = null;
+            modelo.ConteudoImagemId = null;
+        }
     }
 }

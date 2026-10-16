@@ -141,10 +141,22 @@ public class TokenService(
             imagemDaMesa = copia.Valor;
         }
 
+        Guid? conteudoDaMesa = null;
+        if (modelo.Tipo == TipoToken.Interacao && modelo.ConteudoImagemId is { } conteudoPessoal)
+        {
+            var copia = await imagens.ObterCopiaNaMesaAsync(usuarioId, conteudoPessoal, mapa.MesaId, cancellationToken);
+            if (!copia.Sucesso)
+            {
+                return copia.Erro!;
+            }
+
+            conteudoDaMesa = copia.Valor;
+        }
+
         var nomes = await NomesNumeradosAsync(mapaId, modelo.Nome, request.Quantidade, cancellationToken);
         var visivel = request.Visivel ?? true;
         var tokens = celulas
-            .Select((celula, i) => modelo.CriarToken(mapaId, nomes[i], celula.X, celula.Y, imagemDaMesa, visivel))
+            .Select((celula, i) => modelo.CriarToken(mapaId, nomes[i], celula.X, celula.Y, imagemDaMesa, visivel, conteudoDaMesa))
             .ToList();
 
         db.Tokens.AddRange(tokens);
@@ -221,6 +233,12 @@ public class TokenService(
 
         token.HpAtual = request.HpAtual;
         token.ExibicaoHp = request.ExibicaoHp ?? token.ExibicaoHp;
+        if (token.EhInteracao)
+        {
+            // A Interação não tem HP nem movimento: o que vier no pedido é ignorado.
+            token.AplicarValoresDeInteracao();
+        }
+
         if (request.Visivel is { } visivel && visivel != token.Visivel)
         {
             erro = await AplicarVisibilidadeAsync(token, mapa!, visivel, cancellationToken);
@@ -239,6 +257,11 @@ public class TokenService(
         if (token is null)
         {
             return erro!;
+        }
+
+        if (token.EhInteracao)
+        {
+            return Erro.Invalido("delta", "Objetos de interação não têm HP.");
         }
 
         if (request.HpMaximo is not null && token.DonoUsuarioId is not null)
@@ -336,10 +359,71 @@ public class TokenService(
             ExibicaoHp = token.ExibicaoHp,
             Deslocamento = token.Deslocamento,
             MovimentoRestante = token.Deslocamento,
-            Visao = token.Visao
+            Visao = token.Visao,
+            Descricao = token.Descricao,
+            ConteudoImagemId = token.ConteudoImagemId,
+            Revelado = token.Revelado
         };
 
         return await InserirAsync(copia, mapa, usuarioId, cancellationToken);
+    }
+
+    public async Task<Resultado<InteracaoDto>> ObterInteracaoAsync(Guid usuarioId, Guid tokenId, CancellationToken cancellationToken = default)
+    {
+        var token = await db.Tokens.AsNoTracking().FirstOrDefaultAsync(t => t.Id == tokenId, cancellationToken);
+        if (token is null)
+        {
+            return Erro.NaoEncontrado();
+        }
+
+        var mapa = await db.Mapas.AsNoTracking().FirstAsync(m => m.Id == token.MapaId, cancellationToken);
+        var papel = await db.ObterPapelAsync(usuarioId, mapa.MesaId, cancellationToken);
+        if (papel == PapelNaMesa.Mestre)
+        {
+            return token.EhInteracao ? InteracaoDto.De(token) : Erro.NaoEncontrado("Este token não é uma interação.");
+        }
+
+        // Para o jogador, um token oculto (ou de um mapa em preparação) é um id que não existe.
+        if (papel is null || !mapa.Ativo || !token.Visivel)
+        {
+            return Erro.NaoEncontrado();
+        }
+
+        if (!token.EhInteracao)
+        {
+            return Erro.NaoEncontrado("Este token não é uma interação.");
+        }
+
+        return await db.JogadorPodeExaminarAsync(token, usuarioId, cancellationToken)
+            ? InteracaoDto.De(token)
+            : Erro.Proibido(AcessoAInteracao.Aproxime);
+    }
+
+    public async Task<Resultado<TokenDto>> EditarInteracaoAsync(Guid usuarioId, Guid tokenId, InteracaoRequest request, CancellationToken cancellationToken = default)
+    {
+        var (token, mapa, erro) = await ObterComoMestreAsync(usuarioId, tokenId, cancellationToken);
+        if (token is null)
+        {
+            return erro!;
+        }
+
+        if (!token.EhInteracao)
+        {
+            return Erro.Invalido("tipo", "Este token não é uma interação.");
+        }
+
+        if (request.ConteudoImagemId is { } imagemId
+            && imagemId != token.ConteudoImagemId
+            && !await db.ImagemEhDaMesaAsync(imagemId, mapa!.MesaId, cancellationToken))
+        {
+            return Erro.Invalido("conteudoImagemId", ImagemDeOutraMesa);
+        }
+
+        var antes = ProjecoesDoToken.De(token);
+        token.Descricao = string.IsNullOrWhiteSpace(request.Descricao) ? null : request.Descricao.Trim();
+        token.ConteudoImagemId = request.ConteudoImagemId;
+        token.Revelado = request.Revelado ?? token.Revelado;
+        return await GravarAlteracaoAsync(token, mapa!, usuarioId, antes, cancellationToken);
     }
 
     public async Task<Resultado> RemoverAsync(Guid usuarioId, Guid tokenId, CancellationToken cancellationToken = default)

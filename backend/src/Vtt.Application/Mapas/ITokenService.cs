@@ -31,6 +31,15 @@ public interface ITokenService
     /// <summary>A cópia nasce na célula livre mais próxima do original.</summary>
     Task<Resultado<TokenDto>> DuplicarAsync(Guid usuarioId, Guid tokenId, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// O conteúdo de uma Interação. O Mestre sempre o recebe; o jogador, quando o token dele está numa
+    /// das 8 células ao redor ou quando o Mestre a revelou. Fora disso, Proibido.
+    /// </summary>
+    Task<Resultado<InteracaoDto>> ObterInteracaoAsync(Guid usuarioId, Guid tokenId, CancellationToken cancellationToken = default);
+
+    /// <summary>Só o Mestre: troca a descrição e a imagem de uma Interação e a revela ou esconde de todos.</summary>
+    Task<Resultado<TokenDto>> EditarInteracaoAsync(Guid usuarioId, Guid tokenId, InteracaoRequest request, CancellationToken cancellationToken = default);
+
     Task<Resultado> RemoverAsync(Guid usuarioId, Guid tokenId, CancellationToken cancellationToken = default);
 
     /// <summary>

@@ -15,6 +15,11 @@ const ALTURA_DO_NOME = 0.24
 const DISCO = new CircleGeometry(RAIO_DO_TOKEN, 48)
 const ANEL_PROPRIO = new RingGeometry(RAIO_DO_TOKEN + 0.01, RAIO_DO_TOKEN + 0.06, 48)
 const ANEL_SELECAO = new RingGeometry(RAIO_DO_TOKEN + 0.07, RAIO_DO_TOKEN + 0.1, 48)
+// Marca dos objetos de interação: oito arcos em volta do disco, que lembram "dá para examinar".
+const ANEL_INTERACAO = Array.from(
+  { length: 8 },
+  (_, i) => new RingGeometry(RAIO_DO_TOKEN + 0.015, RAIO_DO_TOKEN + 0.055, 8, 1, (i * Math.PI) / 4, Math.PI / 6),
+)
 const ETIQUETA = new PlaneGeometry(ALTURA_DO_NOME * PROPORCAO_DO_NOME, ALTURA_DO_NOME)
 const RETANGULO = new PlaneGeometry(1, 1)
 
@@ -72,7 +77,8 @@ export const TokenNoMapa = memo(function TokenNoMapa({ id, meuUsuarioId }: Token
   const preenchimento = useRef<Mesh>(null)
   const fracaoNaTela = useRef<number | null>(null)
 
-  const fracao = token ? fracaoDeHp(token) : null
+  // A Interação não tem HP: nem o Mestre vê barra nela.
+  const fracao = token && token.tipo !== 'Interacao' ? fracaoDeHp(token) : null
   useLayoutEffect(() => invalidate(), [fracao, escondido, invalidate])
 
   const x = token?.x ?? 0
@@ -129,9 +135,10 @@ export const TokenNoMapa = memo(function TokenNoMapa({ id, meuUsuarioId }: Token
   // Translúcido enquanto é arrastado, e também quando está oculto dos jogadores.
   const translucido = arrastando || !token.visivel
   // O estado vai escrito na etiqueta: "caído" e "oculto" não dependem só da cor do disco.
+  const interacao = token.tipo === 'Interacao'
   const rotulo = [
     token.nome,
-    token.caido ? 'caído' : token.hpAtual !== null ? `${token.hpAtual}/${token.hpMaximo}` : null,
+    interacao ? (token.revelado ? 'revelado' : null) : token.caido ? 'caído' : token.hpAtual !== null ? `${token.hpAtual}/${token.hpMaximo}` : null,
     token.visivel ? null : 'oculto',
   ]
     .filter(Boolean)
@@ -145,6 +152,13 @@ export const TokenNoMapa = memo(function TokenNoMapa({ id, meuUsuarioId }: Token
             <meshBasicMaterial color="#e2b23c" />
           </mesh>
         )}
+        {interacao &&
+          ANEL_INTERACAO.map((arco, i) => (
+            <mesh key={i} geometry={arco} position-z={-0.004}>
+              {/* Revelado a todos, o anel acende. */}
+              <meshBasicMaterial color={token.revelado ? '#ffe08a' : '#8fc7d6'} />
+            </mesh>
+          ))}
         {selecionado && (
           <mesh geometry={ANEL_SELECAO} position-z={-0.004}>
             <meshBasicMaterial color="#ffffff" />

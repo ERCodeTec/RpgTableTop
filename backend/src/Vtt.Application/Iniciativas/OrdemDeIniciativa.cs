@@ -31,7 +31,8 @@ public static class OrdemDeIniciativa
         }
 
         var itens = new List<(Token Token, int Valor, int Tipo, string Nome, int Sequencia)>();
-        foreach (var token in tokens.Where(t => t.Visivel))
+        // Objetos de interação não jogam: ficam fora da ordem mesmo com o nome de um grupo.
+        foreach (var token in tokens.Where(t => t.Visivel && t.Tipo != TipoToken.Interacao))
         {
             if (token.DonoUsuarioId is { } dono)
             {

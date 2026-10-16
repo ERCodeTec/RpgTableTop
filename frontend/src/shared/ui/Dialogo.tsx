@@ -6,7 +6,10 @@ interface DialogoProps {
   children: ReactNode
 }
 
-/** Modal sobre o <dialog> nativo: foco preso, Esc e clique fora fecham. */
+/**
+ * Modal sobre o <dialog> nativo: foco preso; fecha pelo botão do conteúdo ou pelo Esc. Clicar ou
+ * tocar fora não fecha, para que um toque perdido não descarte o que está aberto.
+ */
 export function Dialogo({ titulo, aoFechar, children }: DialogoProps) {
   const ref = useRef<HTMLDialogElement>(null)
 
@@ -26,9 +29,6 @@ export function Dialogo({ titulo, aoFechar, children }: DialogoProps) {
       onCancel={(evento) => {
         evento.preventDefault()
         aoFechar()
-      }}
-      onMouseDown={(evento) => {
-        if (evento.target === ref.current) aoFechar()
       }}
     >
       <div className="dialogo-conteudo">

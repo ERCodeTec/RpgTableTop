@@ -5,6 +5,8 @@ const NAVEGACAO: [string, string][] = [
   ['Scroll ou pinça', 'Aproximar e afastar'],
   ['Arrastar com o botão direito', 'Girar (para os lados) e inclinar (para cima e para baixo) a visão'],
   ['Q / E', 'Girar a visão 90°'],
+  ['Duplo clique ou toque duplo (modo Jogar)', 'Pingar: apontar um lugar do mapa para a mesa'],
+  ['Alt + clique, ou segurar parado sobre o fundo', 'Pingar, em qualquer modo'],
   ['F', 'Entrar ou sair da tela cheia'],
   ['Esc', 'Cancelar o arraste ou o movimento por blocos; no modo Editar, voltar para Selecionar'],
   ['?', 'Abrir esta ajuda'],
@@ -20,6 +22,10 @@ const TOKEN_SELECIONADO: [string, string][] = [
   ['Ctrl+D', 'Duplicar'],
   ['Delete', 'Remover (pede confirmação)'],
 ]
+
+const EXAMINAR: [string, string] = ['Clique num objeto marcado ao lado do seu token', 'Examinar: ver a imagem e a descrição do objeto']
+
+const FOCO: [string, string] = ['Shift + Alt + clique', 'Pingar e levar a visão de todos até o ponto']
 
 const EDICAO: [string, string][] = [
   ['1 a 7', 'Escolher a ferramenta (Selecionar, Parede, Chão, Porta, Pilar, Obstáculo, Entrada)'],
@@ -63,7 +69,10 @@ export function AjudaDeAtalhos({
   const movimento = movimentoLivre ? [LIVRE] : souMestre ? [LIVRE, POR_BLOCOS] : [POR_BLOCOS]
   return (
     <Dialogo titulo="Atalhos de teclado" aoFechar={aoFechar}>
-      <Lista titulo="Mapa" atalhos={[...NAVEGACAO.slice(0, -2), ...movimento, ...NAVEGACAO.slice(-2)]} />
+      <Lista
+        titulo="Mapa"
+        atalhos={[...NAVEGACAO.slice(0, -2), ...(souMestre ? [FOCO] : []), ...movimento, ...(souMestre ? [] : [EXAMINAR]), ...NAVEGACAO.slice(-2)]}
+      />
       {souMestre && <Lista titulo="Token selecionado (modo Jogar)" atalhos={TOKEN_SELECIONADO} />}
       {souMestre && <Lista titulo="Modo Editar mapa" atalhos={EDICAO} />}
       <div className="dialogo-acoes">

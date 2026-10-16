@@ -28,6 +28,7 @@ function token(id: string, nome: string, extra: Partial<Token> = {}): Token {
     movimentoPendente: false,
     disparada: false,
     visao: 0,
+    revelado: false,
     ...extra,
   }
 }

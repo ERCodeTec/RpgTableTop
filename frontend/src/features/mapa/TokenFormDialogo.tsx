@@ -33,6 +33,8 @@ export function TokenFormDialogo({ mesaId, mapaId, token, aoFechar }: TokenFormD
   const idCor = useId()
   // No token de um jogador, tudo menos o HP atual vem do personagem dele.
   const deJogador = Boolean(token?.donoUsuarioId)
+  // A Interação nasce da biblioteca e não tem HP nem movimento; aqui só muda a aparência.
+  const interacao = token?.tipo === 'Interacao'
   const [tipo, setTipo] = useState<TipoToken>(token?.tipo ?? 'Inimigo')
   const [nome, setNome] = useState(token?.nome ?? '')
   const [hpAtual, setHpAtual] = useState(String(token?.hpAtual ?? 10))
@@ -144,53 +146,60 @@ export function TokenFormDialogo({ mesaId, mapaId, token, aoFechar }: TokenFormD
             <SeletorDeIcone tipo={tipo} icone={icone} corBorda={corBorda} aoEscolher={setIcone} erros={erro?.erros.icone} />
 
             {campoDeImagem}
+            {interacao && (
+              <p className="campo-dica">A imagem e a descrição que os jogadores examinam ficam em "Editar conteúdo", no painel.</p>
+            )}
 
             <div className="form-linha">
-              <Campo
-                rotulo="HP atual"
-                type="number"
-                inputMode="numeric"
-                min={0}
-                max={999}
-                value={hpAtual}
-                onChange={(evento) => setHpAtual(evento.target.value)}
-                erros={erro?.erros.hpAtual}
-                required
-              />
-              <Campo
-                rotulo="HP máximo"
-                type="number"
-                inputMode="numeric"
-                min={1}
-                max={999}
-                value={hpMaximo}
-                onChange={(evento) => setHpMaximo(evento.target.value)}
-                erros={erro?.erros.hpMaximo}
-                required
-              />
-              <Campo
-                rotulo="Deslocamento"
-                type="number"
-                inputMode="numeric"
-                min={DESLOCAMENTO_MINIMO}
-                max={DESLOCAMENTO_MAXIMO}
-                value={deslocamento}
-                onChange={(evento) => setDeslocamento(evento.target.value)}
-                erros={erro?.erros.deslocamento}
-                dica="Células por rodada: 6 = 30 ft."
-                required
-              />
-              <Campo
-                rotulo="Visão de aliado"
-                type="number"
-                inputMode="numeric"
-                min={0}
-                max={VISAO_MAXIMA}
-                value={visao}
-                onChange={(evento) => setVisao(evento.target.value)}
-                erros={erro?.erros.visao}
-                dica="Com a névoa ligada, os jogadores enxergam também por este token, até estas células. 0 = não empresta visão."
-              />
+              {!interacao && (
+                <>
+                  <Campo
+                    rotulo="HP atual"
+                    type="number"
+                    inputMode="numeric"
+                    min={0}
+                    max={999}
+                    value={hpAtual}
+                    onChange={(evento) => setHpAtual(evento.target.value)}
+                    erros={erro?.erros.hpAtual}
+                    required
+                  />
+                  <Campo
+                    rotulo="HP máximo"
+                    type="number"
+                    inputMode="numeric"
+                    min={1}
+                    max={999}
+                    value={hpMaximo}
+                    onChange={(evento) => setHpMaximo(evento.target.value)}
+                    erros={erro?.erros.hpMaximo}
+                    required
+                  />
+                  <Campo
+                    rotulo="Deslocamento"
+                    type="number"
+                    inputMode="numeric"
+                    min={DESLOCAMENTO_MINIMO}
+                    max={DESLOCAMENTO_MAXIMO}
+                    value={deslocamento}
+                    onChange={(evento) => setDeslocamento(evento.target.value)}
+                    erros={erro?.erros.deslocamento}
+                    dica="Células por rodada: 6 = 30 ft."
+                    required
+                  />
+                  <Campo
+                    rotulo="Visão de aliado"
+                    type="number"
+                    inputMode="numeric"
+                    min={0}
+                    max={VISAO_MAXIMA}
+                    value={visao}
+                    onChange={(evento) => setVisao(evento.target.value)}
+                    erros={erro?.erros.visao}
+                    dica="Com a névoa ligada, os jogadores enxergam também por este token, até estas células. 0 = não empresta visão."
+                  />
+                </>
+              )}
               <div className="campo campo-cor">
                 <label htmlFor={idCor}>Cor da borda</label>
                 <input

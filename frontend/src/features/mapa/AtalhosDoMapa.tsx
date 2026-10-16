@@ -44,6 +44,9 @@ export function AtalhosDoMapa({ souMestre, aoAbrirAjuda, aoAlternarTelaCheia, ao
 
       if (!comando && tecla === 'h') {
         void aplicar(definirExibicao(token.id, { visivel: !token.visivel }))
+      } else if (!comando && token.tipo === 'Interacao' && ['-', '_', '+', '='].includes(tecla)) {
+        // Objetos de interação não têm HP.
+        return
       } else if (!comando && (tecla === '-' || tecla === '_')) {
         void aplicar(alterarHp(token.id, { delta: evento.shiftKey ? -5 : -1 }))
       } else if (!comando && (tecla === '+' || tecla === '=')) {

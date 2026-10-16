@@ -147,13 +147,22 @@ public class PortaRequestValidator : AbstractValidator<PortaRequest>
     }
 }
 
+public class InteracaoRequestValidator : AbstractValidator<InteracaoRequest>
+{
+    public InteracaoRequestValidator()
+    {
+        RuleFor(x => x.Descricao).DescricaoDeInteracao();
+    }
+}
+
 public class CriarTokenRequestValidator : AbstractValidator<CriarTokenRequest>
 {
     public CriarTokenRequestValidator()
     {
         RuleFor(x => x.Tipo)
             .NotNull().WithMessage("Escolha o tipo do token.")
-            .IsInEnum().WithMessage("Tipo inválido.");
+            .IsInEnum().WithMessage("Tipo inválido.")
+            .NotEqual(TipoToken.Interacao).WithMessage("Crie a interação na sua biblioteca e coloque-a no mapa a partir dela.");
 
         RuleFor(x => x.Nome).NomeDeToken();
         RuleFor(x => x.HpMaximo).HpMaximoDeToken();
@@ -249,4 +258,8 @@ internal static class RegrasDeToken
     public static IRuleBuilderOptions<T, string?> CorDeToken<T>(this IRuleBuilder<T, string?> regra) => regra
         .Must(cor => string.IsNullOrEmpty(cor) || System.Text.RegularExpressions.Regex.IsMatch(cor, CorHex))
         .WithMessage("A cor da borda deve estar no formato #RRGGBB.");
+
+    public static IRuleBuilderOptions<T, string?> DescricaoDeInteracao<T>(this IRuleBuilder<T, string?> regra) => regra
+        .Must(descricao => descricao is null || descricao.Trim().Length <= Token.DescricaoTamanhoMaximo)
+        .WithMessage($"A descrição deve ter até {Token.DescricaoTamanhoMaximo} caracteres.");
 }

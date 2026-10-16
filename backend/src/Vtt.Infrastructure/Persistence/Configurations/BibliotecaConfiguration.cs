@@ -34,7 +34,7 @@ public class ModeloDeTokenConfiguration : IEntityTypeConfiguration<ModeloDeToken
     {
         builder.ToTable("modelos_de_token", tabela =>
         {
-            tabela.HasCheckConstraint("ck_modelos_de_token_tipo", "tipo IN ('Inimigo', 'Npc')");
+            tabela.HasCheckConstraint("ck_modelos_de_token_tipo", "tipo IN ('Inimigo', 'Npc', 'Interacao')");
             tabela.HasCheckConstraint("ck_modelos_de_token_hp_maximo", "hp_maximo BETWEEN 1 AND 999");
             tabela.HasCheckConstraint("ck_modelos_de_token_deslocamento", "deslocamento BETWEEN 1 AND 30");
             tabela.HasCheckConstraint("ck_modelos_de_token_visao", "visao BETWEEN 0 AND 60");
@@ -47,6 +47,7 @@ public class ModeloDeTokenConfiguration : IEntityTypeConfiguration<ModeloDeToken
         builder.Property(m => m.Icone).HasMaxLength(Token.IconeTamanhoMaximo).IsRequired();
         builder.Property(m => m.CorBorda).HasMaxLength(7).IsRequired();
         builder.Property(m => m.ExibicaoHp).HasConversion<string>().HasMaxLength(20).IsRequired();
+        builder.Property(m => m.Descricao).HasMaxLength(Token.DescricaoTamanhoMaximo);
 
         builder.HasOne<Usuario>()
             .WithMany()
@@ -66,8 +67,14 @@ public class ModeloDeTokenConfiguration : IEntityTypeConfiguration<ModeloDeToken
             .HasForeignKey(m => m.ImagemId)
             .OnDelete(DeleteBehavior.NoAction);
 
+        builder.HasOne<ImagemUpload>()
+            .WithMany()
+            .HasForeignKey(m => m.ConteudoImagemId)
+            .OnDelete(DeleteBehavior.NoAction);
+
         builder.HasIndex(m => m.UsuarioId);
         builder.HasIndex(m => m.CategoriaId);
         builder.HasIndex(m => m.ImagemId);
+        builder.HasIndex(m => m.ConteudoImagemId);
     }
 }

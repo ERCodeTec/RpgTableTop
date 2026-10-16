@@ -224,7 +224,7 @@ public class TurnoDaMesa(IAppDbContext db, IMesaNotifier notifier, MovimentoDaRo
             .ToListAsync(cancellationToken);
         var tokens = await db.Tokens
             .AsNoTracking()
-            .Where(t => db.Mapas.Any(m => m.Id == t.MapaId && m.MesaId == mesaId && m.Ativo))
+            .Where(t => t.Tipo != TipoToken.Interacao && db.Mapas.Any(m => m.Id == t.MapaId && m.MesaId == mesaId && m.Ativo))
             .Select(t => new { t.Id, t.Nome, t.Visivel, t.DonoUsuarioId, t.JogouNaRodada })
             .ToListAsync(cancellationToken);
 

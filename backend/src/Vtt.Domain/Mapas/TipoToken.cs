@@ -4,5 +4,8 @@ public enum TipoToken
 {
     Personagem,
     Inimigo,
-    Npc
+    Npc,
+
+    /// <summary>Um objeto do cenário (baú, carta, estátua) cujo conteúdo os jogadores examinam de perto.</summary>
+    Interacao
 }

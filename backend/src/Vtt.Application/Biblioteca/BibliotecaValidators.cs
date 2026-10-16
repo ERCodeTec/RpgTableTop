@@ -24,22 +24,28 @@ public class ModeloDeTokenRequestValidator : AbstractValidator<ModeloDeTokenRequ
         RuleFor(x => x.Tipo)
             .NotNull().WithMessage("Escolha o tipo.")
             .Must(tipo => tipo is null || ModeloDeToken.TipoValido(tipo.Value))
-            .WithMessage("O modelo deve ser um inimigo ou um NPC.");
+            .WithMessage("O modelo deve ser um inimigo, um NPC ou uma interação.");
 
         RuleFor(x => x.Nome).NomeDeToken();
-        RuleFor(x => x.HpMaximo).HpMaximoDeToken();
+        RuleFor(x => x.Descricao).DescricaoDeInteracao();
+
+        // A interação não tem HP, deslocamento nem visão: o serviço grava os valores fixos dela.
+        When(x => x.Tipo != TipoToken.Interacao, () =>
+        {
+            RuleFor(x => x.HpMaximo).HpMaximoDeToken();
+
+            RuleFor(x => x.Deslocamento)
+                .InclusiveBetween(Personagem.DeslocamentoMinimo, Personagem.DeslocamentoLimite)
+                .WithMessage($"O deslocamento deve ficar entre {Personagem.DeslocamentoMinimo} e {Personagem.DeslocamentoLimite} células.");
+
+            RuleFor(x => x.Visao)
+                .InclusiveBetween(Personagem.VisaoMinima, Personagem.VisaoLimite)
+                .WithMessage($"A visão deve ficar entre {Personagem.VisaoMinima} e {Personagem.VisaoLimite} células.");
+        });
 
         RuleFor(x => x.Icone)
             .Must((request, icone) => request.Tipo is not { } tipo || !ModeloDeToken.TipoValido(tipo) || Token.IconeValido(tipo, icone))
             .WithMessage(RegrasDeToken.IconeInvalido);
-
-        RuleFor(x => x.Deslocamento)
-            .InclusiveBetween(Personagem.DeslocamentoMinimo, Personagem.DeslocamentoLimite)
-            .WithMessage($"O deslocamento deve ficar entre {Personagem.DeslocamentoMinimo} e {Personagem.DeslocamentoLimite} células.");
-
-        RuleFor(x => x.Visao)
-            .InclusiveBetween(Personagem.VisaoMinima, Personagem.VisaoLimite)
-            .WithMessage($"A visão deve ficar entre {Personagem.VisaoMinima} e {Personagem.VisaoLimite} células.");
 
         RuleFor(x => x.ExibicaoHp)
             .IsInEnum().WithMessage("Modo de exibição do HP inválido.");

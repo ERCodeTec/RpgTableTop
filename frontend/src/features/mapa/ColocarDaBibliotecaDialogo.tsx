@@ -116,7 +116,8 @@ export function ColocarDaBibliotecaDialogo({ mesaId, mapa, aoFechar }: ColocarDa
                       <span className="biblioteca-opcao-dados">
                         <span className="biblioteca-opcao-nome">{modelo.nome}</span>
                         <span className="biblioteca-opcao-detalhe">
-                          {NOME_DO_TIPO[modelo.tipo]} · {modelo.hpMaximo} de HP
+                          {NOME_DO_TIPO[modelo.tipo]}
+                          {modelo.tipo !== 'Interacao' && ` · ${modelo.hpMaximo} de HP`}
                         </span>
                       </span>
                     </button>

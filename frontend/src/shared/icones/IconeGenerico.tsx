@@ -11,8 +11,11 @@ export const ICONES_GENERICOS = [
   'npc',
 ] as const
 
+/** Os ícones dos objetos de interação (baú, carta…). */
+export const ICONES_DE_OBJETO = ['interacao', 'bau', 'pergaminho', 'livro', 'estatua', 'alavanca'] as const
+
 /** Mesmo conjunto de chaves aceito pela API (IconesGenericos). */
-export type IconeGenericoChave = (typeof ICONES_GENERICOS)[number]
+export type IconeGenericoChave = (typeof ICONES_GENERICOS)[number] | (typeof ICONES_DE_OBJETO)[number]
 
 export const NOME_DO_ICONE: Record<IconeGenericoChave, string> = {
   goblin: 'Goblin',
@@ -23,6 +26,12 @@ export const NOME_DO_ICONE: Record<IconeGenericoChave, string> = {
   besta: 'Besta',
   'morto-vivo': 'Morto-vivo',
   npc: 'NPC',
+  interacao: 'Interação',
+  bau: 'Baú',
+  pergaminho: 'Pergaminho',
+  livro: 'Livro',
+  estatua: 'Estátua',
+  alavanca: 'Alavanca',
 }
 
 // Glifos originais, na mesma grade de 24x24 e só com traços, como os das classes.
@@ -92,10 +101,56 @@ const GLIFOS: Record<IconeGenericoChave, ReactNode> = {
       <path d="M8.5 10h.01M12 10h.01M15.5 10h.01" />
     </>
   ),
+  // lupa
+  interacao: (
+    <>
+      <circle cx="10.5" cy="10.5" r="5.5" />
+      <path d="m14.5 14.5 5 5M10.5 8v5M8 10.5h5" />
+    </>
+  ),
+  // baú
+  bau: (
+    <>
+      <path d="M4 11h16v8H4Z" />
+      <path d="M4 11c0-3.5 3.5-5.5 8-5.5s8 2 8 5.5" />
+      <path d="M11 11v3h2v-3" />
+    </>
+  ),
+  // pergaminho enrolado
+  pergaminho: (
+    <>
+      <path d="M7 4.5h11v12.5a2.5 2.5 0 0 1-2.5 2.5H6.5" />
+      <path d="M7 4.5a2 2 0 0 0-2 2v1h2M6.5 19.5A2.5 2.5 0 0 1 4 17v-1h9v1a2.5 2.5 0 0 0 2.5 2.5" />
+      <path d="M10 8.5h5M10 11.5h5" />
+    </>
+  ),
+  // livro aberto
+  livro: (
+    <>
+      <path d="M12 6.5C10 5 7 4.5 3.5 5v13c3.5-.5 6.5 0 8.5 1.5 2-1.5 5-2 8.5-1.5V5c-3.5-.5-6.5 0-8.5 1.5Z" />
+      <path d="M12 6.5v13" />
+    </>
+  ),
+  // estátua sobre pedestal
+  estatua: (
+    <>
+      <circle cx="12" cy="5.5" r="2" />
+      <path d="M9 15V10.5c0-1.4 1.3-2.5 3-2.5s3 1.1 3 2.5V15" />
+      <path d="M7 15h10v2.5H7ZM5.5 20h13l-1.5-2.5H7Z" />
+    </>
+  ),
+  // alavanca
+  alavanca: (
+    <>
+      <path d="M5 19.5h14l-2-4H7Z" />
+      <path d="M12 15.5 16.5 5" />
+      <circle cx="17" cy="4.5" r="1.5" />
+    </>
+  ),
 }
 
 export function ehIconeGenerico(icone: string): icone is IconeGenericoChave {
-  return (ICONES_GENERICOS as readonly string[]).includes(icone)
+  return (ICONES_GENERICOS as readonly string[]).includes(icone) || (ICONES_DE_OBJETO as readonly string[]).includes(icone)
 }
 
 interface IconeGenericoProps {
@@ -107,7 +162,7 @@ interface IconeGenericoProps {
   className?: string
 }
 
-/** Disco de inimigos e NPCs, no mesmo desenho do ClassIcon. Uma chave desconhecida cai no ícone de NPC. */
+/** Disco de inimigos, NPCs e objetos, no mesmo desenho do ClassIcon. Uma chave desconhecida cai no ícone de NPC. */
 export function IconeGenerico({ icone, corBorda, tamanho = 64, className }: IconeGenericoProps) {
   const chave = ehIconeGenerico(icone) ? icone : 'npc'
   return (

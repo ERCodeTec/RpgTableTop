@@ -1,6 +1,6 @@
 import { api } from '../../shared/api/http'
 
-export type TipoToken = 'Personagem' | 'Inimigo' | 'Npc'
+export type TipoToken = 'Personagem' | 'Inimigo' | 'Npc' | 'Interacao'
 
 /** O que os jogadores (fora o dono) veem do HP de um token. */
 export type ExibicaoHp = 'Oculto' | 'Barra' | 'Completo'
@@ -95,6 +95,21 @@ export interface Token {
   disparada: boolean | null
   /** Até onde o token enxerga, em células, com a névoa ligada. Nos tokens do Mestre, maior que 0 marca um aliado. */
   visao: number
+  /** Na Interação: o Mestre liberou o conteúdo a todos os jogadores, de qualquer distância. */
+  revelado: boolean
+  /** O conteúdo da Interação só chega ao Mestre; o jogador o pede com obterInteracao. */
+  descricao?: string | null
+  conteudoImagemId?: string | null
+}
+
+/** O conteúdo de uma Interação, para quem pode examiná-la. */
+export interface ConteudoDaInteracao {
+  tokenId: string
+  nome: string
+  descricao: string | null
+  conteudoImagemId: string | null
+  revelado: boolean
+  versao: number
 }
 
 /** O movimento de um token (evento MovimentoAlterado, só para o Mestre e o dono). */
@@ -197,6 +212,7 @@ export const NOME_DO_TIPO: Record<TipoToken, string> = {
   Personagem: 'Personagem',
   Inimigo: 'Inimigo',
   Npc: 'NPC',
+  Interacao: 'Interação',
 }
 
 export const NOME_DA_ESTRUTURA: Record<TipoEstrutura, string> = {
@@ -288,6 +304,14 @@ export const alterarHp = (id: string, dados: { delta?: number; hpAtual?: number;
 /** Oculta ou revela o token e define o que os jogadores veem do HP. */
 export const definirExibicao = (id: string, dados: { visivel?: boolean; exibicaoHp?: ExibicaoHp }) =>
   api<Token>(`/api/tokens/${id}/exibicao`, { method: 'PUT', body: dados })
+
+/** O Mestre sempre recebe; o jogador, com o token dele ao lado ou com a Interação revelada (senão, 403). */
+export const obterInteracao = (id: string) => api<ConteudoDaInteracao>(`/api/tokens/${id}/interacao`)
+
+export const editarInteracao = (
+  id: string,
+  dados: { descricao: string | null; conteudoImagemId: string | null; revelado?: boolean },
+) => api<Token>(`/api/tokens/${id}/interacao`, { method: 'PUT', body: dados })
 
 export const definirFundo = (mapaId: string, dados: DadosDoFundo) =>
   api<Mapa>(`/api/mapas/${mapaId}/fundo`, { method: 'PUT', body: dados })

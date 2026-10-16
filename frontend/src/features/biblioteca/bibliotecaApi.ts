@@ -24,6 +24,10 @@ export interface ModeloDeToken {
   deslocamento: number
   visao: number
   exibicaoHp: ExibicaoHp
+  /** Só na Interação: o texto mostrado a quem examinar o objeto. */
+  descricao: string | null
+  /** Só na Interação: uma imagem da galeria pessoal mostrada a quem examinar. */
+  conteudoImagemId: string | null
   criadoEm: string
   atualizadoEm: string
 }

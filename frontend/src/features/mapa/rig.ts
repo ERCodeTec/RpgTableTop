@@ -31,6 +31,7 @@ export class Rig {
   private enquadrado = false
 
   private transicao: { deInclinacao: number; deRotacao: number; ateInclinacao: number; ateRotacao: number; inicio: number } | null = null
+  private transicaoDoAlvo: { de: Vector3; ate: Vector3; inicio: number } | null = null
   private readonly raycaster = new Raycaster()
   private readonly ndc = new Vector2()
   private readonly auxiliar = new Vector3()
@@ -78,10 +79,32 @@ export class Rig {
     this.invalidate()
   }
 
-  /** Avança a transição em curso. Chamado a cada quadro; devolve true enquanto ainda há o que animar. */
+  /** Leva o centro da tela até o ponto do chão (x, z), sem mudar zoom nem ângulos. */
+  centralizar(x: number, z: number, animar: boolean): void {
+    const ate = new Vector3(Math.min(this.largura, Math.max(0, x)), 0, Math.min(this.altura, Math.max(0, z)))
+    this.enquadrado = false
+    if (!animar) {
+      this.transicaoDoAlvo = null
+      this.alvo.copy(ate)
+      this.aplicar()
+      return
+    }
+    this.transicaoDoAlvo = { de: this.alvo.clone(), ate, inicio: performance.now() }
+    this.invalidate()
+  }
+
+  /** Avança as transições em curso. Chamado a cada quadro; devolve true enquanto ainda há o que animar. */
   avancar(agora: number): boolean {
+    const doAlvo = this.transicaoDoAlvo
+    if (doAlvo) {
+      const progresso = Math.min(1, (agora - doAlvo.inicio) / DURACAO_DA_TRANSICAO_MS)
+      this.alvo.lerpVectors(doAlvo.de, doAlvo.ate, suavizar(progresso))
+      if (progresso >= 1) this.transicaoDoAlvo = null
+      if (!this.transicao) this.aplicar()
+    }
+
     const t = this.transicao
-    if (!t) return false
+    if (!t) return this.transicaoDoAlvo !== null
     const progresso = Math.min(1, (agora - t.inicio) / DURACAO_DA_TRANSICAO_MS)
     const s = suavizar(progresso)
     this.inclinacao = t.deInclinacao + (t.ateInclinacao - t.deInclinacao) * s
@@ -89,7 +112,7 @@ export class Rig {
     if (progresso >= 1) this.transicao = null
     this.manterEnquadrado()
     this.aplicar()
-    return this.transicao !== null
+    return this.transicao !== null || this.transicaoDoAlvo !== null
   }
 
   /** O raio da câmera que passa por uma posição da tela. */
@@ -116,6 +139,7 @@ export class Rig {
   manterSobOPonteiro(ancora: Vector3, clienteX: number, clienteY: number): void {
     const agora = this.chao(clienteX, clienteY, this.auxiliar)
     this.enquadrado = false
+    this.transicaoDoAlvo = null
     this.alvo.x = Math.min(this.largura, Math.max(0, this.alvo.x + ancora.x - agora.x))
     this.alvo.z = Math.min(this.altura, Math.max(0, this.alvo.z + ancora.z - agora.z))
     this.aplicar()
@@ -152,6 +176,7 @@ export class Rig {
 
   /** Centraliza o mapa e ajusta o zoom para ele caber, considerando os ângulos de destino. */
   enquadrar(inclinacao: number, rotacao: number): void {
+    this.transicaoDoAlvo = null
     this.alvo.set(this.largura / 2, 0, this.altura / 2)
     this.camera.zoom = this.limitesDeZoom(inclinacao, rotacao).enquadre
     this.camera.updateProjectionMatrix()

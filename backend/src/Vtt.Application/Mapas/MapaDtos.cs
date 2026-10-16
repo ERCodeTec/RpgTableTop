@@ -140,6 +140,8 @@ public enum VisaoDoToken
 /// <param name="HpPercentual">Em faixas de 5%. Nulo para quem não vê nem a barra.</param>
 /// <param name="Deslocamento">O movimento (deslocamento, restante, pendência, disparada) só vai ao Mestre e ao dono.</param>
 /// <param name="Visao">Em células; vai a todos, porque é com ela que cada cliente desenha a névoa.</param>
+/// <param name="Revelado">Na Interação, o conteúdo está liberado a todos; vai a todos.</param>
+/// <param name="Descricao">O conteúdo da Interação só vai ao Mestre; os jogadores o pedem em GET api/tokens/{id}/interacao.</param>
 public record TokenDto(
     Guid Id,
     Guid MapaId,
@@ -163,7 +165,10 @@ public record TokenDto(
     int? MovimentoRestante,
     bool? MovimentoPendente,
     int Visao,
-    bool? Disparada)
+    bool? Disparada,
+    bool Revelado = false,
+    string? Descricao = null,
+    Guid? ConteudoImagemId = null)
 {
     /// <summary>O token completo, como o Mestre o vê.</summary>
     public static TokenDto De(Token token) => Para(token, VisaoDoToken.Mestre)!;
@@ -202,7 +207,10 @@ public record TokenDto(
             veTudo ? token.MovimentoRestante : null,
             veTudo ? token.MovimentoPendente : null,
             token.Visao,
-            veTudo ? token.Disparada : null);
+            veTudo ? token.Disparada : null,
+            token.Revelado,
+            visao == VisaoDoToken.Mestre ? token.Descricao : null,
+            visao == VisaoDoToken.Mestre ? token.ConteudoImagemId : null);
     }
 
     public static VisaoDoToken VisaoDe(Token token, Guid usuarioId, PapelNaMesa papel) =>
@@ -210,6 +218,18 @@ public record TokenDto(
         : token.DonoUsuarioId == usuarioId ? VisaoDoToken.Dono
         : VisaoDoToken.Jogador;
 }
+
+/// <summary>O conteúdo de uma Interação, para quem pode examiná-la.</summary>
+public record InteracaoDto(Guid TokenId, string Nome, string? Descricao, Guid? ConteudoImagemId, bool Revelado, int Versao)
+{
+    public static InteracaoDto De(Token token) =>
+        new(token.Id, token.Nome, token.Descricao, token.ConteudoImagemId, token.Revelado, token.Versao);
+}
+
+/// <summary>O Mestre altera o conteúdo de uma Interação já no mapa.</summary>
+/// <param name="ConteudoImagemId">Uma imagem da mesa; null remove a que houver.</param>
+/// <param name="Revelado">null mantém como está.</param>
+public record InteracaoRequest(string? Descricao, Guid? ConteudoImagemId, bool? Revelado);
 
 /// <summary>O HP de um token como um destinatário o vê, para o evento HpAlterado.</summary>
 public record HpDto(Guid TokenId, int? HpAtual, int? HpMaximo, int? HpPercentual, bool Caido, int Versao)

@@ -3,6 +3,7 @@ import { memo, useEffect, useRef, useState } from 'react'
 import { ConfirmarDialogo } from '../../shared/ui/ConfirmarDialogo'
 import { PainelDeIniciativa } from '../iniciativa/PainelDeIniciativa'
 import { ColocarDaBibliotecaDialogo } from './ColocarDaBibliotecaDialogo'
+import { ControlesDaInteracao } from './ControlesDaInteracao'
 import { ControlesDoToken } from './ControlesDoToken'
 import { useEditorStore } from './editorStore'
 import { GaleriaDeImagens } from './GaleriaDeImagens'
@@ -276,7 +277,9 @@ export function PainelDoMestre({ mesaId, movimento, aoCriarMapa, aoGerarMapa, ge
               Novo token
             </button>
           </div>
-          {selecionado ? (
+          {selecionado?.tipo === 'Interacao' ? (
+            <ControlesDaInteracao key={selecionado.id} mesaId={mesaId} token={selecionado} />
+          ) : selecionado ? (
             <ControlesDoToken key={selecionado.id} token={selecionado} movimento={movimento} />
           ) : (
             ordem.length > 0 && <p className="painel-mestre-vazio">Selecione um token para alterar o HP e a exibição.</p>
@@ -390,7 +393,11 @@ const LinhaDoToken = memo(function LinhaDoToken({
             {!token.visivel && <span className="selo">Oculto</span>}
           </span>
           <span className="painel-item-detalhe">
-            HP {token.hpAtual}/{token.hpMaximo}
+            {token.tipo === 'Interacao'
+              ? token.revelado
+                ? 'Interação · conteúdo revelado'
+                : 'Interação'
+              : `HP ${token.hpAtual}/${token.hpMaximo}`}
           </span>
         </span>
       </button>

@@ -7,7 +7,7 @@ import { EstruturaNoMapa } from './EstruturaNoMapa'
 import { FundoDoMapa } from './FundoDoMapa'
 import { ALTURA_DO_ALCANCE, RAIO_DO_TOKEN } from './geometria'
 import { Grade } from './Grade'
-import { Interacao } from './Interacao'
+import { Interacao, type AoPingar } from './Interacao'
 import { definirPorta, type Estrutura } from './mapaApi'
 import { alcanceAtual, useMapaStore } from './mapaStore'
 import { alcasDe, criarModoDeEdicao } from './modoDeEdicao'
@@ -15,6 +15,7 @@ import { criarModoDaNevoa } from './modoDaNevoa'
 import { criarModoDeFundo } from './modoDeFundo'
 import { criarModoDeJogo } from './modoDeJogo'
 import { NevoaNoMapa } from './NevoaNoMapa'
+import { PingsNoMapa } from './PingsNoMapa'
 import { useRig } from './rig'
 import { texturaDoDisco } from './texturas'
 import { TokenNoMapa } from './TokenNoMapa'
@@ -30,6 +31,8 @@ interface CenaDoMapaProps {
   /** Chamado ao clicar em uma célula do alcance do token em movimento por blocos. */
   aoMoverPorBlocos: (tokenId: string, x: number, y: number) => Promise<void>
   aoAvisar: (mensagem: string) => void
+  /** Alt + clique ou segurar sobre o fundo: aponta um ponto do mapa para a mesa. */
+  aoPingar: AoPingar
 }
 
 /**
@@ -69,6 +72,7 @@ export default function CenaDoMapa(props: CenaDoMapaProps) {
         <Tokens meuUsuarioId={props.meuUsuarioId} />
         <FantasmaDoArraste />
         <PreviaDoEditor />
+        <PingsNoMapa />
         <Interacoes {...props} />
       </CameraDoMapa>
     </Canvas>
@@ -279,7 +283,7 @@ function PreviaDoEditor() {
 }
 
 /** Escolhe o que os ponteiros fazem conforme o modo: jogar, editar o mapa ou ajustar o fundo. */
-function Interacoes({ meuUsuarioId, souMestre, movimentoLivre, aoMover, aoMoverPorBlocos, aoAvisar }: CenaDoMapaProps) {
+function Interacoes({ meuUsuarioId, souMestre, movimentoLivre, aoMover, aoMoverPorBlocos, aoAvisar, aoPingar }: CenaDoMapaProps) {
   const rig = useRig()
   const modo = useEditorStore((estado) => estado.modo)
 
@@ -301,5 +305,5 @@ function Interacoes({ meuUsuarioId, souMestre, movimentoLivre, aoMover, aoMoverP
     })
   }, [rig, modo, meuUsuarioId, souMestre, movimentoLivre, aoMover, aoMoverPorBlocos, aoAvisar])
 
-  return <Interacao modo={interacao} />
+  return <Interacao modo={interacao} aoPingar={aoPingar} />
 }

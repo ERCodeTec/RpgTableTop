@@ -107,3 +107,17 @@ export function celulasAlcancaveis({ largura, altura, origem, orcamento, estrutu
 }
 
 export const grausParaRad = (graus: number) => (graus * Math.PI) / 180
+
+/** Uma das 8 células ao redor (a diagonal conta), como no servidor (Token.PodeSerExaminadaPor). */
+export function adjacente(a: { x: number; y: number }, b: { x: number; y: number }): boolean {
+  return Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y)) <= 1
+}
+
+/**
+ * Pré-checagem do exame de uma Interação: revelada a todos, ou com o meu token visível ao lado.
+ * Quem decide é o servidor; isto só evita o pedido e explica a recusa.
+ */
+export function possoExaminar(interacao: Token, meuToken: Token | undefined): boolean {
+  if (interacao.tipo !== 'Interacao' || !interacao.visivel) return false
+  return interacao.revelado || (meuToken !== undefined && meuToken.visivel && adjacente(interacao, meuToken))
+}

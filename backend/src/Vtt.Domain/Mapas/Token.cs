@@ -9,6 +9,7 @@ public class Token
     public const int HpMaximoMinimo = 1;
     public const int HpMaximoLimite = 999;
     public const string CorBordaPadrao = "#C0503C";
+    public const int DescricaoTamanhoMaximo = 4000;
 
     public Guid Id { get; set; }
     public Guid MapaId { get; set; }
@@ -81,6 +82,17 @@ public class Token
     /// <summary>A vez deste token na iniciativa já passou nesta rodada. Volta a false na rodada seguinte.</summary>
     public bool JogouNaRodada { get; set; }
 
+    /// <summary>Na Interação, o texto que o Mestre escreveu para quem examinar o objeto.</summary>
+    public string? Descricao { get; set; }
+
+    /// <summary>Na Interação, a imagem mostrada a quem examinar o objeto (uma imagem da mesa).</summary>
+    public Guid? ConteudoImagemId { get; set; }
+
+    /// <summary>Na Interação, o Mestre liberou o conteúdo a todos os jogadores, de qualquer distância.</summary>
+    public bool Revelado { get; set; }
+
+    public bool EhInteracao => Tipo == TipoToken.Interacao;
+
     /// <summary>Incrementada a cada alteração; o cliente a envia de volta ao mover.</summary>
     public int Versao { get; set; } = 1;
 
@@ -128,9 +140,39 @@ public class Token
     /// </summary>
     public int HpPercentual => HpAtual == 0 ? 0 : Math.Min(100, (int)Math.Ceiling(HpAtual * 20.0 / HpMaximo) * 5);
 
-    /// <summary>Personagens mostram o HP completo ao grupo; inimigos e NPCs, só a barra.</summary>
-    public static ExibicaoHp ExibicaoHpPadrao(TipoToken tipo) =>
-        tipo == TipoToken.Personagem ? ExibicaoHp.Completo : ExibicaoHp.Barra;
+    /// <summary>
+    /// Um jogador cujo token é <paramref name="doJogador"/> pode ver o conteúdo desta Interação: ela
+    /// está revelada, ou o token dele está visível numa das 8 células ao redor (diagonal conta).
+    /// </summary>
+    public bool PodeSerExaminadaPor(Token? doJogador) =>
+        EhInteracao && Visivel && (Revelado || doJogador is not null
+            && doJogador.MapaId == MapaId
+            && doJogador.Visivel
+            && Math.Max(Math.Abs(doJogador.X - X), Math.Abs(doJogador.Y - Y)) <= 1);
+
+    /// <summary>
+    /// A Interação não tem HP nem movimento, mas as colunas exigem valores mínimos: fica com o
+    /// mínimo permitido e o HP oculto.
+    /// </summary>
+    public void AplicarValoresDeInteracao()
+    {
+        HpAtual = HpMaximoMinimo;
+        HpMaximo = HpMaximoMinimo;
+        ExibicaoHp = ExibicaoHp.Oculto;
+        Deslocamento = 1;
+        MovimentoRestante = 1;
+        Visao = 0;
+        Disparada = false;
+        ConcluirMovimento();
+    }
+
+    /// <summary>Personagens mostram o HP completo ao grupo; inimigos e NPCs, só a barra; interações, nada.</summary>
+    public static ExibicaoHp ExibicaoHpPadrao(TipoToken tipo) => tipo switch
+    {
+        TipoToken.Personagem => ExibicaoHp.Completo,
+        TipoToken.Interacao => ExibicaoHp.Oculto,
+        _ => ExibicaoHp.Barra
+    };
 
     public static bool IconeValido(TipoToken tipo, string? icone) =>
         icone is not null && (tipo == TipoToken.Personagem

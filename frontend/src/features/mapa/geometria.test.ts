@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { celulasAlcancaveis, chaveDaCelula } from './geometria'
+import { adjacente, celulasAlcancaveis, chaveDaCelula, possoExaminar } from './geometria'
 import type { Estrutura, Token } from './mapaApi'
 
 function token(id: string, x: number, y: number): Token {
@@ -27,6 +27,7 @@ function token(id: string, x: number, y: number): Token {
     movimentoPendente: false,
     disparada: false,
     visao: 0,
+    revelado: false,
   }
 }
 
@@ -170,5 +171,27 @@ describe('celulasAlcancaveis', () => {
     expect(custo(celulas, 1, 0)).toBeUndefined()
     expect(custo(celulas, 2, 0)).toBe(2)
     expect(custo(celulas, 3, 0)).toBe(3)
+  })
+})
+
+describe('possoExaminar', () => {
+  const bau = { ...token('bau', 5, 5), tipo: 'Interacao' as const }
+
+  it('aceita as 8 células ao redor, com diagonal, e recusa a 2 células', () => {
+    expect(adjacente(bau, { x: 4, y: 4 })).toBe(true)
+    expect(adjacente(bau, { x: 6, y: 5 })).toBe(true)
+    expect(adjacente(bau, { x: 7, y: 5 })).toBe(false)
+    expect(possoExaminar(bau, token('meu', 6, 6))).toBe(true)
+    expect(possoExaminar(bau, token('meu', 3, 5))).toBe(false)
+  })
+
+  it('revelada, vale de qualquer lugar; sem token meu no mapa, só revelada', () => {
+    expect(possoExaminar({ ...bau, revelado: true }, token('meu', 0, 0))).toBe(true)
+    expect(possoExaminar({ ...bau, revelado: true }, undefined)).toBe(true)
+    expect(possoExaminar(bau, undefined)).toBe(false)
+  })
+
+  it('não vale para tokens que não são interação', () => {
+    expect(possoExaminar(token('goblin', 5, 5), token('meu', 5, 6))).toBe(false)
   })
 })

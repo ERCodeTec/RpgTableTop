@@ -5,7 +5,10 @@ using Vtt.Application.Mapas;
 
 namespace Vtt.Api.Controllers;
 
-/// <summary>Operações do Mestre sobre um token. O movimento passa pelo Hub (MoverToken).</summary>
+/// <summary>
+/// Operações do Mestre sobre um token, e o exame de uma Interação pelos jogadores. O movimento
+/// passa pelo Hub (MoverToken).
+/// </summary>
 [ApiController]
 [Authorize]
 [Route("api/tokens")]
@@ -60,6 +63,33 @@ public class TokensController(ITokenService tokens) : ControllerBase
         return resultado.Sucesso
             ? StatusCode(StatusCodes.Status201Created, resultado.Valor)
             : this.Problema(resultado.Erro!);
+    }
+
+    /// <summary>
+    /// O conteúdo de uma Interação: o Mestre sempre; o jogador, com o token dele numa das 8 células
+    /// ao redor ou com a Interação revelada a todos.
+    /// </summary>
+    [HttpGet("{id:guid}/interacao")]
+    [ProducesResponseType<InteracaoDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ObterInteracao(Guid id, CancellationToken cancellationToken)
+    {
+        var resultado = await tokens.ObterInteracaoAsync(User.ObterUsuarioId(), id, cancellationToken);
+        return resultado.Sucesso ? Ok(resultado.Valor) : this.Problema(resultado.Erro!);
+    }
+
+    /// <summary>Troca a descrição e a imagem de uma Interação e a revela ou esconde de todos os jogadores.</summary>
+    [HttpPut("{id:guid}/interacao")]
+    [ProducesResponseType<TokenDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> EditarInteracao(Guid id, InteracaoRequest request, CancellationToken cancellationToken)
+    {
+        var resultado = await tokens.EditarInteracaoAsync(User.ObterUsuarioId(), id, request, cancellationToken);
+        return resultado.Sucesso ? Ok(resultado.Valor) : this.Problema(resultado.Erro!);
     }
 
     [HttpDelete("{id:guid}")]

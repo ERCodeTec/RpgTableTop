@@ -42,6 +42,7 @@ function token(id: string, x: number, y: number, extra: Partial<Token> = {}): To
     movimentoPendente: false,
     disparada: false,
     visao: 0,
+    revelado: false,
     ...extra,
   }
 }
