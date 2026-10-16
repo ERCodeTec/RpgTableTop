@@ -20,6 +20,15 @@ public class MesaConfiguration : IEntityTypeConfiguration<Mesa>
             .HasConversion<string>()
             .HasMaxLength(20)
             .HasDefaultValue(ModoDeMovimentacao.PorBlocos);
+        builder.Property(m => m.Iniciativa)
+            .HasConversion<string>()
+            .HasMaxLength(20)
+            .HasDefaultValue(EstadoDaIniciativa.Inativa);
+        builder.Property(m => m.Rodada).HasDefaultValue(0);
+
+        // Sem chave estrangeira: o token da vez pode sumir (removido, mapa trocado), e a vez é
+        // reavaliada depois. Um id que não existe mais conta como ninguém na vez.
+        builder.Property(m => m.VezDoTokenId);
 
         // O criador é só um registro histórico; quem manda na mesa é o MesaMembro com papel Mestre.
         builder.HasOne<Usuario>()
@@ -64,6 +73,33 @@ public class MesaMembroConfiguration : IEntityTypeConfiguration<MesaMembro>
 
         builder.HasIndex(m => new { m.MesaId, m.UsuarioId }).IsUnique();
         builder.HasIndex(m => m.UsuarioId);
+    }
+}
+
+public class ValorDeIniciativaConfiguration : IEntityTypeConfiguration<ValorDeIniciativa>
+{
+    public void Configure(EntityTypeBuilder<ValorDeIniciativa> builder)
+    {
+        builder.ToTable("valores_de_iniciativa", tabela =>
+        {
+            tabela.HasCheckConstraint("ck_valores_de_iniciativa_dono", "(usuario_id IS NULL) <> (grupo IS NULL)");
+            tabela.HasCheckConstraint(
+                "ck_valores_de_iniciativa_valor",
+                $"valor BETWEEN {ValorDeIniciativa.ValorMinimo} AND {ValorDeIniciativa.ValorMaximo}");
+        });
+
+        builder.HasKey(v => v.Id);
+        builder.Property(v => v.Id).ValueGeneratedNever();
+        builder.Property(v => v.Grupo).HasMaxLength(Domain.Mapas.GrupoDeIniciativa.TamanhoMaximo);
+
+        builder.HasOne<Mesa>()
+            .WithMany()
+            .HasForeignKey(v => v.MesaId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Um valor por jogador e por grupo: é o que garante que o jogador informe só uma vez.
+        builder.HasIndex(v => new { v.MesaId, v.UsuarioId }).IsUnique().HasFilter("usuario_id IS NOT NULL");
+        builder.HasIndex(v => new { v.MesaId, v.Grupo }).IsUnique().HasFilter("grupo IS NOT NULL");
     }
 }
 

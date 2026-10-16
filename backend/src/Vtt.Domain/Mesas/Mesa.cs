@@ -15,6 +15,14 @@ public class Mesa
 
     public ModoDeMovimentacao Movimentacao { get; set; } = ModoDeMovimentacao.PorBlocos;
 
+    public EstadoDaIniciativa Iniciativa { get; set; } = EstadoDaIniciativa.Inativa;
+
+    /// <summary>A rodada do combate, a partir de 1; 0 fora dele.</summary>
+    public int Rodada { get; set; }
+
+    /// <summary>O token que está na vez, no mapa ativo; nulo fora do combate ou sem ninguém que possa jogar.</summary>
+    public Guid? VezDoTokenId { get; set; }
+
     public DateTimeOffset CriadaEm { get; set; }
 
     public List<MesaMembro> Membros { get; set; } = [];

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Vtt.Application.Common;
+using Vtt.Application.Iniciativas;
 using Vtt.Domain.Mapas;
 using Vtt.Domain.Mesas;
 using Vtt.Domain.Personagens;
@@ -16,7 +17,7 @@ public readonly record struct TokenRemovido(Guid MesaId, ProjecoesDoToken Token)
 /// As alterações usam UPDATE/DELETE diretos, que não disputam a versão com um MoverToken em andamento.
 /// O HP atual do token é da cena: ele não volta para o cadastro do personagem, que guarda só o máximo.
 /// </summary>
-public class TokensDeJogador(IAppDbContext db, IMapaNotifier notifier, ILogger<TokensDeJogador> logger)
+public class TokensDeJogador(IAppDbContext db, IMapaNotifier notifier, TurnoDaMesa turno, ILogger<TokensDeJogador> logger)
 {
     private const int TentativasDeCriacao = 3;
 
@@ -140,6 +141,12 @@ public class TokensDeJogador(IAppDbContext db, IMapaNotifier notifier, ILogger<T
         foreach (var removido in removidos)
         {
             await notifier.TokenRemovidoAsync(AlcanceDoMapa.MesaInteira(removido.MesaId), removido.Token);
+        }
+
+        // Sem o token, a vez dele (e a própria iniciativa, se o jogador saiu) não vale mais.
+        foreach (var mesaId in removidos.Select(removido => removido.MesaId).Distinct())
+        {
+            await turno.ReavaliarAsync(mesaId, sempreAvisar: true, CancellationToken.None);
         }
     }
 

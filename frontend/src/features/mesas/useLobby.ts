@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { CABECALHOS_PADRAO, perderSessao } from '../../shared/api/http'
 import { lerToken } from '../../shared/api/tokenStorage'
 import type { StatusDaConexao } from '../../shared/realtime/StatusConexao'
+import type { Iniciativa } from '../iniciativa/iniciativaApi'
 import type { MapaEstado } from '../mapa/mapaApi'
 import { CHAVE_MESAS, chaveDaMesa, type Membro, type MesaDetalhe, type ModoDeMovimentacao, type PersonagemResumo } from './mesasApi'
 
@@ -13,6 +14,7 @@ interface Lobby {
   mesa: MesaDetalhe
   usuariosOnline: string[]
   mapaAtivo: MapaEstado | null
+  iniciativa: Iniciativa
 }
 
 /**
@@ -21,7 +23,7 @@ interface Lobby {
  */
 export interface ExtensaoDoLobby {
   registrar: (conexao: HubConnection) => void
-  aoSincronizar: (lobby: Pick<Lobby, 'mapaAtivo'>) => void
+  aoSincronizar: (lobby: Pick<Lobby, 'mapaAtivo' | 'iniciativa'>) => void
 }
 
 interface OpcoesDoLobby {

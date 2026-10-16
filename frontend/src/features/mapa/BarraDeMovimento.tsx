@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useIniciativaStore } from '../iniciativa/iniciativaStore'
 import { useEditorStore } from './editorStore'
 import { movimentoMaximo } from './mapaApi'
 import { useMapaStore } from './mapaStore'
@@ -20,6 +21,9 @@ export function BarraDeMovimento({ meuUsuarioId, souMestre, movimento }: BarraDe
   const token = useMapaStore((estado) => (estado.selecionadoId ? estado.tokens[estado.selecionadoId] : undefined))
   const movendo = useMapaStore((estado) => estado.movendoId !== null && estado.movendoId === estado.selecionadoId)
   const jogando = useEditorStore((estado) => estado.modo === 'jogar')
+  const noMapaAtivo = useMapaStore((estado) => estado.mapa !== null && estado.mapa.id === estado.mapaAtivoId)
+  // A barra só existe com a movimentação por blocos, então em combate vale a vez.
+  const vez = useIniciativaStore((estado) => (estado.iniciativa.estado === 'EmCombate' ? estado.iniciativa.vezDoTokenId : undefined))
   const [ocupado, setOcupado] = useState(false)
 
   if (!jogando || !token || token.movimentoRestante === null || token.deslocamento === null) return null
@@ -46,6 +50,15 @@ export function BarraDeMovimento({ meuUsuarioId, souMestre, movimento }: BarraDe
         {cabecalho}
         <span className="selo selo-perigo">Caído</span>
         <span className="barra-de-movimento-dica">Caído: não pode se mover nem desfazer a jogada.</span>
+      </div>
+    )
+  }
+
+  if (noMapaAtivo && vez !== undefined && vez !== token.id) {
+    return (
+      <div className="barra-de-movimento" role="group" aria-label={`Movimento de ${token.nome}`}>
+        {cabecalho}
+        <span className="barra-de-movimento-dica">Aguarde a vez deste token na iniciativa.</span>
       </div>
     )
   }

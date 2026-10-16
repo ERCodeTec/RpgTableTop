@@ -1,6 +1,8 @@
 import type { HubConnection } from '@microsoft/signalr'
 import { useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useMemo, useRef } from 'react'
+import type { Iniciativa } from '../iniciativa/iniciativaApi'
+import { useIniciativaStore } from '../iniciativa/iniciativaStore'
 import type { ExtensaoDoLobby } from '../mesas/useLobby'
 import { chaveDaCelula } from './geometria'
 import {
@@ -100,6 +102,7 @@ export function useMapaTempoReal({ mesaId, aoAvisar }: OpcoesDoMapaTempoReal) {
           daMesa((mapaId: string, estruturaId: string) => store().estruturaRemovida(mapaId, estruturaId)),
         )
         conexao.on('MemoriaDeNevoaAlterada', daMesa((memoria: MemoriaDeNevoa) => store().memoriaAlterada(memoria)))
+        conexao.on('IniciativaAlterada', daMesa((iniciativa: Iniciativa) => useIniciativaStore.getState().definir(iniciativa)))
         conexao.on(
           'MapaAtivoAlterado',
           daMesa((estado: MapaEstado | null) => {
@@ -118,7 +121,8 @@ export function useMapaTempoReal({ mesaId, aoAvisar }: OpcoesDoMapaTempoReal) {
         )
       },
 
-      aoSincronizar({ mapaAtivo }) {
+      aoSincronizar({ mapaAtivo, iniciativa }) {
+        useIniciativaStore.getState().definir(iniciativa)
         const mapaEmPreparacao = emPreparacao(mapaAtivo?.mapa.id ?? null) ? store().mapa : null
         store().definirMapaAtivo(mapaAtivo?.mapa.id ?? null)
         recarregarLista()
@@ -137,7 +141,13 @@ export function useMapaTempoReal({ mesaId, aoAvisar }: OpcoesDoMapaTempoReal) {
     }
   }, [mesaId, queryClient])
 
-  useEffect(() => () => useMapaStore.getState().limpar(), [mesaId])
+  useEffect(
+    () => () => {
+      useMapaStore.getState().limpar()
+      useIniciativaStore.getState().definir(null)
+    },
+    [mesaId],
+  )
 
   /**
    * Move na tela na hora e pede ao servidor. Se ele recusar, o token volta para onde o servidor

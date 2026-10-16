@@ -1,3 +1,4 @@
+using Vtt.Application.Iniciativas;
 using Vtt.Domain.Mesas;
 
 namespace Vtt.Application.Mesas;
@@ -20,4 +21,7 @@ public interface IMesaNotifier
     Task MovimentacaoAlteradaAsync(Guid mesaId, ModoDeMovimentacao modo);
 
     Task MesaExcluidaAsync(Guid mesaId);
+
+    /// <summary>A iniciativa mudou: o Mestre recebe a projeção dele, os jogadores a deles.</summary>
+    Task IniciativaAlteradaAsync(Guid mesaId, IniciativaDto mestre, IniciativaDto jogadores);
 }

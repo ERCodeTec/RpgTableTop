@@ -581,6 +581,12 @@ namespace Vtt.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("imagem_id");
 
+                    b.Property<bool>("JogouNaRodada")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("jogou_na_rodada");
+
                     b.Property<Guid>("MapaId")
                         .HasColumnType("uuid")
                         .HasColumnName("mapa_id");
@@ -744,6 +750,14 @@ namespace Vtt.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(500)")
                         .HasColumnName("descricao");
 
+                    b.Property<string>("Iniciativa")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("Inativa")
+                        .HasColumnName("iniciativa");
+
                     b.Property<string>("Movimentacao")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
@@ -758,11 +772,21 @@ namespace Vtt.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(80)")
                         .HasColumnName("nome");
 
+                    b.Property<int>("Rodada")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("rodada");
+
                     b.Property<bool>("SessaoAtiva")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
                         .HasDefaultValue(false)
                         .HasColumnName("sessao_ativa");
+
+                    b.Property<Guid?>("VezDoTokenId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("vez_do_token_id");
 
                     b.HasKey("Id")
                         .HasName("pk_mesas");
@@ -815,6 +839,54 @@ namespace Vtt.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ix_mesa_membros_mesa_id_usuario_id");
 
                     b.ToTable("mesa_membros", (string)null);
+                });
+
+            modelBuilder.Entity("Vtt.Domain.Mesas.ValorDeIniciativa", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Grupo")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("grupo");
+
+                    b.Property<DateTimeOffset>("InformadoEm")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("informado_em");
+
+                    b.Property<Guid>("MesaId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("mesa_id");
+
+                    b.Property<Guid?>("UsuarioId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("usuario_id");
+
+                    b.Property<int>("Valor")
+                        .HasColumnType("integer")
+                        .HasColumnName("valor");
+
+                    b.HasKey("Id")
+                        .HasName("pk_valores_de_iniciativa");
+
+                    b.HasIndex("MesaId", "Grupo")
+                        .IsUnique()
+                        .HasDatabaseName("ix_valores_de_iniciativa_mesa_id_grupo")
+                        .HasFilter("grupo IS NOT NULL");
+
+                    b.HasIndex("MesaId", "UsuarioId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_valores_de_iniciativa_mesa_id_usuario_id")
+                        .HasFilter("usuario_id IS NOT NULL");
+
+                    b.ToTable("valores_de_iniciativa", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_valores_de_iniciativa_dono", "(usuario_id IS NULL) <> (grupo IS NULL)");
+
+                            t.HasCheckConstraint("ck_valores_de_iniciativa_valor", "valor BETWEEN -10 AND 99");
+                        });
                 });
 
             modelBuilder.Entity("Vtt.Domain.Personagens.Personagem", b =>
@@ -1193,6 +1265,16 @@ namespace Vtt.Infrastructure.Persistence.Migrations
                         .HasConstraintName("fk_mesa_membros_usuarios_usuario_id");
 
                     b.Navigation("PersonagemAtivo");
+                });
+
+            modelBuilder.Entity("Vtt.Domain.Mesas.ValorDeIniciativa", b =>
+                {
+                    b.HasOne("Vtt.Domain.Mesas.Mesa", null)
+                        .WithMany()
+                        .HasForeignKey("MesaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_valores_de_iniciativa_mesas_mesa_id");
                 });
 
             modelBuilder.Entity("Vtt.Domain.Personagens.Personagem", b =>

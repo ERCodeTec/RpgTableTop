@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using System.Text.RegularExpressions;
 using Vtt.Application.Common;
+using Vtt.Application.Iniciativas;
 using Vtt.Application.Imagens;
 using Vtt.Application.Mesas;
 using Vtt.Domain.Mapas;
@@ -9,7 +10,8 @@ using Vtt.Domain.Personagens;
 
 namespace Vtt.Application.Mapas;
 
-public class TokenService(IAppDbContext db, IMapaNotifier notifier, IImagemService imagens) : ITokenService
+public class TokenService(
+    IAppDbContext db, IMapaNotifier notifier, IImagemService imagens, MovimentoDaRodada rodada, TurnoDaMesa turno) : ITokenService
 {
     private const string TokenNaoEncontrado = "Token não encontrado.";
     private const string CelulaOcupada = "Já existe um token nesta célula.";
@@ -20,6 +22,7 @@ public class TokenService(IAppDbContext db, IMapaNotifier notifier, IImagemServi
     private const string EstruturaBloqueando = "Há uma estrutura bloqueando esta célula.";
     private const string UseOsBlocos = "Clique no seu token e escolha uma das células destacadas para mover.";
     private const string TokenCaido = "O token está caído e não pode se mover.";
+    private const string ForaDaVez = "Aguarde a sua vez na iniciativa.";
 
     public async Task<Resultado<TokenDto>> CriarAsync(Guid usuarioId, Guid mapaId, CriarTokenRequest request, CancellationToken cancellationToken = default)
     {
@@ -166,6 +169,7 @@ public class TokenService(IAppDbContext db, IMapaNotifier notifier, IImagemServi
             await notifier.TokenCriadoAsync(alcance, ProjecoesDoToken.De(token));
         }
 
+        await turno.ReavaliarAsync(mapa, cancellationToken);
         return new Resultado<IReadOnlyList<TokenDto>>(tokens.Select(TokenDto.De).ToList(), null);
     }
 
@@ -263,6 +267,7 @@ public class TokenService(IAppDbContext db, IMapaNotifier notifier, IImagemServi
         }
 
         await notifier.HpAlteradoAsync(AlcanceDoMapa.De(mapa!, usuarioId), antes, ProjecoesDoToken.De(token));
+        await turno.ReavaliarAsync(mapa!, cancellationToken);
         return TokenDto.De(token);
     }
 
@@ -353,12 +358,15 @@ public class TokenService(IAppDbContext db, IMapaNotifier notifier, IImagemServi
         // DELETE direto: remover não depende da versão, então não disputa com um movimento em andamento.
         await db.Tokens.Where(t => t.Id == tokenId).ExecuteDeleteAsync(cancellationToken);
         await notifier.TokenRemovidoAsync(AlcanceDoMapa.De(mapa!, usuarioId), ProjecoesDoToken.De(token));
+        await turno.ReavaliarAsync(mapa!, cancellationToken);
         return Resultado.Ok;
     }
 
     public async Task<Resultado<MovimentoResultado>> MoverAsync(Guid usuarioId, Guid tokenId, int x, int y, int versaoEsperada, CancellationToken cancellationToken = default)
     {
-        var (token, mapa, papel, visao, falha) = await ObterParaMoverAsync(usuarioId, tokenId, cancellationToken);
+        // O arraste livre não espera a vez: o do Mestre ajusta a cena a qualquer momento, e o do
+        // jogador só existe com a movimentação livre, em que a iniciativa não vale.
+        var (token, mapa, papel, visao, falha) = await ObterParaMoverAsync(usuarioId, tokenId, cancellationToken, exigirVez: false);
         if (token is null)
         {
             return falha!.Value;
@@ -608,7 +616,12 @@ public class TokenService(IAppDbContext db, IMapaNotifier notifier, IImagemServi
             return erro;
         }
 
-        await RestaurarAsync(mapa, usuarioId, db.Tokens.Where(t => t.MapaId == mapaId), cancellationToken);
+        if (mapa.Ativo && await db.Mesas.AnyAsync(m => m.Id == mapa.MesaId && m.Iniciativa == EstadoDaIniciativa.EmCombate, cancellationToken))
+        {
+            return Erro.Conflito("Durante o combate, a rodada avança pela iniciativa.");
+        }
+
+        await rodada.RestaurarAsync(AlcanceDoMapa.De(mapa, usuarioId), db.Tokens.Where(t => t.MapaId == mapaId), cancellationToken);
         return Resultado.Ok;
     }
 
@@ -620,7 +633,7 @@ public class TokenService(IAppDbContext db, IMapaNotifier notifier, IImagemServi
             return erro!;
         }
 
-        await RestaurarAsync(mapa!, usuarioId, db.Tokens.Where(t => t.Id == tokenId), cancellationToken);
+        await rodada.RestaurarAsync(AlcanceDoMapa.De(mapa!, usuarioId), db.Tokens.Where(t => t.Id == tokenId), cancellationToken);
         var entrada = db.Tokens.Entry(token);
         await entrada.ReloadAsync(cancellationToken);
         return entrada.State == EntityState.Detached ? Erro.NaoEncontrado() : TokenDto.De(token);
@@ -671,6 +684,7 @@ public class TokenService(IAppDbContext db, IMapaNotifier notifier, IImagemServi
         }
 
         await notifier.TokenAlteradoAsync(AlcanceDoMapa.De(mapa, usuarioId), antes, ProjecoesDoToken.De(token));
+        await turno.ReavaliarAsync(mapa, cancellationToken);
         return TokenDto.De(token);
     }
 
@@ -736,6 +750,7 @@ public class TokenService(IAppDbContext db, IMapaNotifier notifier, IImagemServi
         }
 
         await notifier.TokenCriadoAsync(AlcanceDoMapa.De(mapa, usuarioId), ProjecoesDoToken.De(token));
+        await turno.ReavaliarAsync(mapa, cancellationToken);
         return TokenDto.De(token);
     }
 
@@ -767,7 +782,7 @@ public class TokenService(IAppDbContext db, IMapaNotifier notifier, IImagemServi
     /// ou do próprio token caído.
     /// </summary>
     private async Task<(Token? Token, Mapa? Mapa, PapelNaMesa Papel, VisaoDoToken Visao, Resultado<MovimentoResultado>? Falha)> ObterParaMoverAsync(
-        Guid usuarioId, Guid tokenId, CancellationToken cancellationToken)
+        Guid usuarioId, Guid tokenId, CancellationToken cancellationToken, bool exigirVez = true)
     {
         var token = await db.Tokens.FirstOrDefaultAsync(t => t.Id == tokenId, cancellationToken);
         if (token is null)
@@ -796,6 +811,12 @@ public class TokenService(IAppDbContext db, IMapaNotifier notifier, IImagemServi
         if (papel == PapelNaMesa.Jogador && token.Caido)
         {
             return (null, null, default, default, MovimentoResultado.Rejeitado(TokenCaido, token, visao));
+        }
+
+        // Em combate, com a movimentação por blocos, só o token da vez anda (também para o Mestre).
+        if (exigirVez && mapa.Ativo && await turno.ForaDaVezAsync(mapa.MesaId, token.Id, cancellationToken))
+        {
+            return (null, null, default, default, MovimentoResultado.Rejeitado(ForaDaVez, token, visao));
         }
 
         return (token, mapa, papel.Value, visao, null);
@@ -838,39 +859,6 @@ public class TokenService(IAppDbContext db, IMapaNotifier notifier, IImagemServi
         }
 
         return MovimentoResultado.Ok(token, visao);
-    }
-
-    /// <summary>
-    /// Devolve o movimento inteiro, a Disparada e descarta as pendências, em um só UPDATE (não disputa a versão
-    /// com um movimento em andamento: quem chegar depois recebe versão desatualizada). Avisa só os
-    /// tokens que mudaram.
-    /// </summary>
-    private async Task RestaurarAsync(Mapa mapa, Guid usuarioId, IQueryable<Token> tokens, CancellationToken cancellationToken)
-    {
-        var alterados = tokens.Where(t => t.MovimentoRestante != t.Deslocamento || t.Disparada || t.OrigemPendenteX != null);
-        var ids = await alterados.Select(t => t.Id).ToListAsync(cancellationToken);
-        if (ids.Count == 0)
-        {
-            return;
-        }
-
-        await db.Tokens
-            .Where(t => ids.Contains(t.Id))
-            .ExecuteUpdateAsync(
-                s => s.SetProperty(t => t.MovimentoRestante, t => t.Deslocamento)
-                    .SetProperty(t => t.Disparada, false)
-                    .SetProperty(t => t.OrigemPendenteX, (int?)null)
-                    .SetProperty(t => t.OrigemPendenteY, (int?)null)
-                    .SetProperty(t => t.CustoPendente, 0)
-                    .SetProperty(t => t.Versao, t => t.Versao + 1),
-                cancellationToken);
-
-        var restaurados = await db.Tokens.AsNoTracking().Where(t => ids.Contains(t.Id)).ToListAsync(cancellationToken);
-        var alcance = AlcanceDoMapa.De(mapa, usuarioId);
-        foreach (var token in restaurados)
-        {
-            await notifier.MovimentoAlteradoAsync(alcance, ProjecoesDoToken.De(token));
-        }
     }
 
     private static string NormalizarCor(string? cor) =>

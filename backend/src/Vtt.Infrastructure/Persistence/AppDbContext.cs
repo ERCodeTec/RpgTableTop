@@ -24,6 +24,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<MemoriaDeNevoa> MemoriasDeNevoa => Set<MemoriaDeNevoa>();
     public DbSet<CategoriaDeModelo> CategoriasDeModelo => Set<CategoriaDeModelo>();
     public DbSet<ModeloDeToken> ModelosDeToken => Set<ModeloDeToken>();
+    public DbSet<ValorDeIniciativa> ValoresDeIniciativa => Set<ValorDeIniciativa>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

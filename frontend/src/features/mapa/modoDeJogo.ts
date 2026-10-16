@@ -1,4 +1,5 @@
 import { Vector3 } from 'three'
+import { foraDaVez } from '../iniciativa/iniciativaStore'
 import { useEditorStore } from './editorStore'
 import { celulaBloqueada, chaveDaCelula } from './geometria'
 import type { Gesto, ModoDeInteracao } from './gestos'
@@ -114,10 +115,13 @@ export function criarModoDeJogo(
     return souMestre || (token?.donoUsuarioId === meuUsuarioId && !token.caido)
   }
 
-  /** Seleciona o token e, se ele é meu (ou sou o Mestre) e o movimento é por blocos, mostra o alcance dele. */
+  /**
+   * Seleciona o token e, se ele é meu (ou sou o Mestre), o movimento é por blocos e, em combate, é a
+   * vez dele, mostra o alcance dele.
+   */
   const escolherToken = (tokenId: string) => {
     store().selecionar(tokenId)
-    if (!movimentoLivre && possoMover(tokenId)) store().mover(tokenId)
+    if (!movimentoLivre && possoMover(tokenId) && !foraDaVez(tokenId, movimentoLivre)) store().mover(tokenId)
   }
 
   /** A célula alcançável sob o ponteiro, se houver token em movimento. */

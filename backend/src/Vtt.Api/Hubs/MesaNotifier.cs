@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.SignalR;
+using Vtt.Application.Iniciativas;
 using Vtt.Application.Mesas;
 using Vtt.Domain.Mesas;
 
@@ -52,6 +53,20 @@ public class MesaNotifier(
                 await MesaHub.SairDosGruposAsync(hub.Groups, connectionId, mesaId);
             }
         });
+
+    public async Task IniciativaAlteradaAsync(Guid mesaId, IniciativaDto mestre, IniciativaDto jogadores)
+    {
+        try
+        {
+            // Pelos grupos de papel: a projeção do Mestre nunca chega a um jogador.
+            await hub.Clients.Group(MesaHub.GrupoDoMestre(mesaId)).IniciativaAlterada(mesaId, mestre);
+            await hub.Clients.Group(MesaHub.GrupoDosJogadores(mesaId)).IniciativaAlterada(mesaId, jogadores);
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Falha ao enviar {Evento} para a mesa {MesaId}", nameof(IMesaClient.IniciativaAlterada), mesaId);
+        }
+    }
 
     private async Task EnviarAsync(Guid mesaId, string evento, Func<IMesaClient, Task> enviar)
     {

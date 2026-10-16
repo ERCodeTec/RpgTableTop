@@ -71,6 +71,7 @@ public class TokenConfiguration : IEntityTypeConfiguration<Token>
         builder.Property(t => t.Versao).IsConcurrencyToken();
         builder.Property(t => t.Deslocamento).HasDefaultValue(Personagem.DeslocamentoPadrao);
         builder.Property(t => t.Visao).HasDefaultValue(0);
+        builder.Property(t => t.JogouNaRodada).HasDefaultValue(false);
         builder.Ignore(t => t.MovimentoPendente);
         builder.Ignore(t => t.MovimentoMaximo);
         // Sentinel fora do enum: sem ele, Oculto (o valor 0) contaria como "não informado" e o banco gravaria o padrão.

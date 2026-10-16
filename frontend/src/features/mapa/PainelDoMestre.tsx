@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { memo, useEffect, useRef, useState } from 'react'
 import { ConfirmarDialogo } from '../../shared/ui/ConfirmarDialogo'
+import { PainelDeIniciativa } from '../iniciativa/PainelDeIniciativa'
 import { ColocarDaBibliotecaDialogo } from './ColocarDaBibliotecaDialogo'
 import { ControlesDoToken } from './ControlesDoToken'
 import { useEditorStore } from './editorStore'
@@ -34,11 +35,12 @@ type DialogoAberto =
   | { tipo: 'editar-token'; token: Token }
   | { tipo: 'remover-token'; token: Token }
 
-type Aba = 'mapas' | 'tokens' | 'estruturas' | 'nevoa' | 'imagens'
+type Aba = 'mapas' | 'tokens' | 'iniciativa' | 'estruturas' | 'nevoa' | 'imagens'
 
 const ABAS: { id: Aba; nome: string }[] = [
   { id: 'mapas', nome: 'Mapas' },
   { id: 'tokens', nome: 'Tokens' },
+  { id: 'iniciativa', nome: 'Iniciativa' },
   { id: 'estruturas', nome: 'Estruturas' },
   { id: 'nevoa', nome: 'Névoa' },
   { id: 'imagens', nome: 'Imagens' },
@@ -50,6 +52,7 @@ interface PainelDoMestreProps {
   aoCriarMapa: () => void
   aoGerarMapa: (tema: string) => void
   gerandoMapa: boolean
+  aoAvisar: (mensagem: string) => void
 }
 
 /**
@@ -57,7 +60,7 @@ interface PainelDoMestreProps {
  * o servidor envia (ao Mestre, também os dos mapas em preparação) e, para não esperar por eles,
  * pela própria resposta da requisição.
  */
-export function PainelDoMestre({ mesaId, movimento, aoCriarMapa, aoGerarMapa, gerandoMapa }: PainelDoMestreProps) {
+export function PainelDoMestre({ mesaId, movimento, aoCriarMapa, aoGerarMapa, gerandoMapa, aoAvisar }: PainelDoMestreProps) {
   const queryClient = useQueryClient()
   const mapas = useQuery({ queryKey: chaveDosMapas(mesaId), queryFn: () => listarMapas(mesaId) })
   const mapaNaTela = useMapaStore((estado) => estado.mapa)
@@ -175,6 +178,8 @@ export function PainelDoMestre({ mesaId, movimento, aoCriarMapa, aoGerarMapa, ge
           </button>
         ))}
       </div>
+
+      {aba === 'iniciativa' && <PainelDeIniciativa mesaId={mesaId} aoAvisar={aoAvisar} />}
 
       {aba === 'mapas' && (
         <section className="painel-mestre-secao">

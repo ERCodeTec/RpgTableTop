@@ -1,6 +1,7 @@
 using System.Data.Common;
 using Microsoft.EntityFrameworkCore;
 using Vtt.Application.Common;
+using Vtt.Application.Iniciativas;
 using Vtt.Application.Mesas;
 using Vtt.Domain.Mapas;
 using Vtt.Domain.Mesas;
@@ -11,6 +12,7 @@ public class MapaService(
     IAppDbContext db,
     IMapaNotifier notifier,
     TokensDeJogador tokensDeJogador,
+    TurnoDaMesa turno,
     TimeProvider relogio) : IMapaService
 {
     public async Task<Resultado<MapaDto>> CriarAsync(Guid usuarioId, Guid mesaId, MapaRequest request, CancellationToken cancellationToken = default)
@@ -186,6 +188,7 @@ public class MapaService(
         if (mapa.Ativo)
         {
             await notifier.MapaAtivoAlteradoAsync(mapa.MesaId, estadoPara: null);
+            await turno.ReavaliarAsync(mapa.MesaId, sempreAvisar: true, cancellationToken);
         }
 
         return Resultado.Ok;
@@ -230,6 +233,9 @@ public class MapaService(
         await notifier.MapaAtivoAlteradoAsync(
             mapa.MesaId,
             (destinatarioId, ehMestre) => Montar(mapa, cena, destinatarioId, ehMestre ? PapelNaMesa.Mestre : PapelNaMesa.Jogador));
+
+        // A iniciativa segue no novo mapa: os valores ficam, e a ordem recomeça na rodada 1.
+        await turno.ReiniciarNoMapaAtivoAsync(mapa.MesaId, cancellationToken);
         return Montar(mapa, cena, usuarioId, PapelNaMesa.Mestre);
     }
 

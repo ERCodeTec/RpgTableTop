@@ -2136,3 +2136,202 @@ html.com-tela-cheia body {
     min-height: 44px;
   }
 }
+
+/* Iniciativa: a trilha sobre o mapa, no canto de cima à esquerda (a foto do token fica à direita). */
+
+.trilha-de-iniciativa {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-width: min(40rem, calc(100% - 10rem));
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--linha);
+  border-radius: var(--raio);
+  background: rgb(15 26 29 / 0.92);
+}
+
+.trilha-de-iniciativa-topo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.75rem;
+}
+
+.trilha-de-iniciativa-topo strong {
+  font-family: var(--fonte-titulo);
+  font-size: 1.0625rem;
+}
+
+.trilha-de-iniciativa-estado {
+  color: var(--latao);
+  font-weight: 500;
+}
+
+.trilha-de-iniciativa-lista {
+  display: flex;
+  gap: 0.375rem;
+  margin: 0;
+  padding: 0 0 0.125rem;
+  overflow-x: auto;
+  list-style: none;
+}
+
+.trilha-de-iniciativa-item {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.5rem 0.25rem 0.25rem;
+  border: 1px solid var(--linha);
+  border-radius: 999px;
+  background: var(--mesa-clara);
+  font-size: 0.875rem;
+}
+
+button.trilha-de-iniciativa-item {
+  color: var(--texto);
+  font: inherit;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+button.trilha-de-iniciativa-item:hover {
+  border-color: var(--texto-suave);
+}
+
+.trilha-de-iniciativa-selecionado {
+  outline: 2px solid var(--texto);
+  outline-offset: 1px;
+}
+
+.trilha-de-iniciativa-atual {
+  border-color: var(--latao);
+  box-shadow: 0 0 0 1px var(--latao);
+}
+
+.trilha-de-iniciativa-jogou {
+  opacity: 0.5;
+}
+
+.trilha-de-iniciativa-caido .trilha-de-iniciativa-nome {
+  text-decoration: line-through;
+}
+
+.trilha-de-iniciativa-nome {
+  max-width: 9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trilha-de-iniciativa-valor {
+  min-width: 1.5rem;
+  color: var(--texto-suave);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.trilha-de-iniciativa-vazia {
+  margin: 0;
+  color: var(--texto-suave);
+  font-size: 0.875rem;
+}
+
+.trilha-de-iniciativa-pedido {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.campo-de-iniciativa {
+  display: flex;
+  flex: none;
+  gap: 0.375rem;
+}
+
+.campo-de-iniciativa input {
+  width: 4.5rem;
+  min-height: 44px;
+  padding: 0 0.5rem;
+  border: 1px solid var(--linha);
+  border-radius: var(--raio);
+  background: var(--mesa-funda);
+  color: var(--texto);
+  font: inherit;
+  text-align: center;
+}
+
+.campo-de-iniciativa input:disabled {
+  opacity: 0.55;
+}
+
+.painel-iniciativa-titulo {
+  margin: 0.75rem 0 0.25rem;
+  font-size: 1rem;
+}
+
+.painel-iniciativa-item {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.painel-iniciativa-item .painel-item-dados {
+  flex: 1;
+  min-width: 0;
+}
+
+.trilha-de-iniciativa-controles {
+  display: flex;
+  gap: 0.25rem;
+  margin-left: auto;
+}
+
+.trilha-de-iniciativa-controle {
+  min-width: 36px;
+  min-height: 36px;
+  padding: 0 0.5rem;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+/* Vertical: uma coluna à esquerda, com rolagem; para baixo fica livre a barra de movimento. */
+.trilha-de-iniciativa-vertical {
+  width: min(16rem, calc(100% - 1.5rem));
+  max-height: calc(100% - 6.5rem);
+}
+
+.trilha-de-iniciativa-vertical .trilha-de-iniciativa-lista {
+  flex-direction: column;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.trilha-de-iniciativa-vertical .trilha-de-iniciativa-item {
+  width: 100%;
+  border-radius: var(--raio);
+}
+
+.trilha-de-iniciativa-vertical .trilha-de-iniciativa-nome {
+  flex: 1;
+  max-width: none;
+  text-align: left;
+}
+
+/* Minimizada: só a linha de cima (rodada, vez e ações), sem a lista. */
+.trilha-de-iniciativa-minimizada {
+  width: auto;
+  max-width: calc(100% - 1.5rem);
+}
+
+@media (max-width: 40rem) {
+  .trilha-de-iniciativa:not(.trilha-de-iniciativa-vertical):not(.trilha-de-iniciativa-minimizada) {
+    right: 0.75rem;
+    max-width: none;
+  }
+}

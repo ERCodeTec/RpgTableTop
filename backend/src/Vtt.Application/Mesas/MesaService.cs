@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Vtt.Application.Common;
+using Vtt.Application.Iniciativas;
 using Vtt.Application.Mapas;
 using Vtt.Domain.Imagens;
 using Vtt.Domain.Mesas;
@@ -12,6 +13,7 @@ public class MesaService(
     IUsuarioDirectory usuarios,
     IMesaNotifier notifier,
     TokensDeJogador tokensDeJogador,
+    TurnoDaMesa turno,
     IFileStorage arquivos,
     TimeProvider relogio,
     ILogger<MesaService> logger) : IMesaService
@@ -244,6 +246,9 @@ public class MesaService(
         await using (var transacao = await db.Database.BeginTransactionAsync(cancellationToken))
         {
             tokensRemovidos = await tokensDeJogador.RemoverDoUsuarioAsync(mesaId, membroUsuarioId, cancellationToken);
+            await db.ValoresDeIniciativa
+                .Where(v => v.MesaId == mesaId && v.UsuarioId == membroUsuarioId)
+                .ExecuteDeleteAsync(cancellationToken);
             await db.SaveChangesAsync(cancellationToken);
             await transacao.CommitAsync(cancellationToken);
         }
@@ -253,6 +258,12 @@ public class MesaService(
             membroUsuarioId, saindoPorContaPropria ? "saiu" : "foi removido", mesaId);
         await notifier.MembroSaiuAsync(mesaId, membroUsuarioId, removidoPeloMestre: !saindoPorContaPropria);
         await tokensDeJogador.AvisarRemocaoAsync(tokensRemovidos);
+        if (tokensRemovidos.Count == 0)
+        {
+            // Sem token no mapa, o aviso da remoção não sai, mas a iniciativa dele saiu da mesa.
+            await turno.ReavaliarAsync(mesaId, sempreAvisar: true, cancellationToken);
+        }
+
         return Resultado.Ok;
     }
 

@@ -78,6 +78,9 @@ public class Token
 
     public bool MovimentoPendente => OrigemPendenteX is not null;
 
+    /// <summary>A vez deste token na iniciativa já passou nesta rodada. Volta a false na rodada seguinte.</summary>
+    public bool JogouNaRodada { get; set; }
+
     /// <summary>Incrementada a cada alteração; o cliente a envia de volta ao mover.</summary>
     public int Versao { get; set; } = 1;
 

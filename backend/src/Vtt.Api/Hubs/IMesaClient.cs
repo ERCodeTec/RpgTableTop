@@ -1,3 +1,4 @@
+using Vtt.Application.Iniciativas;
 using Vtt.Application.Mapas;
 using Vtt.Application.Mesas;
 using Vtt.Domain.Mesas;
@@ -56,7 +57,10 @@ public interface IMesaClient
 
     /// <summary>Uma camada da névoa, inteira. A memória individual de um jogador só chega a ele e ao Mestre.</summary>
     Task MemoriaDeNevoaAlterada(Guid mesaId, MemoriaDeNevoaDto memoria);
+
+    /// <summary>A iniciativa inteira: estado, rodada, vez e valores, como o destinatário pode vê-la.</summary>
+    Task IniciativaAlterada(Guid mesaId, IniciativaDto iniciativa);
 }
 
 /// <summary>Estado completo da mesa, devolvido ao entrar ou reconectar: lobby e mapa ativo (se houver).</summary>
-public record LobbyDto(MesaDetalheDto Mesa, IReadOnlyCollection<Guid> UsuariosOnline, MapaEstadoDto? MapaAtivo);
+public record LobbyDto(MesaDetalheDto Mesa, IReadOnlyCollection<Guid> UsuariosOnline, MapaEstadoDto? MapaAtivo, IniciativaDto Iniciativa);

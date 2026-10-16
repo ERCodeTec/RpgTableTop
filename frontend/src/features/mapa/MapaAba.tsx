@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { lazy, Suspense, useEffect, useState } from 'react'
+import { foraDaVez, useIniciativaStore } from '../iniciativa/iniciativaStore'
+import { TrilhaDeIniciativa } from '../iniciativa/TrilhaDeIniciativa'
 import { AjudaDeAtalhos } from './AjudaDeAtalhos'
 import { definirAvisoDoEditor, reiniciarEditor } from './acoesDoEditor'
 import { AtalhosDoMapa } from './AtalhosDoMapa'
@@ -56,11 +58,19 @@ export function MapaAba({ mesaId, meuUsuarioId, souMestre, movimentacao, aoMover
   const queryClient = useQueryClient()
   useNevoa({ meuUsuarioId, souMestre, aoExplorar })
   const movimentoLivre = movimentacao === 'Livre'
+  const emCombate = useIniciativaStore((estado) => estado.iniciativa.estado === 'EmCombate')
+  const vezDoTokenId = useIniciativaStore((estado) => estado.iniciativa.vezDoTokenId)
 
   // Ao liberar a movimentação, some o alcance do token que estava em movimento por blocos.
   useEffect(() => {
     if (movimentoLivre) useMapaStore.getState().mover(null)
   }, [movimentoLivre])
+
+  // Quando a vez passa, some o alcance do token que deixou de estar na vez.
+  useEffect(() => {
+    const { movendoId, mover } = useMapaStore.getState()
+    if (movendoId && foraDaVez(movendoId, movimentoLivre)) mover(null)
+  }, [vezDoTokenId, emCombate, movimentoLivre])
 
   // Cada clique gera um mapa novo (semente sorteada no servidor) no tema escolhido, que já abre para o Mestre preparar.
   const gerarMapa = useMutation({
@@ -171,6 +181,13 @@ export function MapaAba({ mesaId, meuUsuarioId, souMestre, movimentacao, aoMover
                   aoAvisar={aoAvisar}
                 />
               </Suspense>
+              <TrilhaDeIniciativa
+                mesaId={mesaId}
+                meuUsuarioId={meuUsuarioId}
+                souMestre={souMestre}
+                movimentoLivre={movimentoLivre}
+                aoAvisar={aoAvisar}
+              />
               {!movimentoLivre && <BarraDeMovimento meuUsuarioId={meuUsuarioId} souMestre={souMestre} movimento={movimento} />}
               <FotoDoToken />
             </div>
@@ -179,7 +196,8 @@ export function MapaAba({ mesaId, meuUsuarioId, souMestre, movimentacao, aoMover
               {souMestre && modo === 'jogar' && (
                 <div className="mapa-rodada">
                   <SeletorDeMovimentacao mesaId={mesaId} movimentacao={movimentacao} aoAvisar={aoAvisar} />
-                  {!movimentoLivre && <BotaoNovaRodada mapaId={mapa.id} movimento={movimento} />}
+                  {/* Em combate, a rodada vira sozinha pela iniciativa. */}
+                  {!movimentoLivre && !(emCombate && mapa.ativo) && <BotaoNovaRodada mapaId={mapa.id} movimento={movimento} />}
                 </div>
               )}
             </div>
@@ -192,6 +210,9 @@ export function MapaAba({ mesaId, meuUsuarioId, souMestre, movimentacao, aoMover
                   : movimentoLivre
                     ? 'Arraste o seu token para qualquer célula livre do mapa para movê-lo.'
                     : 'Clique no seu token para ver as células que ele alcança e clique em uma delas para mover.'}{' '}
+                {emCombate &&
+                  !movimentoLivre &&
+                  'Em combate, só o token da vez anda por blocos; ao terminar, use "Encerrar vez" na trilha da iniciativa. '}
                 Arraste o fundo (ou use dois dedos) para deslocar o mapa; role ou faça a pinça para aproximar. Arraste com
                 o botão direito para girar e inclinar a visão; Q e E giram 90°.
               </p>
@@ -235,6 +256,7 @@ export function MapaAba({ mesaId, meuUsuarioId, souMestre, movimentacao, aoMover
               aoCriarMapa={() => setCriandoMapa(true)}
               aoGerarMapa={(tema) => gerarMapa.mutate(tema)}
               gerandoMapa={gerarMapa.isPending}
+              aoAvisar={aoAvisar}
             />
           </div>
         </div>

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Options;
 using Vtt.Api.Infrastructure;
 using Vtt.Application.Common;
+using Vtt.Application.Iniciativas;
 using Vtt.Application.Mapas;
 using Vtt.Application.Mesas;
 using Vtt.Domain.Mesas;
@@ -20,6 +21,7 @@ public class MesaHub(
     IMapaService mapas,
     ITokenService tokens,
     INevoaService nevoa,
+    TurnoDaMesa turno,
     PresencaTracker presenca,
     LimitadorDoHub limitador,
     IOptions<RateLimitingOptions> limites,
@@ -77,7 +79,8 @@ public class MesaHub(
         // O estado do lobby é relido depois de entrar no grupo, pelo mesmo motivo.
         var atual = await mesas.ObterAsync(usuarioId, mesaId, Context.ConnectionAborted);
         var mapaAtivo = await mapas.ObterEstadoAtivoAsync(mesaId, usuarioId, papel, Context.ConnectionAborted);
-        return new LobbyDto(atual.Valor ?? resultado.Valor, presenca.UsuariosOnline(mesaId), mapaAtivo);
+        var iniciativa = await turno.ObterAsync(mesaId, papel, Context.ConnectionAborted);
+        return new LobbyDto(atual.Valor ?? resultado.Valor, presenca.UsuariosOnline(mesaId), mapaAtivo, iniciativa);
     }
 
     /// <summary>Deixa de acompanhar a mesa sem fechar a conexão (o jogador saiu da tela do lobby).</summary>

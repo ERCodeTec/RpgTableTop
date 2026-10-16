@@ -21,6 +21,7 @@ public interface IAppDbContext
     DbSet<MemoriaDeNevoa> MemoriasDeNevoa { get; }
     DbSet<CategoriaDeModelo> CategoriasDeModelo { get; }
     DbSet<ModeloDeToken> ModelosDeToken { get; }
+    DbSet<ValorDeIniciativa> ValoresDeIniciativa { get; }
 
     /// <summary>Para transações explícitas quando uma operação tem mais de um passo.</summary>
     DatabaseFacade Database { get; }

@@ -67,7 +67,10 @@ public interface ITokenService
     /// </summary>
     Task<Resultado<MovimentoResultado>> DesfazerDisparadaAsync(Guid usuarioId, Guid tokenId, int versaoEsperada, CancellationToken cancellationToken = default);
 
-    /// <summary>Só o Mestre: devolve o movimento inteiro (e a Disparada) a todos os tokens do mapa e descarta as pendências.</summary>
+    /// <summary>
+    /// Só o Mestre: devolve o movimento inteiro (e a Disparada) a todos os tokens do mapa e descarta as pendências.
+    /// No mapa ativo durante o combate, é Conflito: a rodada vira pela iniciativa.
+    /// </summary>
     Task<Resultado> NovaRodadaAsync(Guid usuarioId, Guid mapaId, CancellationToken cancellationToken = default);
 
     /// <summary>Só o Mestre: o mesmo da nova rodada, para um token.</summary>

@@ -1,6 +1,7 @@
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using Vtt.Application.Biblioteca;
+using Vtt.Application.Iniciativas;
 using Vtt.Application.Imagens;
 using Vtt.Application.Mapas;
 using Vtt.Application.Mesas;
@@ -20,6 +21,9 @@ public static class DependencyInjection
         services.AddScoped<IMapaService, MapaService>();
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<TokensDeJogador>();
+        services.AddScoped<MovimentoDaRodada>();
+        services.AddScoped<TurnoDaMesa>();
+        services.AddScoped<IIniciativaService, IniciativaService>();
         services.AddScoped<IEstruturaService, EstruturaService>();
         services.AddScoped<INevoaService, NevoaService>();
         services.AddScoped<IImagemService, ImagemService>();
