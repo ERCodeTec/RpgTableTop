@@ -11,7 +11,7 @@ export type Modo = 'jogar' | 'editar' | 'fundo' | 'nevoa'
 /** O que o pincel da névoa faz: revelar as células para todos ou cobri-las (apagando também o explorado). */
 export type Pincel = 'revelar' | 'cobrir'
 
-export type Ferramenta = 'selecionar' | 'parede' | 'chao' | 'porta' | 'pilar' | 'obstaculo'
+export type Ferramenta = 'selecionar' | 'parede' | 'chao' | 'porta' | 'pilar' | 'obstaculo' | 'entrada'
 
 export const TIPO_DA_FERRAMENTA: Record<Exclude<Ferramenta, 'selecionar'>, TipoEstrutura> = {
   parede: 'Parede',
@@ -19,9 +19,10 @@ export const TIPO_DA_FERRAMENTA: Record<Exclude<Ferramenta, 'selecionar'>, TipoE
   pilar: 'Pilar',
   obstaculo: 'Obstaculo',
   chao: 'Chao',
+  entrada: 'Entrada',
 }
 
-/** As ferramentas na ordem da barra; a posição (1 a 6) é também o atalho de teclado. */
+/** As ferramentas na ordem da barra; a posição (1 a 7) é também o atalho de teclado. */
 export const FERRAMENTAS: { id: Ferramenta; nome: string; dica: string }[] = [
   {
     id: 'selecionar',
@@ -33,6 +34,11 @@ export const FERRAMENTAS: { id: Ferramenta; nome: string; dica: string }[] = [
   { id: 'porta', nome: 'Porta', dica: 'Clique em uma célula para colocar uma porta.' },
   { id: 'pilar', nome: 'Pilar', dica: 'Clique em uma célula para colocar um pilar.' },
   { id: 'obstaculo', nome: 'Obstáculo', dica: 'Clique em uma célula para colocar um obstáculo.' },
+  {
+    id: 'entrada',
+    nome: 'Entrada',
+    dica: 'Arraste no mapa para marcar onde os jogadores nascem ao entrar no mapa; um clique marca uma célula. Só você a vê, no modo de edição.',
+  },
 ]
 
 /** Retângulo de células mostrado enquanto o Mestre desenha, move ou redimensiona. */

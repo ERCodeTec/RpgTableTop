@@ -154,7 +154,7 @@ public class EstruturaService(IAppDbContext db, IMapaNotifier notifier) : IEstru
         estrutura.Cor = string.IsNullOrEmpty(request.Cor) ? Estrutura.CorPadrao : request.Cor.ToUpperInvariant();
         estrutura.TexturaImagemId = request.TexturaImagemId;
         estrutura.TexturaPadrao = request.TexturaPadrao;
-        estrutura.BloqueiaMovimento = request.BloqueiaMovimento ?? true;
+        estrutura.BloqueiaMovimento = estrutura.Tipo != TipoEstrutura.Entrada && (request.BloqueiaMovimento ?? true);
         estrutura.PortaAberta = estrutura.Tipo == TipoEstrutura.Porta && (request.PortaAberta ?? false);
     }
 }

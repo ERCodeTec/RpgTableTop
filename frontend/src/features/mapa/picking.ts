@@ -1,5 +1,6 @@
 import { Box3, Vector3 } from 'three'
 import { alturaDesenhada, centroDoToken, RAIO_DO_TOKEN } from './geometria'
+import { useEditorStore } from './editorStore'
 import { useMapaStore } from './mapaStore'
 import { estruturaEscondida, tokenEscondido } from './nevoa'
 import type { Rig } from './rig'
@@ -46,9 +47,12 @@ export function apontar(
   }
 
   if (considerar.estruturas) {
+    const editando = useEditorStore.getState().modo === 'editar'
     for (const id in estruturas) {
       const e = estruturas[id]
       if (estruturaEscondida(nevoa, e)) continue
+      // A entrada só é desenhada (e só pode ser clicada) no modo de edição.
+      if (e.tipo === 'Entrada' && !editando) continue
       caixa.min.set(e.x, 0, e.y)
       caixa.max.set(e.x + e.largura, alturaDesenhada(e), e.y + e.profundidade)
       if (!raio.intersectBox(caixa, ponto)) continue

@@ -51,6 +51,32 @@ public class TokensDeJogadorTests(VttApiFactory factory)
     }
 
     [Fact]
+    public async Task ComEntrada_OsJogadoresNascemNela_ETransbordamParaPerto()
+    {
+        var mestre = await factory.CriarSessaoAsync();
+        var mesa = await mestre.CriarMesaAsync();
+        var (alice, _) = await factory.AdicionarJogadorAsync(mestre, mesa.Id, "Alice");
+        var (bob, _) = await factory.AdicionarJogadorAsync(mestre, mesa.Id, "Bob");
+        var mapa = await mestre.CriarMapaAsync(mesa.Id);
+        // Uma entrada de uma célula só: o segundo jogador fica na livre mais próxima dela.
+        var entrada = await mestre.CriarEstruturaAsync(
+            mapa.Id, ImagemTestHelpers.Estrutura(TipoEstrutura.Entrada, x: 6, y: 5, altura: 0.1, bloqueia: true));
+        Assert.False(entrada.Bloqueia);
+        Assert.False(entrada.BloqueiaMovimento);
+
+        var estado = await mestre.AtivarMapaAsync(mapa.Id);
+
+        Assert.Equal((6, 5), (estado.TokenDe(alice)!.X, estado.TokenDe(alice)!.Y));
+        var doBob = estado.TokenDe(bob)!;
+        Assert.Equal(1, Math.Max(Math.Abs(doBob.X - 6), Math.Abs(doBob.Y - 5)));
+
+        // Quem entra depois, com o mapa ativo, também vai para perto da entrada.
+        var (carol, _) = await factory.AdicionarJogadorAsync(mestre, mesa.Id, "Carol");
+        var daCarol = (await mestre.ObterEstadoDoMapaAsync(mapa.Id)).TokenDe(carol)!;
+        Assert.Equal(1, Math.Max(Math.Abs(daCarol.X - 6), Math.Abs(daCarol.Y - 5)));
+    }
+
+    [Fact]
     public async Task TrocarDePersonagem_AtualizaOToken_MantendoAPosicao_ERestaurandoOHp()
     {
         var mestre = await factory.CriarSessaoAsync();

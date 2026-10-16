@@ -39,7 +39,7 @@ public class MapaProceduralTests(VttApiFactory factory)
         Assert.Equal(estado.Estruturas.Count, gravado.Estruturas.Count);
 
         var (largura, altura) = (estado.Mapa.Largura, estado.Mapa.Altura);
-        var bloqueadas = Celulas(estado.Estruturas.Where(e => e.Tipo != TipoEstrutura.Chao && e.Tipo != TipoEstrutura.Porta));
+        var bloqueadas = Celulas(estado.Estruturas.Where(e => e.Tipo is not (TipoEstrutura.Chao or TipoEstrutura.Porta or TipoEstrutura.Entrada)));
         for (var x = 0; x < largura; x++)
         {
             Assert.Contains((x, 0), bloqueadas);
@@ -66,7 +66,7 @@ public class MapaProceduralTests(VttApiFactory factory)
         var estado = await GerarAsync(mestre, mesa.Id, new MapaProceduralRequest(Largura: 40, Altura: 30, Semente: semente));
 
         var piso = Celulas(estado.Estruturas.Where(e => e.Tipo is TipoEstrutura.Chao or TipoEstrutura.Porta));
-        var bloqueadas = Celulas(estado.Estruturas.Where(e => e.Tipo is not (TipoEstrutura.Chao or TipoEstrutura.Porta)));
+        var bloqueadas = Celulas(estado.Estruturas.Where(e => e.Tipo is not (TipoEstrutura.Chao or TipoEstrutura.Porta or TipoEstrutura.Entrada)));
         var livres = piso.Where(c => !bloqueadas.Contains(c)).ToHashSet();
         Assert.NotEmpty(livres);
 
@@ -115,6 +115,31 @@ public class MapaProceduralTests(VttApiFactory factory)
         var piso = Celulas(estado.Estruturas.Where(e => e.Tipo == TipoEstrutura.Chao));
         Assert.Contains((token.X, token.Y), piso);
         Assert.DoesNotContain(estado.Estruturas, e => e.Bloqueia && token.X >= e.X && token.X < e.X + e.Largura && token.Y >= e.Y && token.Y < e.Y + e.Profundidade);
+    }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(42)]
+    [InlineData(99)]
+    public async Task AMasmorraTemUmaEntrada_LivreDeMobilia_EOsJogadoresNascemNela(int semente)
+    {
+        var mestre = await factory.CriarSessaoAsync();
+        var mesa = await mestre.CriarMesaAsync();
+        var (alice, _) = await factory.AdicionarJogadorAsync(mestre, mesa.Id, "Alice");
+        var (bob, _) = await factory.AdicionarJogadorAsync(mestre, mesa.Id, "Bob");
+        var gerado = await GerarAsync(mestre, mesa.Id, new MapaProceduralRequest(Semente: semente));
+
+        var entrada = Assert.Single(gerado.Estruturas, e => e.Tipo == TipoEstrutura.Entrada);
+        Assert.False(entrada.Bloqueia);
+        var naEntrada = Celulas([entrada]);
+        var piso = Celulas(gerado.Estruturas.Where(e => e.Tipo == TipoEstrutura.Chao && !e.Bloqueia));
+        Assert.All(naEntrada, celula => Assert.Contains(celula, piso));
+        Assert.DoesNotContain(gerado.Estruturas, e => e.Bloqueia && Celulas([e]).Overlaps(naEntrada));
+
+        var estado = await mestre.AtivarMapaAsync(gerado.Mapa.Id);
+
+        Assert.Contains((estado.TokenDe(alice)!.X, estado.TokenDe(alice)!.Y), naEntrada);
+        Assert.Contains((estado.TokenDe(bob)!.X, estado.TokenDe(bob)!.Y), naEntrada);
     }
 
     [Fact]

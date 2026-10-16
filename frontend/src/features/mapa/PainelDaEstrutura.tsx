@@ -12,7 +12,7 @@ import {
 import { SeletorDeTextura } from './SeletorDeTextura'
 import { urlDaTexturaPronta, useCatalogoDeTexturas } from './texturasProntas'
 
-const TIPOS: TipoEstrutura[] = ['Parede', 'Porta', 'Pilar', 'Obstaculo', 'Chao']
+const TIPOS: TipoEstrutura[] = ['Parede', 'Porta', 'Pilar', 'Obstaculo', 'Chao', 'Entrada']
 const ESPERA_MS = 400
 
 /**
@@ -52,6 +52,7 @@ export function PainelDaEstrutura({ mesaId, estrutura }: { mesaId: string; estru
   const [altura, setAltura] = useAjusteAdiado(estrutura.altura, (nova) => alterar({ altura: nova }))
   const porta = estrutura.tipo === 'Porta'
   const chao = estrutura.tipo === 'Chao'
+  const entrada = estrutura.tipo === 'Entrada'
   const comTextura = estrutura.texturaImagemId !== null || estrutura.texturaPadrao !== null
   const catalogo = useCatalogoDeTexturas()
   const pronta = catalogo.data?.texturas.find((textura) => textura.chave === estrutura.texturaPadrao)
@@ -77,7 +78,14 @@ export function PainelDaEstrutura({ mesaId, estrutura }: { mesaId: string; estru
         </select>
       </div>
 
-      {!chao && (
+      {entrada && (
+        <p className="campo-dica">
+          Os tokens dos jogadores nascem aqui ao entrar no mapa (ou quando ele é ativado). Com a área cheia, vão para a célula
+          livre mais próxima. Os jogadores não veem esta marcação.
+        </p>
+      )}
+
+      {!chao && !entrada && (
         <div className="campo">
           <label htmlFor={idAltura}>Altura: {altura.toLocaleString('pt-BR')} células</label>
           <input
@@ -98,39 +106,41 @@ export function PainelDaEstrutura({ mesaId, estrutura }: { mesaId: string; estru
         {comTextura && <p className="campo-dica">Com textura, a cor não aparece.</p>}
       </div>
 
-      <div className="campo">
-        <span className="campo-rotulo">Textura</span>
-        <div className="campo-imagem">
-          {estrutura.texturaImagemId ? (
-            <Miniatura imagemId={estrutura.texturaImagemId} alt="Textura atual" />
-          ) : estrutura.texturaPadrao ? (
-            <img
-              className="miniatura miniatura-pixel"
-              src={urlDaTexturaPronta(estrutura.texturaPadrao)}
-              alt={`Textura atual: ${pronta?.nome ?? estrutura.texturaPadrao}`}
-              title={pronta?.nome}
-              draggable={false}
-            />
-          ) : (
-            <span className="miniatura miniatura-vazia" aria-hidden="true" />
-          )}
-          <button className="botao botao-discreto" type="button" onClick={() => setEscolhendoTextura(true)}>
-            {comTextura ? 'Trocar' : 'Escolher'}
-          </button>
-          {comTextura && (
-            <button className="botao botao-discreto" type="button" onClick={() => alterar({ texturaImagemId: null, texturaPadrao: null })}>
-              Remover
+      {!entrada && (
+        <div className="campo">
+          <span className="campo-rotulo">Textura</span>
+          <div className="campo-imagem">
+            {estrutura.texturaImagemId ? (
+              <Miniatura imagemId={estrutura.texturaImagemId} alt="Textura atual" />
+            ) : estrutura.texturaPadrao ? (
+              <img
+                className="miniatura miniatura-pixel"
+                src={urlDaTexturaPronta(estrutura.texturaPadrao)}
+                alt={`Textura atual: ${pronta?.nome ?? estrutura.texturaPadrao}`}
+                title={pronta?.nome}
+                draggable={false}
+              />
+            ) : (
+              <span className="miniatura miniatura-vazia" aria-hidden="true" />
+            )}
+            <button className="botao botao-discreto" type="button" onClick={() => setEscolhendoTextura(true)}>
+              {comTextura ? 'Trocar' : 'Escolher'}
             </button>
-          )}
+            {comTextura && (
+              <button className="botao botao-discreto" type="button" onClick={() => alterar({ texturaImagemId: null, texturaPadrao: null })}>
+                Remover
+              </button>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {porta ? (
         <label className="campo-caixa">
           <input type="checkbox" checked={estrutura.portaAberta} onChange={(evento) => alterar({ portaAberta: evento.target.checked })} />
           Porta aberta (deixa passar)
         </label>
-      ) : (
+      ) : entrada ? null : (
         <label className="campo-caixa">
           <input
             type="checkbox"

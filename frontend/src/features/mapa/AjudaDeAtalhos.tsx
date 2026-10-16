@@ -22,7 +22,7 @@ const TOKEN_SELECIONADO: [string, string][] = [
 ]
 
 const EDICAO: [string, string][] = [
-  ['1 a 6', 'Escolher a ferramenta (Selecionar, Parede, Chão, Porta, Pilar, Obstáculo)'],
+  ['1 a 7', 'Escolher a ferramenta (Selecionar, Parede, Chão, Porta, Pilar, Obstáculo, Entrada)'],
   ['Arrastar onde não há nada', 'Selecionar vários tokens numa área; arrastar um deles move todos'],
   ['Shift + arrastar / clicar', 'Somar tokens à seleção; o clique põe ou tira um token do grupo'],
   ['R', 'Girar a estrutura selecionada'],

@@ -11,7 +11,8 @@ export const NOME_DA_EXIBICAO: Record<ExibicaoHp, string> = {
   Completo: 'Barra e números',
 }
 
-export type TipoEstrutura = 'Parede' | 'Porta' | 'Pilar' | 'Obstaculo' | 'Chao'
+/** Entrada: a área onde os tokens dos jogadores nascem; nunca bloqueia e só aparece no modo de edição. */
+export type TipoEstrutura = 'Parede' | 'Porta' | 'Pilar' | 'Obstaculo' | 'Chao' | 'Entrada'
 
 /**
  * Desligada: os jogadores veem o mapa inteiro. Compartilhada: cada um vê o que qualquer token do
@@ -204,6 +205,7 @@ export const NOME_DA_ESTRUTURA: Record<TipoEstrutura, string> = {
   Pilar: 'Pilar',
   Obstaculo: 'Obstáculo',
   Chao: 'Chão',
+  Entrada: 'Entrada dos jogadores',
 }
 
 /**
@@ -217,6 +219,7 @@ export const PADRAO_DA_ESTRUTURA: Record<TipoEstrutura, Pick<Estrutura, 'altura'
   Obstaculo: { altura: 0.6, cor: '#5E7A4A', texturaPadrao: null, bloqueiaMovimento: true },
   // O chão é desenhado rente ao piso; a altura só existe porque o servidor exige uma.
   Chao: { altura: 0.1, cor: '#4A4238', texturaPadrao: 'piso-lajotas', bloqueiaMovimento: false },
+  Entrada: { altura: 0.1, cor: '#3CB371', texturaPadrao: null, bloqueiaMovimento: false },
 }
 
 export const ALTURA_MINIMA = 0.1

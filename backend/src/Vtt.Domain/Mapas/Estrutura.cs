@@ -40,8 +40,16 @@ public class Estrutura
 
     public int Versao { get; set; } = 1;
 
-    /// <summary>Uma porta bloqueia enquanto está fechada; os demais tipos seguem <see cref="BloqueiaMovimento"/>.</summary>
-    public bool Bloqueia => Tipo == TipoEstrutura.Porta ? !PortaAberta : BloqueiaMovimento;
+    /// <summary>
+    /// Uma porta bloqueia enquanto está fechada e a entrada nunca bloqueia; os demais tipos seguem
+    /// <see cref="BloqueiaMovimento"/>.
+    /// </summary>
+    public bool Bloqueia => Tipo switch
+    {
+        TipoEstrutura.Porta => !PortaAberta,
+        TipoEstrutura.Entrada => false,
+        _ => BloqueiaMovimento
+    };
 
     public bool Contem(int x, int y) => x >= X && y >= Y && x < X + Largura && y < Y + Profundidade;
 

@@ -66,7 +66,8 @@ public class TokensDeJogador(IAppDbContext db, IMapaNotifier notifier, ILogger<T
 
             // Tokens ocultos não contam: a posição do spawn não pode denunciar onde eles estão.
             var ocupadas = await db.CelulasIndisponiveisAsync(mapa.Id, somenteVisiveis: true, cancellationToken);
-            if (Grade.PrimeiraLivre(mapa.Largura, mapa.Altura, ocupadas) is not { } celula)
+            var entradas = await db.EntradasAsync(mapa.Id, cancellationToken);
+            if (Grade.PontoDeSpawn(mapa.Largura, mapa.Altura, entradas, ocupadas) is not { } celula)
             {
                 logger.LogWarning("Mapa {MapaId} cheio: o token do jogador {UsuarioId} não foi criado", mapa.Id, usuarioId);
                 return;
@@ -162,6 +163,7 @@ public class TokensDeJogador(IAppDbContext db, IMapaNotifier notifier, ILogger<T
             .ToListAsync(cancellationToken);
 
         var ocupadas = await db.CelulasIndisponiveisAsync(mapa.Id, somenteVisiveis: true, cancellationToken);
+        var entradas = await db.EntradasAsync(mapa.Id, cancellationToken);
         foreach (var jogador in jogadores)
         {
             var token = existentes.FirstOrDefault(t => t.DonoUsuarioId == jogador.UsuarioId);
@@ -170,7 +172,7 @@ public class TokensDeJogador(IAppDbContext db, IMapaNotifier notifier, ILogger<T
                 continue;
             }
 
-            if (Grade.PrimeiraLivre(mapa.Largura, mapa.Altura, ocupadas) is not { } celula)
+            if (Grade.PontoDeSpawn(mapa.Largura, mapa.Altura, entradas, ocupadas) is not { } celula)
             {
                 logger.LogWarning("Mapa {MapaId} cheio: o token do jogador {UsuarioId} ficou de fora", mapa.Id, jogador.UsuarioId);
                 continue;

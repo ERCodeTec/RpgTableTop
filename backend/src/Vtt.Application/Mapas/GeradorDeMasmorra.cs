@@ -5,7 +5,7 @@ namespace Vtt.Application.Mapas;
 /// <summary>
 /// Gera uma masmorra a partir de uma semente: salas retangulares ligadas por corredores, com
 /// paredes em volta do que é piso, rocha no restante, portas nas entradas das salas e pilares e
-/// obstáculos dentro delas. A mesma semente, as mesmas dimensões e o mesmo tema dão sempre o mesmo mapa.
+/// obstáculos dentro delas, e a entrada dos jogadores no centro da primeira sala. A mesma semente, as mesmas dimensões e o mesmo tema dão sempre o mesmo mapa.
 /// </summary>
 /// <remarks>
 /// O tema escolhe as texturas pelas categorias do catálogo (<see cref="TexturasPadrao.DoPapel"/>):
@@ -40,6 +40,8 @@ public static class GeradorDeMasmorra
     private const string CorDoCorredor = "#4A4238";
     private const string CorDoPilar = "#8C8C84";
     private const string CorDaPorta = "#8A5A2B";
+    private const string CorDaEntrada = "#3CB371";
+    private const int LadoDaEntrada = 2;
     private static readonly string[] CoresDeObstaculo = ["#7A5A3A", "#6E6A60", "#5E7A4A"];
 
     /// <summary>Os temas que o gerador sabe montar: os que têm ao menos um piso e uma parede.</summary>
@@ -146,7 +148,14 @@ public static class GeradorDeMasmorra
         estruturas.AddRange(Retangulos(parede).Select(r => Nova(TipoEstrutura.Parede, r, 2, CorDaParede, bloqueia: true, texturas.Parede)));
         estruturas.AddRange(Retangulos(rocha).Select(r => Nova(TipoEstrutura.Parede, r, 0.4, CorDaRocha, bloqueia: true, texturas.Rocha)));
         estruturas.AddRange(Portas(corredor, naSala, piso, largura, altura, sorteio, texturas));
-        estruturas.AddRange(Mobilia(salas, sorteio, texturas));
+
+        var entrada = salas.Count > 0 ? AreaDaEntrada(salas[0]) : ((int X, int Y, int Largura, int Altura)?)null;
+        estruturas.AddRange(Mobilia(salas, entrada, sorteio, texturas));
+        if (entrada is { } area)
+        {
+            estruturas.Add(Nova(TipoEstrutura.Entrada, area, 0.1, CorDaEntrada, bloqueia: false));
+        }
+
         return estruturas;
     }
 
@@ -291,14 +300,32 @@ public static class GeradorDeMasmorra
     }
 
     /// <summary>
+    /// Onde os jogadores nascem: um quadrado no centro da sala. Como a sala tem ao menos
+    /// <see cref="LadoMinimoDaSala"/> de lado, ele fica longe da parede e dos pilares dos cantos.
+    /// </summary>
+    private static (int X, int Y, int Largura, int Altura) AreaDaEntrada(Sala sala) =>
+        (sala.CentroX - LadoDaEntrada / 2, sala.CentroY - LadoDaEntrada / 2, LadoDaEntrada, LadoDaEntrada);
+
+    /// <summary>
     /// Pilares nos cantos das salas grandes e obstáculos soltos, sempre no miolo e sem vizinhos entre si.
     /// Um obstáculo pode virar poça de perigo (chão que bloqueia), se o tema tiver textura de perigo.
+    /// Nada é posto na área da entrada, para os jogadores nascerem juntos.
     /// </summary>
-    private static IEnumerable<Estrutura> Mobilia(List<Sala> salas, Random sorteio, Texturas texturas)
+    private static IEnumerable<Estrutura> Mobilia(List<Sala> salas, (int X, int Y, int Largura, int Altura)? entrada, Random sorteio, Texturas texturas)
     {
         foreach (var sala in salas)
         {
             var ocupadas = new HashSet<(int X, int Y)>();
+            if (entrada is { } area && sala.Contem(area.X, area.Y))
+            {
+                for (var y = area.Y; y < area.Y + area.Altura; y++)
+                {
+                    for (var x = area.X; x < area.X + area.Largura; x++)
+                    {
+                        ocupadas.Add((x, y));
+                    }
+                }
+            }
 
             if (sala.Largura >= 7 && sala.Altura >= 7)
             {

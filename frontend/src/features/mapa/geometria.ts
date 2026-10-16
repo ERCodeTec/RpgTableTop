@@ -10,6 +10,9 @@ const ALTURA_DA_PORTA_ABERTA = 0.08
 /** O chão é uma placa fina: fica sobre a grade e o fundo, e abaixo do disco deitado do token (0,02). */
 const ALTURA_DO_CHAO = 0.01
 
+/** A entrada fica logo acima do chão (0,01), para aparecer sobre ele, e abaixo do destaque do alcance (0,015). */
+const ALTURA_DA_ENTRADA = 0.013
+
 /** O destaque das células alcançáveis: logo acima do chão (0,01) e abaixo do disco deitado do token (0,02). */
 export const ALTURA_DO_ALCANCE = 0.015
 
@@ -17,9 +20,11 @@ export const ALTURA_DO_ALCANCE = 0.015
 export const alturaDesenhada = (estrutura: Pick<Estrutura, 'tipo' | 'altura' | 'portaAberta'>) =>
   estrutura.tipo === 'Chao'
     ? ALTURA_DO_CHAO
-    : estrutura.tipo === 'Porta' && estrutura.portaAberta
-      ? ALTURA_DA_PORTA_ABERTA
-      : estrutura.altura
+    : estrutura.tipo === 'Entrada'
+      ? ALTURA_DA_ENTRADA
+      : estrutura.tipo === 'Porta' && estrutura.portaAberta
+        ? ALTURA_DA_PORTA_ABERTA
+        : estrutura.altura
 
 /**
  * Quanto o disco do token sobe do chão para ficar em pé: de frente para a câmera, a borda de baixo

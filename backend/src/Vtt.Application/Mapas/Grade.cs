@@ -1,9 +1,43 @@
+using Vtt.Domain.Mapas;
+
 namespace Vtt.Application.Mapas;
 
 /// <summary>Busca de células livres em um mapa de <c>largura</c> x <c>altura</c>.</summary>
 internal static class Grade
 {
-    /// <summary>Ponto de spawn: a primeira célula livre varrendo linha a linha a partir de (0,0).</summary>
+    /// <summary>
+    /// Onde nasce o token de um jogador: a primeira célula livre dentro das entradas, na ordem
+    /// recebida; com elas cheias, a livre mais próxima da primeira entrada. Sem entradas, <see cref="PrimeiraLivre"/>.
+    /// </summary>
+    public static (int X, int Y)? PontoDeSpawn(
+        int largura, int altura, IReadOnlyList<Estrutura> entradas, IReadOnlySet<(int X, int Y)> ocupadas)
+    {
+        if (entradas.Count == 0)
+        {
+            return PrimeiraLivre(largura, altura, ocupadas);
+        }
+
+        foreach (var entrada in entradas)
+        {
+            for (var y = Math.Max(0, entrada.Y); y < Math.Min(altura, entrada.Y + entrada.Profundidade); y++)
+            {
+                for (var x = Math.Max(0, entrada.X); x < Math.Min(largura, entrada.X + entrada.Largura); x++)
+                {
+                    if (!ocupadas.Contains((x, y)))
+                    {
+                        return (x, y);
+                    }
+                }
+            }
+        }
+
+        var primeira = entradas[0];
+        var centroX = Math.Clamp(primeira.X + primeira.Largura / 2, 0, largura - 1);
+        var centroY = Math.Clamp(primeira.Y + primeira.Profundidade / 2, 0, altura - 1);
+        return LivreMaisProxima(largura, altura, ocupadas, centroX, centroY);
+    }
+
+    /// <summary>A primeira célula livre varrendo linha a linha a partir de (0,0).</summary>
     public static (int X, int Y)? PrimeiraLivre(int largura, int altura, IReadOnlySet<(int X, int Y)> ocupadas)
     {
         for (var y = 0; y < altura; y++)

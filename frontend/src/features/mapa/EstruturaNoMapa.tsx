@@ -59,6 +59,7 @@ const TEXTURA_NO_EXPLORADO = new Color('#ffffff').multiplyScalar(LUZ_DO_EXPLORAD
  */
 export const EstruturaNoMapa = memo(function EstruturaNoMapa({ id, sombras }: { id: string; sombras: boolean }) {
   const estrutura = useMapaStore((estado) => estado.estruturas[id])
+  const editando = useEditorStore((estado) => estado.modo === 'editar')
   const selecionada = useEditorStore((estado) => estado.modo === 'editar' && estado.selecionadaId === id)
   const texturaCarregada = useImagemCarregada(estrutura?.texturaImagemId)
   const texturaPronta = useTexturaPronta(estrutura?.texturaPadrao)
@@ -90,12 +91,19 @@ export const EstruturaNoMapa = memo(function EstruturaNoMapa({ id, sombras }: { 
     [caixa, contorno],
   )
 
-  if (!estrutura || naNevoa === NUNCA_VISTA) return null
+  // A entrada só serve ao Mestre para montar o cenário: fora do modo de edição ela não aparece.
+  const entrada = estrutura?.tipo === 'Entrada'
+  if (!estrutura || naNevoa === NUNCA_VISTA || (entrada && !editando)) return null
   const explorada = naNevoa === EXPLORADA
 
-  const aberta = estrutura.tipo === 'Porta' && estrutura.portaAberta
-  const chao = estrutura.tipo === 'Chao'
-  const textura = estrutura.texturaImagemId && texturaCarregada ? texturaDaImagem(estrutura.texturaImagemId, true) : texturaPronta
+  // A entrada é translúcida, como a porta aberta: o piso continua aparecendo por baixo.
+  const aberta = (estrutura.tipo === 'Porta' && estrutura.portaAberta) || entrada
+  const chao = estrutura.tipo === 'Chao' || entrada
+  const textura = entrada
+    ? null
+    : estrutura.texturaImagemId && texturaCarregada
+      ? texturaDaImagem(estrutura.texturaImagemId, true)
+      : texturaPronta
 
   return (
     <group position={[estrutura.x + largura / 2, altura / 2, estrutura.y + profundidade / 2]}>

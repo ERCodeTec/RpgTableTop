@@ -27,7 +27,7 @@ internal static class MapaAcesso
             e => e.MapaId == mapaId
                 && x >= e.X && x < e.X + e.Largura
                 && y >= e.Y && y < e.Y + e.Profundidade
-                && (e.Tipo == TipoEstrutura.Porta ? !e.PortaAberta : e.BloqueiaMovimento),
+                && (e.Tipo == TipoEstrutura.Porta ? !e.PortaAberta : e.Tipo != TipoEstrutura.Entrada && e.BloqueiaMovimento),
             cancellationToken);
 
     /// <summary>
@@ -69,6 +69,17 @@ internal static class MapaAcesso
 
         return celulas;
     }
+
+    /// <summary>As áreas de entrada do mapa, na ordem em que o spawn as preenche (de cima para baixo, da esquerda para a direita).</summary>
+    public static Task<List<Estrutura>> EntradasAsync(
+        this IAppDbContext db, Guid mapaId, CancellationToken cancellationToken) =>
+        db.Estruturas
+            .AsNoTracking()
+            .Where(estrutura => estrutura.MapaId == mapaId && estrutura.Tipo == TipoEstrutura.Entrada)
+            .OrderBy(estrutura => estrutura.Y)
+            .ThenBy(estrutura => estrutura.X)
+            .ThenBy(estrutura => estrutura.Id)
+            .ToListAsync(cancellationToken);
 
     public static async Task<HashSet<(int X, int Y)>> CelulasOcupadasAsync(
         this IAppDbContext db, Guid mapaId, bool somenteVisiveis, CancellationToken cancellationToken)

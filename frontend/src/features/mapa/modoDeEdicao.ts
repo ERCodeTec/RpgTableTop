@@ -67,8 +67,8 @@ export function criarModoDeEdicao(rig: Rig, aoMover: (tokenId: string, x: number
     }
   }
 
-  /** Arrastar da célula inicial até outra cria um retângulo de chão com esses dois cantos. */
-  function desenharChao(inicio: { x: number; y: number }): Gesto {
+  /** Arrastar da célula inicial até outra cria um retângulo (de chão ou de entrada) com esses dois cantos. */
+  function desenharArea(tipo: 'Chao' | 'Entrada', inicio: { x: number; y: number }): Gesto {
     const area = (fim: { x: number; y: number }) => {
       const m = mapa().mapa!
       const fx = limitar(fim.x, 0, m.largura - 1)
@@ -88,9 +88,9 @@ export function criarModoDeEdicao(rig: Rig, aoMover: (tokenId: string, x: number
         atual = area(rig.celula(x, y))
         mostrar(atual)
       },
-      concluir: () => void criarNoMapa('Chao', atual),
+      concluir: () => void criarNoMapa(tipo, atual),
       cancelar: () => editor().definirPrevia(null),
-      clicar: () => void criarNoMapa('Chao', atual),
+      clicar: () => void criarNoMapa(tipo, atual),
     }
   }
 
@@ -224,7 +224,8 @@ export function criarModoDeEdicao(rig: Rig, aoMover: (tokenId: string, x: number
       if (ferramenta !== 'selecionar') {
         if (!dentroDoMapa(celula.x, celula.y)) return null
         if (ferramenta === 'parede') return desenharParede(celula)
-        if (ferramenta === 'chao') return desenharChao(celula)
+        if (ferramenta === 'chao') return desenharArea('Chao', celula)
+        if (ferramenta === 'entrada') return desenharArea('Entrada', celula)
         return colocar(TIPO_DA_FERRAMENTA[ferramenta], celula)
       }
 
