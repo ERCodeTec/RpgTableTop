@@ -1,0 +1,21 @@
+# Ajustes para rodar na VPS, atrás do proxy central (Caddy em /opt/proxy, que cuida do HTTPS).
+# Não é usado no desenvolvimento. Na VPS, o .env ativa este arquivo com:
+#   COMPOSE_FILE=docker-compose.yml:docker-compose.vps.yml
+services:
+  postgres:
+    # Na VPS ninguém acessa o banco de fora do Docker.
+    ports: !reset []
+
+  api:
+    # Sem porta publicada: o Docker ignora o firewall (ufw), então publicar 8080 deixaria a API
+    # exposta sem HTTPS. O proxy central acessa a API pela rede "proxy", com o apelido vtt-web.
+    ports: !reset []
+    networks:
+      default:
+      proxy:
+        aliases:
+          - vtt-web
+
+networks:
+  proxy:
+    external: true
