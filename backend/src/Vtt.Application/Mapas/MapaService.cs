@@ -164,6 +164,7 @@ public class MapaService(
 
         mapa.ImagemFundoId = request.ImagemId;
         mapa.FundoEscala = request.Escala;
+        mapa.FundoEscalaAltura = request.EscalaAltura;
         mapa.FundoOffsetX = request.OffsetX;
         mapa.FundoOffsetY = request.OffsetY;
         await db.SaveChangesAsync(cancellationToken);

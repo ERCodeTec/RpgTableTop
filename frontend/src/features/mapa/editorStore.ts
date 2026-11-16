@@ -67,6 +67,8 @@ interface EstadoDoEditor {
   previa: Previa | null
   /** O fundo sendo ajustado, antes de salvar. */
   fundo: DadosDoFundo | null
+  /** Altura / largura naturais da imagem de fundo na tela; as alças do ajuste precisam dela. */
+  proporcaoDoFundo: number
   pincel: Pincel
   pilhaDeDesfazer: Acao[]
   pilhaDeRefazer: Acao[]
@@ -80,6 +82,7 @@ interface EstadoDoEditor {
   selecionar: (id: string | null) => void
   definirPrevia: (previa: Previa | null) => void
   definirFundo: (fundo: DadosDoFundo | null) => void
+  definirProporcaoDoFundo: (proporcao: number) => void
   definirPincel: (pincel: Pincel) => void
   /** Esquece seleção, rascunhos e histórico: o mapa na tela mudou. */
   reiniciar: () => void
@@ -94,6 +97,7 @@ export const useEditorStore = create<EstadoDoEditor>((set) => ({
   selecionadaId: null,
   previa: null,
   fundo: null,
+  proporcaoDoFundo: 1,
   pincel: 'revelar',
   pilhaDeDesfazer: [],
   pilhaDeRefazer: [],
@@ -119,6 +123,7 @@ export const useEditorStore = create<EstadoDoEditor>((set) => ({
   selecionar: (selecionadaId) => set({ selecionadaId }),
   definirPrevia: (previa) => set({ previa }),
   definirFundo: (fundo) => set({ fundo }),
+  definirProporcaoDoFundo: (proporcaoDoFundo) => set({ proporcaoDoFundo }),
   definirPincel: (pincel) => set({ pincel }),
   reiniciar: () =>
     set({ modo: 'jogar', ferramenta: 'selecionar', selecionadaId: null, previa: null, fundo: null, pilhaDeDesfazer: [], pilhaDeRefazer: [], ocupado: false }),

@@ -64,6 +64,12 @@ public class FundoRequestValidator : AbstractValidator<FundoRequest>
             .InclusiveBetween(Mapa.FundoEscalaMinima, Mapa.FundoEscalaMaxima)
             .WithMessage($"A escala deve ficar entre {Mapa.FundoEscalaMinima} e {Mapa.FundoEscalaMaxima}.");
 
+        RuleFor(x => x.EscalaAltura!.Value)
+            .InclusiveBetween(Mapa.FundoEscalaMinima, Mapa.FundoEscalaMaxima)
+            .When(x => x.EscalaAltura.HasValue)
+            .OverridePropertyName(nameof(FundoRequest.EscalaAltura))
+            .WithMessage($"A escala da altura deve ficar entre {Mapa.FundoEscalaMinima} e {Mapa.FundoEscalaMaxima}.");
+
         RuleFor(x => x.OffsetX).InclusiveBetween(-OffsetMaximo, OffsetMaximo).WithMessage("Deslocamento fora da faixa.");
         RuleFor(x => x.OffsetY).InclusiveBetween(-OffsetMaximo, OffsetMaximo).WithMessage("Deslocamento fora da faixa.");
     }

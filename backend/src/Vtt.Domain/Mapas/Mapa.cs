@@ -31,6 +31,12 @@ public class Mapa
     /// <summary>1 = a imagem tem a largura do mapa, mantendo a proporção.</summary>
     public double FundoEscala { get; set; } = 1;
 
+    /// <summary>
+    /// Escala da altura, na mesma unidade de <see cref="FundoEscala"/>. Null mantém a proporção
+    /// original da imagem; com valor, a imagem pode ficar esticada em um dos eixos.
+    /// </summary>
+    public double? FundoEscalaAltura { get; set; }
+
     /// <summary>Deslocamento do canto superior esquerdo da imagem, em células.</summary>
     public double FundoOffsetX { get; set; }
 

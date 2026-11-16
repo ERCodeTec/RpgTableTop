@@ -118,6 +118,7 @@ export function MapaAba({
       escala: mapa.fundoEscala,
       offsetX: mapa.fundoOffsetX,
       offsetY: mapa.fundoOffsetY,
+      escalaAltura: mapa.fundoEscalaAltura,
     })
     definirModo('fundo')
   }

@@ -74,7 +74,7 @@ builder.Services.PostConfigure<JwtBearerOptions>(JwtBearerDefaults.Authenticatio
         }
     });
 
-// Atrás do ngrok (e do proxy do Docker) o esquema, o host e o IP reais chegam nos cabeçalhos
+// Atrás do proxy reverso (o Caddy na VPS) o esquema, o host e o IP reais chegam nos cabeçalhos
 // X-Forwarded-*. O proxy não tem IP fixo, então aceitamos de qualquer origem; por isso a API
 // não deve ser exposta diretamente à internet sem um proxy na frente.
 builder.Services.Configure<ForwardedHeadersOptions>(options =>

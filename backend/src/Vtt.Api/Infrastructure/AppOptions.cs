@@ -4,7 +4,7 @@ public class AppOptions
 {
     public const string Secao = "App";
 
-    /// <summary>URL pública (ex.: a do ngrok), usada para montar links de convite a partir da Etapa 2.</summary>
+    /// <summary>URL pública (ex.: https://vtt.ercode.tech), usada para montar links de convite a partir da Etapa 2.</summary>
     public string PublicBaseUrl { get; set; } = string.Empty;
 }
 

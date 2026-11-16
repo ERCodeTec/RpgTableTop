@@ -76,6 +76,7 @@ export function GaleriaDeImagens({ mesaId }: { mesaId: string }) {
       escala: jaEOFundo ? mapaNaTela.fundoEscala : 1,
       offsetX: jaEOFundo ? mapaNaTela.fundoOffsetX : 0,
       offsetY: jaEOFundo ? mapaNaTela.fundoOffsetY : 0,
+      escalaAltura: jaEOFundo ? mapaNaTela.fundoEscalaAltura : null,
     })
     useEditorStore.getState().definirModo('fundo')
   }

@@ -84,8 +84,8 @@ DATABASE_AUTO_MIGRATE=true
 COMPOSE_FILE=docker-compose.yml:docker-compose.vps.yml
 ```
 
-Pode apagar ou deixar vazias as linhas de `NGROK_*`, `API_PORT`, `POSTGRES_PORT` e `NGROK_INSPECT_PORT`
-— na VPS não são usadas (o HTTPS vem do proxy, não do ngrok).
+Pode apagar ou deixar vazias as linhas de `API_PORT` e `POSTGRES_PORT` — na VPS não são usadas
+(nenhuma porta é publicada; o HTTPS vem do proxy).
 
 Com o `COMPOSE_FILE` no `.env`, todo `docker compose ...` dentro de `/opt/vtt` já usa os dois arquivos.
 

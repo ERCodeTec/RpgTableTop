@@ -272,7 +272,8 @@ public class ImagensTests(VttApiFactory factory)
 
         var doJogador = await jogador.Client.PutAsJsonAsync($"/api/mapas/{mapa.Id}/fundo", new FundoRequest(imagem.Id, 1, 0, 0));
         var escalaInvalida = await mestre.Client.PutAsJsonAsync($"/api/mapas/{mapa.Id}/fundo", new FundoRequest(imagem.Id, 0, 0, 0));
-        var resposta = await mestre.Client.PutAsJsonAsync($"/api/mapas/{mapa.Id}/fundo", new FundoRequest(imagem.Id, 1.5, -2.25, 0.5));
+        var alturaInvalida = await mestre.Client.PutAsJsonAsync($"/api/mapas/{mapa.Id}/fundo", new FundoRequest(imagem.Id, 1, 0, 0, 0));
+        var resposta = await mestre.Client.PutAsJsonAsync($"/api/mapas/{mapa.Id}/fundo", new FundoRequest(imagem.Id, 1.5, -2.25, 0.5, 0.75));
         // Editar nome e dimensões não mexe no fundo.
         (await mestre.Client.PutAsJsonAsync($"/api/mapas/{mapa.Id}", new MapaRequest("Renomeado", 12, 9, null))).EnsureSuccessStatusCode();
 
@@ -280,7 +281,12 @@ public class ImagensTests(VttApiFactory factory)
         Assert.Equal(HttpStatusCode.BadRequest, escalaInvalida.StatusCode);
         Assert.Equal(HttpStatusCode.OK, resposta.StatusCode);
         var visto = (await jogador.ObterEstadoDoMapaAsync(mapa.Id)).Mapa;
-        Assert.Equal(("Renomeado", (Guid?)imagem.Id, 1.5, -2.25, 0.5), (visto.Nome, visto.ImagemFundoId, visto.FundoEscala, visto.FundoOffsetX, visto.FundoOffsetY));
+        Assert.Equal(HttpStatusCode.BadRequest, alturaInvalida.StatusCode);
+        Assert.Equal(("Renomeado", (Guid?)imagem.Id, 1.5, -2.25, 0.5, (double?)0.75), (visto.Nome, visto.ImagemFundoId, visto.FundoEscala, visto.FundoOffsetX, visto.FundoOffsetY, visto.FundoEscalaAltura));
+
+        // Sem a escala da altura, a imagem volta à proporção original.
+        (await mestre.Client.PutAsJsonAsync($"/api/mapas/{mapa.Id}/fundo", new FundoRequest(imagem.Id, 1.5, -2.25, 0.5))).EnsureSuccessStatusCode();
+        Assert.Null((await jogador.ObterEstadoDoMapaAsync(mapa.Id)).Mapa.FundoEscalaAltura);
     }
 
     [Fact]

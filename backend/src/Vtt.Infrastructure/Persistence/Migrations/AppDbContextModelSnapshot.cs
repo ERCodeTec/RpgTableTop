@@ -436,6 +436,10 @@ namespace Vtt.Infrastructure.Persistence.Migrations
                         .HasDefaultValue(1.0)
                         .HasColumnName("fundo_escala");
 
+                    b.Property<double?>("FundoEscalaAltura")
+                        .HasColumnType("double precision")
+                        .HasColumnName("fundo_escala_altura");
+
                     b.Property<double>("FundoOffsetX")
                         .HasColumnType("double precision")
                         .HasColumnName("fundo_offset_x");

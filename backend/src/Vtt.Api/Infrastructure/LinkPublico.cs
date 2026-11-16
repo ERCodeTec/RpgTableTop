@@ -5,7 +5,7 @@ namespace Vtt.Api.Infrastructure;
 
 /// <summary>
 /// Usa App:PublicBaseUrl (PUBLIC_BASE_URL). Sem ela, cai no host da própria requisição,
-/// que atrás do ngrok já vem corrigido pelos cabeçalhos X-Forwarded-*.
+/// que atrás do proxy já vem corrigido pelos cabeçalhos X-Forwarded-*.
 /// </summary>
 public class LinkPublico(IOptions<AppOptions> options, IHttpContextAccessor httpContextAccessor) : ILinkPublico
 {

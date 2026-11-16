@@ -26,12 +26,6 @@ export function perderSessao(): void {
   aoPerderSessao?.()
 }
 
-/**
- * No plano gratuito, o ngrok responde a requisições de navegador com uma página de aviso em vez
- * do conteúdo. Este cabeçalho pede a resposta de verdade; fora do ngrok ele é ignorado.
- */
-export const CABECALHOS_PADRAO: Record<string, string> = { 'ngrok-skip-browser-warning': '1' }
-
 const MENSAGENS_PADRAO: Record<number, string> = {
   400: 'Confira os dados informados.',
   401: 'Sua sessão expirou. Entre de novo.',
@@ -48,7 +42,7 @@ interface OpcoesRequisicao {
 
 export async function api<T>(caminho: string, opcoes: OpcoesRequisicao = {}): Promise<T> {
   const { method = 'GET', body, autenticada = true } = opcoes
-  const headers: Record<string, string> = { ...CABECALHOS_PADRAO, Accept: 'application/json' }
+  const headers: Record<string, string> = { Accept: 'application/json' }
   if (body !== undefined) {
     headers['Content-Type'] = 'application/json'
   }
@@ -100,7 +94,7 @@ export async function apiBlob(caminho: string): Promise<Blob> {
   let resposta: Response
   try {
     resposta = await fetch(caminho, {
-      headers: { ...CABECALHOS_PADRAO, ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
     })
   } catch {
     throw new ApiError(0, 'Sem conexão com o servidor. Verifique sua internet e tente de novo.')

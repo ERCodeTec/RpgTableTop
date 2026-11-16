@@ -1,7 +1,7 @@
 import { HubConnectionBuilder, HubConnectionState, LogLevel, type HubConnection } from '@microsoft/signalr'
 import { useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { CABECALHOS_PADRAO, perderSessao } from '../../shared/api/http'
+import { perderSessao } from '../../shared/api/http'
 import { lerToken } from '../../shared/api/tokenStorage'
 import type { StatusDaConexao } from '../../shared/realtime/StatusConexao'
 import type { Iniciativa } from '../iniciativa/iniciativaApi'
@@ -67,7 +67,7 @@ export function useLobby({ mesaId, meuUsuarioId, aoEncerrar, extensao }: OpcoesD
     const chave = chaveDaMesa(mesaId)
 
     const conexao = new HubConnectionBuilder()
-      .withUrl('/hubs/mesa', { accessTokenFactory: () => lerToken() ?? '', headers: CABECALHOS_PADRAO })
+      .withUrl('/hubs/mesa', { accessTokenFactory: () => lerToken() ?? '' })
       // Queda de rede: o próprio SignalR tenta voltar nessa sequência. Se ela se esgotar, a
       // conexão fecha e o laço de `conectar`, abaixo, continua tentando.
       .withAutomaticReconnect(ESPERAS_MS)

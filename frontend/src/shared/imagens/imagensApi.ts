@@ -1,4 +1,4 @@
-import { api, ApiError, CABECALHOS_PADRAO, erroDaResposta } from '../api/http'
+import { api, ApiError, erroDaResposta } from '../api/http'
 import { lerToken } from '../api/tokenStorage'
 
 export interface Imagem {
@@ -66,7 +66,6 @@ export function enviarArquivo<T>(
     pedido.open(metodo, url)
     pedido.responseType = 'json'
     pedido.setRequestHeader('Accept', 'application/json')
-    for (const [nome, valor] of Object.entries(CABECALHOS_PADRAO)) pedido.setRequestHeader(nome, valor)
     const token = lerToken()
     if (token) pedido.setRequestHeader('Authorization', `Bearer ${token}`)
 

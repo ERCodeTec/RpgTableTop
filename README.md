@@ -6,7 +6,7 @@ Virtual tabletop para mesas de D&D 5e entre amigos. O Mestre cria mapas e os jog
 **Etapa 2:** mesas, convites por link, entrada escolhendo o personagem e lobby em tempo real (SignalR).
 **Etapa 3:** mapa 2D em grid, tokens e movimento sincronizado em tempo real.
 **Etapa 4:** upload de imagens (fundo de mapa, tokens, texturas), estruturas com editor e câmera até a visão isométrica.
-**Etapa 5:** HP em tempo real, tokens ocultos sem vazamento de dados, reconexão robusta, backup e o guia para abrir a mesa aos amigos pelo ngrok.
+**Etapa 5:** HP em tempo real, tokens ocultos sem vazamento de dados, reconexão robusta, backup e o guia para abrir a mesa aos amigos.
 **Etapa 6 (atual):** névoa de guerra opcional por mapa, com a visão de cada personagem vinda da ficha.
 
 ## Stack
@@ -47,12 +47,10 @@ Para parar: `docker compose down`. Para apagar também o banco e os uploads: `do
 | `JWT_SECRET` | Chave que assina os tokens; mínimo de 32 caracteres. Trocar invalida os logins existentes. |
 | `JWT_ISSUER` | Emissor gravado nos tokens. |
 | `JWT_EXPIRATION_MINUTES` | Validade do login (padrão: 720). |
-| `PUBLIC_BASE_URL` | URL pública do sistema, usada nos links de convite. Vazia (o padrão), o link usa o host da requisição, o que já funciona com o ngrok. |
-| `NGROK_AUTHTOKEN` | Token da sua conta do ngrok. Só é usado com `--profile ngrok`. |
-| `NGROK_DOMAIN` | Domínio fixo do ngrok, sem `https://`. Vazia, o ngrok escolhe o endereço. |
+| `PUBLIC_BASE_URL` | URL pública do sistema, usada nos links de convite. Vazia (o padrão), o link usa o host da requisição. |
 | `ASPNETCORE_ENVIRONMENT` | `Development` liga o Swagger; use `Production` ao expor na internet. |
 | `DATABASE_AUTO_MIGRATE` | `true` aplica as migrations quando a API sobe. |
-| `API_PORT`, `POSTGRES_PORT`, `NGROK_INSPECT_PORT` | Portas publicadas na sua máquina (aplicação, banco e painel do ngrok). |
+| `API_PORT`, `POSTGRES_PORT` | Portas publicadas na sua máquina (aplicação e banco). |
 
 Os limites de upload têm padrões que servem para uma mesa entre amigos. Para mudá-los, acrescente as variáveis ao serviço `api` do `docker-compose.yml`:
 
@@ -338,111 +336,29 @@ Para um backup automático diário no Linux ou no macOS, `crontab -e`:
 0 4 * * * cd /caminho/do/projeto && scripts/backup.sh /caminho/dos/backups >> /caminho/dos/backups/backup.log 2>&1
 ```
 
-## Abrir a mesa para os amigos com ngrok
+## Abrir a mesa para os amigos
 
-O ngrok cria um endereço público `https://` que leva até a porta da aplicação na sua máquina. Seus amigos acessam pelo navegador; nada precisa ser instalado do lado deles.
+A mesa fica publicada na VPS, atrás do proxy central que cuida do HTTPS. O passo a passo do deploy está em [docs/deploy-vps.md](docs/deploy-vps.md).
 
-### 1. Pré-requisitos
-
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) instalado e aberto.
-- Conta gratuita em [ngrok.com](https://ngrok.com) e o authtoken dela (em *Your Authtoken*, no painel). O ngrok roda como um serviço do compose; não é preciso instalar o programa.
-
-### 2. Configurar o `.env`
-
-```bash
-cp .env.example .env
-```
-
-Edite o `.env`:
-
-- `POSTGRES_PASSWORD`: uma senha forte (sem `;` nem aspas).
-- `JWT_SECRET`: gere com `openssl rand -base64 48`.
-- `ASPNETCORE_ENVIRONMENT=Production` (desliga o Swagger).
-- `NGROK_AUTHTOKEN`: o token da sua conta.
-- `NGROK_DOMAIN`: opcional; o domínio fixo da conta, se quiser escolher qual usar.
-
-### 3. Subir e pegar o endereço público
-
-```bash
-docker compose --profile ngrok up --build -d
-docker compose --profile ngrok ps        # espere a API ficar "healthy"
-```
-
-O serviço `ngrok` sobe depois da API e encaminha para ela pela rede interna do compose. O endereço público aparece no painel, em `http://localhost:4040` (ou na porta de `NGROK_INSPECT_PORT`), ou com:
-
-```bash
-curl -s http://localhost:4040/api/tunnels | grep -o '"public_url":"[^"]*"'
-```
-
-Crie a sua conta de Mestre, gere o convite acessando pelo endereço público e mande o link. Com `PUBLIC_BASE_URL` vazia, o convite sai com o endereço pelo qual você está acessando; se gerar por `localhost`, o link sai com `localhost`. Para fixar, preencha `PUBLIC_BASE_URL=https://<endereço>` e rode `docker compose up -d api`.
-
-Para fechar a mesa sem derrubar a aplicação: `docker compose --profile ngrok stop ngrok`. Sem `--profile ngrok`, o `docker compose up -d` sobe só o banco e a API.
-
-### 4. O que o plano gratuito muda
-
-- **Um túnel por vez.** A conta gratuita aceita uma sessão do ngrok de cada vez e tem um domínio fixo. Se outro projeto seu usa o mesmo token, pare o ngrok dele antes de subir este.
-- **Endereço.** As contas atuais já recebem um domínio fixo (`<algo>.ngrok-free.dev`), usado automaticamente. Em contas sem ele, o endereço muda a cada subida do serviço `ngrok` e os links antigos deixam de abrir (os códigos dos convites continuam válidos; só o endereço muda).
-- **Página de aviso do ngrok.** Na primeira vez que alguém abre o link em um navegador, o ngrok mostra uma página dizendo que o site é servido por ele, com o botão **Visit Site**. É normal: o amigo clica e segue para o login. O aviso volta a aparecer de tempos em tempos e não há como tirá-lo no plano gratuito para a abertura da página.
-- **Dentro da aplicação o aviso não atrapalha.** Todas as chamadas da aplicação (API, upload e a negociação do tempo real) enviam o cabeçalho `ngrok-skip-browser-warning`, que pede ao ngrok a resposta de verdade no lugar da página de aviso.
-- **Limites.** O plano gratuito tem teto de conexões e de tráfego por mês. Uma mesa de amigos fica bem abaixo, mas mapas muito pesados contam; prefira imagens JPEG ou WebP.
-
-### 5. Conferir o WebSocket
-
-O tempo real funciona melhor por WebSocket. Para conferir, em uma janela conectada pelo endereço do ngrok:
-
-1. Abra as ferramentas do navegador (F12) → **Rede** → filtro **WS** e recarregue a página da mesa.
-2. Deve aparecer uma linha `mesa?id=...` com status **101**. Em **Mensagens** passam os eventos da mesa.
-
-Se o WebSocket não subir, o SignalR cai sozinho para *long polling*: a mesa funciona, mas com mais atraso. Sinais disso: nenhuma linha no filtro **WS** e, no filtro **Fetch/XHR**, pedidos `mesa?id=...` repetidos sem parar. Causas comuns: extensão de navegador ou antivírus que bloqueia WebSocket, rede corporativa ou de faculdade, e VPN. Teste em outra rede ou em uma janela anônima sem extensões. No painel do ngrok (`http://localhost:4040`), um pedido `GET /hubs/mesa` com resposta `101 Switching Protocols` confirma o WebSocket.
-
-### 6. Checklist de segurança antes de mandar o link
+### Checklist de segurança antes de mandar o link
 
 - [ ] `JWT_SECRET` gerado por você, com 32 caracteres ou mais, e fora de qualquer repositório.
 - [ ] `POSTGRES_PASSWORD` trocada (o valor do `.env.example` é só um modelo). Ela vale na primeira subida do volume; para trocar depois, faça backup, `docker compose down -v`, suba de novo e restaure.
 - [ ] `ASPNETCORE_ENVIRONMENT=Production`: `https://<endereço>/swagger` deve responder 404.
-- [ ] A porta do PostgreSQL não está exposta: o `docker-compose.yml` a publica só em `127.0.0.1`, e o ngrok encaminha apenas a API.
+- [ ] Nenhuma porta publicada na VPS: o `docker-compose.vps.yml` remove as portas da API e do PostgreSQL, e só o proxy chega até a API.
 - [ ] O limite de tentativas de login e cadastro está ativo (10 por minuto por IP, o padrão). Onze tentativas seguidas de login com senha errada devem terminar em "Muitas tentativas".
 - [ ] Você já criou a sua conta de Mestre. Qualquer pessoa com o endereço pode criar conta, mas só entra em uma mesa quem tem convite.
 - [ ] Os convites têm validade ou limite de usos, e você revoga os que não usa mais.
 - [ ] `scripts/backup.sh` rodou pelo menos uma vez e você sabe onde os arquivos estão.
-- [ ] Ao terminar a sessão, pare o ngrok (`docker compose --profile ngrok stop ngrok`): o endereço deixa de responder.
 
-### 7. Sessão de teste com três navegadores
+### Conferir o WebSocket
 
-Antes da primeira sessão de verdade, faça um ensaio pelo endereço do ngrok, não por `localhost`:
+O tempo real funciona melhor por WebSocket. Para conferir, em uma janela conectada pelo endereço público:
 
-1. **Mestre** (janela normal): entre, crie a mesa, um mapa e um inimigo; ative o mapa; gere um convite.
-2. **Jogador 1** (janela anônima) e **Jogador 2** (outro navegador, ou o celular pela rede móvel): abram o link do convite, passem pela página de aviso do ngrok, criem conta e personagem e entrem na mesa.
-3. Confira, nas três janelas:
-   - o lobby mostra os três como "Online";
-   - cada jogador tem o próprio token, com anel dourado, e só consegue mover o dele;
-   - um movimento aparece nas outras duas janelas em menos de um segundo;
-   - dano do Mestre mexe a barra para todos, sem números para os jogadores;
-   - um token oculto pelo Mestre some para os dois jogadores;
-   - uma imagem enviada pelo Mestre como fundo aparece para os jogadores;
-   - no celular, pinça e dois dedos aproximam e deslocam o mapa, e a visão isométrica funciona;
-   - o passo 5 acima (WebSocket com status 101) em pelo menos uma janela de jogador.
-4. Pare o serviço `ngrok` por alguns segundos e suba de novo com o mesmo domínio: as três janelas mostram "Reconectando…" e voltam sozinhas. Com endereço aleatório, o endereço muda e todos precisam do link novo.
+1. Abra as ferramentas do navegador (F12) → **Rede** → filtro **WS** e recarregue a página da mesa.
+2. Deve aparecer uma linha `mesa?id=...` com status **101**. Em **Mensagens** passam os eventos da mesa.
 
-### 8. Quando sair do ngrok: plano para uma VPS
-
-Se a mesa virar fixa, uma VPS pequena (1 vCPU, 1 a 2 GB de memória) dá endereço próprio e funciona com a sua máquina desligada.
-
-1. **Domínio:** registre um e aponte um registro `A` para o IP da VPS.
-2. **Servidor:** instale o Docker, clone o projeto, crie o `.env` (segredos novos, `ASPNETCORE_ENVIRONMENT=Production`, `PUBLIC_BASE_URL=https://mesa.seudominio.com`).
-3. **HTTPS:** coloque o [Caddy](https://caddyserver.com) na frente, como mais um serviço do compose, publicando as portas 80 e 443 e encaminhando para `api:8080`. Ele obtém e renova o certificado sozinho, e repassa WebSocket sem configuração extra. O `Caddyfile` inteiro:
-
-   ```
-   mesa.seudominio.com {
-       reverse_proxy api:8080
-   }
-   ```
-
-   Com o Caddy na frente, tire a linha `ports` do serviço `api`: só o Caddy fica exposto. O Traefik faz o mesmo papel, com rótulos nos serviços.
-4. **Firewall:** libere só 22 (SSH), 80 e 443.
-5. **Volumes:** os dados ficam nos volumes `vtt_postgres-data` e `vtt_uploads`, em `/var/lib/docker/volumes/` na VPS. Acrescente um volume para o Caddy guardar os certificados.
-6. **Backups:** agende `scripts/backup.sh` no `cron` e copie os arquivos para fora da VPS (outro servidor ou armazenamento em nuvem). Ensaie uma restauração.
-7. **Migração dos dados:** faça o backup na sua máquina, copie os dois arquivos para a VPS e rode `scripts/restaurar.sh` lá.
+Se o WebSocket não subir, o SignalR cai sozinho para *long polling*: a mesa funciona, mas com mais atraso. Sinais disso: nenhuma linha no filtro **WS** e, no filtro **Fetch/XHR**, pedidos `mesa?id=...` repetidos sem parar. Causas comuns: extensão de navegador ou antivírus que bloqueia WebSocket, rede corporativa ou de faculdade, e VPN.
 
 Com mais de uma instância da API seria preciso um *backplane* do SignalR (Redis), porque a presença e os limites de chamadas ficam na memória do processo. Para uma mesa, uma instância basta.
 
@@ -528,16 +444,6 @@ Sem `API_PROXY_TARGET`, o proxy do Vite aponta para `http://localhost:8080` (a A
 cd backend
 dotnet ef migrations add <Nome> --project src/Vtt.Infrastructure --startup-project src/Vtt.Api --output-dir Persistence/Migrations
 ```
-
-## Expor com ngrok (resumo)
-
-Preencha `NGROK_AUTHTOKEN` no `.env`, defina `ASPNETCORE_ENVIRONMENT=Production` e rode:
-
-```bash
-docker compose --profile ngrok up --build -d
-```
-
-O endereço público aparece em `http://localhost:4040`. A API já lê os cabeçalhos `X-Forwarded-*` do túnel. O passo a passo está em [Abrir a mesa para os amigos com ngrok](#abrir-a-mesa-para-os-amigos-com-ngrok).
 
 ## Estrutura
 

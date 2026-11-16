@@ -13,7 +13,7 @@ import type { Rig } from './rig'
 type Borda = 'esquerda' | 'direita' | 'cima' | 'baixo'
 
 /** Distância, em células, até onde o ponteiro pega a alça de uma borda. */
-const ALCANCE_DA_ALCA = 0.4
+export const ALCANCE_DA_ALCA = 0.4
 
 /** As alças de redimensionar ficam no meio de cada borda da área, no chão. */
 export function alcasDe(e: Pick<Estrutura, 'x' | 'y' | 'largura' | 'profundidade'>): { borda: Borda; x: number; z: number }[] {

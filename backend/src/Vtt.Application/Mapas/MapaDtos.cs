@@ -52,7 +52,8 @@ public record ExibicaoRequest(bool? Visivel, ExibicaoHp? ExibicaoHp);
 /// <param name="ImagemId">null remove a imagem de fundo.</param>
 /// <param name="Escala">1 = a imagem tem a largura do mapa.</param>
 /// <param name="OffsetX">Deslocamento do canto superior esquerdo da imagem, em células.</param>
-public record FundoRequest(Guid? ImagemId, double Escala, double OffsetX, double OffsetY);
+/// <param name="EscalaAltura">Escala da altura, na unidade de Escala. Null mantém a proporção da imagem.</param>
+public record FundoRequest(Guid? ImagemId, double Escala, double OffsetX, double OffsetY, double? EscalaAltura = null);
 
 /// <param name="Versao">Na edição, a versão que o cliente conhece; se a do servidor for outra, é Conflito.</param>
 public record EstruturaRequest(
@@ -103,7 +104,8 @@ public record MapaDto(
     double FundoEscala,
     double FundoOffsetX,
     double FundoOffsetY,
-    ModoDeNevoa Nevoa)
+    ModoDeNevoa Nevoa,
+    double? FundoEscalaAltura)
 {
     public static MapaDto De(Mapa mapa) => new(
         mapa.Id,
@@ -118,7 +120,8 @@ public record MapaDto(
         mapa.FundoEscala,
         mapa.FundoOffsetX,
         mapa.FundoOffsetY,
-        mapa.Nevoa);
+        mapa.Nevoa,
+        mapa.FundoEscalaAltura);
 }
 
 /// <summary>Para quem um token está sendo montado: é o que decide o que entra no payload.</summary>

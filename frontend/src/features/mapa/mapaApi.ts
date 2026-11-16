@@ -52,6 +52,8 @@ export interface Mapa {
   imagemFundoId: string | null
   /** 1 = a imagem tem a largura do mapa, mantendo a proporção. */
   fundoEscala: number
+  /** Escala da altura, na unidade de `fundoEscala`. null = mantém a proporção da imagem. */
+  fundoEscalaAltura: number | null
   /** Deslocamento do canto superior esquerdo da imagem, em células. */
   fundoOffsetX: number
   fundoOffsetY: number
@@ -171,6 +173,8 @@ export interface DadosDoFundo {
   escala: number
   offsetX: number
   offsetY: number
+  /** null = a altura acompanha a largura e a imagem mantém a proporção original. */
+  escalaAltura: number | null
 }
 
 export interface MapaEstado {
