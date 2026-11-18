@@ -144,6 +144,9 @@ O script não apaga backups antigos. Para manter só 14 dias, adicione outra lin
 
 ## 8. Atualizar (novos deploys)
 
+O passo a passo completo (backup, conferência, voltar versão) está no [ROTEIRO.md](ROTEIRO.md).
+Resumo:
+
 ```bash
 cd /opt/vtt
 git pull
