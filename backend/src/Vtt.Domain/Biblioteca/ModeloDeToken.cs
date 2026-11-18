@@ -30,6 +30,14 @@ public class ModeloDeToken
     public string CorBorda { get; set; } = Token.CorBordaPadrao;
     public int Deslocamento { get; set; } = Personagem.DeslocamentoPadrao;
     public int Visao { get; set; }
+    public TamanhoDeCriatura Tamanho { get; set; } = Tamanhos.Padrao;
+
+    /// <summary>Só no Gargantuesco: o lado do quadrado, em células.</summary>
+    public int? LadoGargantuesco { get; set; }
+
+    /// <summary>O lado, em células, do espaço que os tokens deste modelo ocupam.</summary>
+    public int Lado => Tamanhos.Celulas(Tamanho, LadoGargantuesco);
+
     public ExibicaoHp ExibicaoHp { get; set; } = ExibicaoHp.Barra;
     /// <summary>Na Interação, o texto mostrado a quem examinar o objeto.</summary>
     public string? Descricao { get; set; }
@@ -68,6 +76,8 @@ public class ModeloDeToken
         HpMaximo = HpMaximo,
         X = x,
         Y = y,
+        Tamanho = Tamanho,
+        LadoGargantuesco = Tamanhos.NormalizarLado(Tamanho, LadoGargantuesco),
         CorBorda = CorBorda,
         Icone = Icone,
         ImagemId = imagemDaMesaId,

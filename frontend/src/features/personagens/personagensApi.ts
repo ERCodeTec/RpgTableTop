@@ -1,6 +1,7 @@
 import { api } from '../../shared/api/http'
 import type { ClasseDnd } from '../../shared/classes'
 import { enviarArquivo } from '../../shared/imagens/imagensApi'
+import type { TamanhoDeCriatura } from '../../shared/tamanhos'
 
 export interface Personagem {
   id: string
@@ -13,6 +14,10 @@ export interface Personagem {
   deslocamento: number
   /** Até onde o personagem enxerga, em células, nos mapas com névoa (12 = 60 ft). */
   visao: number
+  /** A categoria de tamanho: o token dele ocupa o espaço correspondente no mapa. */
+  tamanho: TamanhoDeCriatura
+  /** Só no Gargantuesco: o lado do espaço, em células. */
+  ladoGargantuesco: number | null
   /** A foto do personagem (uma só); o token dele no mapa a mostra no lugar do ícone da classe. */
   imagemId: string | null
   criadoEm: string
@@ -27,6 +32,8 @@ export interface DadosDoPersonagem {
   corBorda: string
   deslocamento: number
   visao: number
+  tamanho: TamanhoDeCriatura
+  ladoGargantuesco: number | null
 }
 
 export const CHAVE_PERSONAGENS = ['personagens'] as const

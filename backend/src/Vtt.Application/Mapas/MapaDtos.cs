@@ -10,7 +10,9 @@ public record MapaRequest(string? Nome, int Largura, int Altura, string? CorFund
 /// <param name="Tema">Um de <see cref="GeradorDeMasmorra.Temas"/>; sem ele, masmorra.</param>
 public record MapaProceduralRequest(string? Nome = null, int? Largura = null, int? Altura = null, int? Semente = null, string? Tema = null);
 
-/// <param name="X">Sem X e Y, o token nasce na primeira célula livre a partir do canto superior esquerdo.</param>
+/// <param name="X">Sem X e Y, o token nasce no primeiro espaço livre a partir do canto superior esquerdo. É o canto superior esquerdo do espaço do token.</param>
+/// <param name="Tamanho">Sem ele, Médio.</param>
+/// <param name="LadoGargantuesco">Só no Gargantuesco: o lado em células (4 a 10); sem ele, 4.</param>
 public record CriarTokenRequest(
     TipoToken? Tipo,
     string? Nome,
@@ -22,7 +24,9 @@ public record CriarTokenRequest(
     int? Y,
     Guid? ImagemId = null,
     int? Deslocamento = null,
-    int? Visao = null);
+    int? Visao = null,
+    TamanhoDeCriatura? Tamanho = null,
+    int? LadoGargantuesco = null);
 
 /// <summary>Coloca cópias de um modelo da biblioteca nas primeiras células livres do mapa.</summary>
 /// <param name="Quantidade">Com mais de uma, os nomes ganham número ("Goblin 1", "Goblin 2"…), continuando os que já existem no mapa.</param>
@@ -36,9 +40,12 @@ public record CriarDaBibliotecaRequest(Guid? ModeloId, int Quantidade = 1, bool?
 /// <param name="ExibicaoHp">null mantém o modo de exibição atual.</param>
 /// <param name="Deslocamento">null mantém o atual. Ignorado no token de jogador, que usa o do personagem.</param>
 /// <param name="Visao">null mantém a atual. Ignorada no token de jogador, que usa a do personagem.</param>
+/// <param name="Tamanho">null mantém o atual. Ignorado no token de jogador, que usa o do personagem. Sem espaço onde está, o token vai para o livre mais próximo.</param>
+/// <param name="LadoGargantuesco">Só no Gargantuesco: o lado em células (4 a 10); sem ele, 4.</param>
 public record EditarTokenRequest(
     string? Nome, int HpAtual, int HpMaximo, string? Icone, string? CorBorda, bool? Visivel, Guid? ImagemId = null,
-    ExibicaoHp? ExibicaoHp = null, int? Deslocamento = null, int? Visao = null);
+    ExibicaoHp? ExibicaoHp = null, int? Deslocamento = null, int? Visao = null, TamanhoDeCriatura? Tamanho = null,
+    int? LadoGargantuesco = null);
 
 /// <summary>
 /// Altera o HP. <paramref name="Delta"/> soma ao HP atual (dano negativo, cura positiva);
@@ -145,6 +152,8 @@ public enum VisaoDoToken
 /// <param name="Visao">Em células; vai a todos, porque é com ela que cada cliente desenha a névoa.</param>
 /// <param name="Revelado">Na Interação, o conteúdo está liberado a todos; vai a todos.</param>
 /// <param name="Descricao">O conteúdo da Interação só vai ao Mestre; os jogadores o pedem em GET api/tokens/{id}/interacao.</param>
+/// <param name="Tamanho">Vai a todos: cada cliente desenha o espaço que o token ocupa a partir de X, Y.</param>
+/// <param name="LadoGargantuesco">Só no Gargantuesco: o lado do espaço, em células.</param>
 public record TokenDto(
     Guid Id,
     Guid MapaId,
@@ -171,7 +180,9 @@ public record TokenDto(
     bool? Disparada,
     bool Revelado = false,
     string? Descricao = null,
-    Guid? ConteudoImagemId = null)
+    Guid? ConteudoImagemId = null,
+    TamanhoDeCriatura Tamanho = Tamanhos.Padrao,
+    int? LadoGargantuesco = null)
 {
     /// <summary>O token completo, como o Mestre o vê.</summary>
     public static TokenDto De(Token token) => Para(token, VisaoDoToken.Mestre)!;
@@ -213,7 +224,9 @@ public record TokenDto(
             veTudo ? token.Disparada : null,
             token.Revelado,
             visao == VisaoDoToken.Mestre ? token.Descricao : null,
-            visao == VisaoDoToken.Mestre ? token.ConteudoImagemId : null);
+            visao == VisaoDoToken.Mestre ? token.ConteudoImagemId : null,
+            token.Tamanho,
+            token.LadoGargantuesco);
     }
 
     public static VisaoDoToken VisaoDe(Token token, Guid usuarioId, PapelNaMesa papel) =>

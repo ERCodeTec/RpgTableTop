@@ -247,6 +247,8 @@ public class BibliotecaService(IAppDbContext db, TimeProvider relogio) : IBiblio
         modelo.ImagemId = request.ImagemId;
         modelo.Deslocamento = request.Deslocamento;
         modelo.Visao = request.Visao;
+        modelo.Tamanho = request.Tamanho;
+        modelo.LadoGargantuesco = Tamanhos.NormalizarLado(request.Tamanho, request.LadoGargantuesco);
         modelo.CorBorda = string.IsNullOrEmpty(request.CorBorda) ? Token.CorBordaPadrao : request.CorBorda.ToUpperInvariant();
 
         if (modelo.Tipo == TipoToken.Interacao)

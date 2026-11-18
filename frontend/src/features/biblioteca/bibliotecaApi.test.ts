@@ -8,6 +8,8 @@ function modelo(nome: string, categoriaId: string | null): ModeloDeToken {
     tipo: 'Inimigo',
     nome,
     hpMaximo: 7,
+    tamanho: 'Medio',
+    ladoGargantuesco: null,
     icone: 'goblin',
     imagemId: null,
     corBorda: '#C0503C',

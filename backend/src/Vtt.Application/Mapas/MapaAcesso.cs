@@ -39,9 +39,9 @@ internal static class MapaAcesso
     /// contam, para a posição escolhida não denunciar onde eles estão.
     /// </param>
     public static async Task<HashSet<(int X, int Y)>> CelulasIndisponiveisAsync(
-        this IAppDbContext db, Guid mapaId, bool somenteVisiveis, CancellationToken cancellationToken)
+        this IAppDbContext db, Guid mapaId, bool somenteVisiveis, CancellationToken cancellationToken, Guid? exceto = null)
     {
-        var celulas = await db.CelulasOcupadasAsync(mapaId, somenteVisiveis, cancellationToken);
+        var celulas = await db.CelulasOcupadasAsync(mapaId, somenteVisiveis, cancellationToken, exceto);
         celulas.UnionWith(await db.CelulasBloqueadasAsync(mapaId, cancellationToken));
         return celulas;
     }
@@ -70,6 +70,19 @@ internal static class MapaAcesso
         return celulas;
     }
 
+    /// <summary>
+    /// Onde o token cabe com o tamanho que tem agora: a posição atual, se o espaço inteiro estiver
+    /// no mapa e livre de outros tokens e de estruturas que bloqueiam; senão, o espaço livre mais
+    /// próximo; null se não houver nenhum. Usado quando o token muda de tamanho.
+    /// </summary>
+    /// <param name="somenteVisiveis">Como em <see cref="CelulasIndisponiveisAsync"/>.</param>
+    public static async Task<(int X, int Y)?> EspacoParaAsync(
+        this IAppDbContext db, Mapa mapa, Token token, bool somenteVisiveis, CancellationToken cancellationToken)
+    {
+        var indisponiveis = await db.CelulasIndisponiveisAsync(mapa.Id, somenteVisiveis, cancellationToken, exceto: token.Id);
+        return Grade.LivreMaisProxima(mapa.Largura, mapa.Altura, indisponiveis, token.X, token.Y, token.Lado, incluirOrigem: true);
+    }
+
     /// <summary>As áreas de entrada do mapa, na ordem em que o spawn as preenche (de cima para baixo, da esquerda para a direita).</summary>
     public static Task<List<Estrutura>> EntradasAsync(
         this IAppDbContext db, Guid mapaId, CancellationToken cancellationToken) =>
@@ -81,13 +94,29 @@ internal static class MapaAcesso
             .ThenBy(estrutura => estrutura.Id)
             .ToListAsync(cancellationToken);
 
+    /// <summary>As células cobertas pelo espaço dos tokens do mapa (um Grande ocupa 4, um Enorme 9...).</summary>
+    /// <param name="exceto">Um token que não entra na conta: o que está se movendo ou mudando de tamanho.</param>
     public static async Task<HashSet<(int X, int Y)>> CelulasOcupadasAsync(
-        this IAppDbContext db, Guid mapaId, bool somenteVisiveis, CancellationToken cancellationToken)
+        this IAppDbContext db, Guid mapaId, bool somenteVisiveis, CancellationToken cancellationToken, Guid? exceto = null)
     {
         var posicoes = await db.Tokens
-            .Where(token => token.MapaId == mapaId && (!somenteVisiveis || token.Visivel))
-            .Select(token => new { token.X, token.Y })
+            .Where(token => token.MapaId == mapaId && (!somenteVisiveis || token.Visivel) && (exceto == null || token.Id != exceto))
+            .Select(token => new { token.X, token.Y, token.Tamanho, token.LadoGargantuesco })
             .ToListAsync(cancellationToken);
-        return posicoes.Select(posicao => (posicao.X, posicao.Y)).ToHashSet();
+
+        var celulas = new HashSet<(int X, int Y)>();
+        foreach (var posicao in posicoes)
+        {
+            var lado = Tamanhos.Celulas(posicao.Tamanho, posicao.LadoGargantuesco);
+            for (var y = posicao.Y; y < posicao.Y + lado; y++)
+            {
+                for (var x = posicao.X; x < posicao.X + lado; x++)
+                {
+                    celulas.Add((x, y));
+                }
+            }
+        }
+
+        return celulas;
     }
 }

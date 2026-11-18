@@ -43,6 +43,9 @@ public class ModeloDeTokenRequestValidator : AbstractValidator<ModeloDeTokenRequ
                 .WithMessage($"A visão deve ficar entre {Personagem.VisaoMinima} e {Personagem.VisaoLimite} células.");
         });
 
+        RuleFor(x => x.Tamanho).IsInEnum().WithMessage("Tamanho inválido.");
+        RuleFor(x => x.LadoGargantuesco).LadoGargantuesco();
+
         RuleFor(x => x.Icone)
             .Must((request, icone) => request.Tipo is not { } tipo || !ModeloDeToken.TipoValido(tipo) || Token.IconeValido(tipo, icone))
             .WithMessage(RegrasDeToken.IconeInvalido);

@@ -3,7 +3,9 @@ import { useState, type FormEvent } from 'react'
 import { ApiError } from '../../shared/api/http'
 import { CLASSES, COR_BORDA_PADRAO, NOME_DA_CLASSE, type ClasseDnd } from '../../shared/classes'
 import { ClassIcon } from '../../shared/icones/ClassIcon'
+import { TAMANHO_PADRAO, type TamanhoDeCriatura } from '../../shared/tamanhos'
 import { Campo } from '../../shared/ui/Campo'
+import { CampoDeTamanho, ladoParaEnviar } from '../../shared/ui/CampoDeTamanho'
 import { Dialogo } from '../../shared/ui/Dialogo'
 import { DESLOCAMENTO_MAXIMO, DESLOCAMENTO_MINIMO, DESLOCAMENTO_PADRAO, VISAO_MAXIMA, VISAO_PADRAO } from '../mapa/mapaApi'
 import {
@@ -30,6 +32,8 @@ export function PersonagemForm({ personagem, aoFechar }: PersonagemFormProps) {
   const [corBorda, setCorBorda] = useState(personagem?.corBorda ?? COR_BORDA_PADRAO)
   const [deslocamento, setDeslocamento] = useState(String(personagem?.deslocamento ?? DESLOCAMENTO_PADRAO))
   const [visao, setVisao] = useState(String(personagem?.visao ?? VISAO_PADRAO))
+  const [tamanho, setTamanho] = useState<TamanhoDeCriatura>(personagem?.tamanho ?? TAMANHO_PADRAO)
+  const [ladoGargantuesco, setLadoGargantuesco] = useState(String(personagem?.ladoGargantuesco ?? ''))
 
   const salvar = useMutation({
     mutationFn: (dados: DadosDoPersonagem) =>
@@ -54,6 +58,8 @@ export function PersonagemForm({ personagem, aoFechar }: PersonagemFormProps) {
       corBorda,
       deslocamento: Number(deslocamento) || 0,
       visao: Number(visao) || 0,
+      tamanho,
+      ladoGargantuesco: ladoParaEnviar(tamanho, ladoGargantuesco),
     })
   }
 
@@ -148,6 +154,13 @@ export function PersonagemForm({ personagem, aoFechar }: PersonagemFormProps) {
             erros={erro?.erros.visao}
             dica="Até onde enxerga nos mapas com névoa, em células: 12 = 60 ft."
             required
+          />
+          <CampoDeTamanho
+            tamanho={tamanho}
+            lado={ladoGargantuesco}
+            aoTrocarTamanho={setTamanho}
+            aoTrocarLado={setLadoGargantuesco}
+            erros={erro?.erros}
           />
           <div className="campo campo-cor">
             <label htmlFor="cor-borda">Cor da borda</label>

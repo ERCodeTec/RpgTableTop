@@ -1,4 +1,5 @@
 import { api } from '../../shared/api/http'
+import type { TamanhoDeCriatura } from '../../shared/tamanhos'
 import type { ExibicaoHp, TipoToken } from '../mapa/mapaApi'
 
 /** Tipos que um modelo pode ter: token de personagem nasce do personagem do jogador. */
@@ -23,6 +24,9 @@ export interface ModeloDeToken {
   corBorda: string
   deslocamento: number
   visao: number
+  tamanho: TamanhoDeCriatura
+  /** Só no Gargantuesco: o lado do espaço, em células. */
+  ladoGargantuesco: number | null
   exibicaoHp: ExibicaoHp
   /** Só na Interação: o texto mostrado a quem examinar o objeto. */
   descricao: string | null

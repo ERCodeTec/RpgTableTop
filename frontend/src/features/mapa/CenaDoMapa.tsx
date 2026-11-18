@@ -5,7 +5,7 @@ import { CameraDoMapa } from './CameraDoMapa'
 import { useEditorStore } from './editorStore'
 import { EstruturaNoMapa } from './EstruturaNoMapa'
 import { FundoDoMapa } from './FundoDoMapa'
-import { ALTURA_DO_ALCANCE, RAIO_DO_TOKEN } from './geometria'
+import { ALTURA_DO_ALCANCE, escalaDoToken, ladoDoToken, RAIO_DO_TOKEN } from './geometria'
 import { Grade } from './Grade'
 import { Interacao, type AoPingar } from './Interacao'
 import { definirPorta, type Estrutura } from './mapaApi'
@@ -136,8 +136,8 @@ const DISCO_FANTASMA = new PlaneGeometry(RAIO_DO_TOKEN * 2, RAIO_DO_TOKEN * 2)
 const QUADRADO = new PlaneGeometry(1, 1)
 
 /**
- * Durante o arraste, marca a célula de destino de cada token arrastado (o do ponteiro e os do grupo):
- * verde se o arraste pode ser solto ali, vermelha se não.
+ * Durante o arraste, marca o espaço de destino de cada token arrastado (o do ponteiro e os do grupo),
+ * do tamanho do token: verde se o arraste pode ser solto ali, vermelho se não.
  */
 function FantasmaDoArraste() {
   const arraste = useMapaStore((estado) => estado.arraste)
@@ -152,16 +152,18 @@ function FantasmaDoToken({ tokenId, x, y, valido }: { tokenId: string; x: number
   const token = useMapaStore((estado) => estado.tokens[tokenId])
   if (!token) return null
   const arraste = { x, y, valido }
+  const lado = ladoDoToken(token)
+  const escala = escalaDoToken(token)
 
   return (
-    <group position={[arraste.x + 0.5, 0.01, arraste.y + 0.5]} rotation-x={-Math.PI / 2}>
-      <mesh geometry={CELULA} renderOrder={4}>
+    <group position={[arraste.x + lado / 2, 0.01, arraste.y + lado / 2]} rotation-x={-Math.PI / 2}>
+      <mesh geometry={CELULA} scale={[lado, lado, 1]} renderOrder={4}>
         <meshBasicMaterial color={arraste.valido ? '#5fd38a' : '#f08a75'} transparent opacity={0.4} depthWrite={false} />
       </mesh>
       {arraste.valido && (
-        <mesh geometry={DISCO_FANTASMA} position-z={0.004} renderOrder={5}>
+        <mesh geometry={DISCO_FANTASMA} position-z={0.004} scale={[escala, escala, 1]} renderOrder={5}>
           <meshBasicMaterial
-            map={texturaDoDisco(token.tipo, token.icone, token.corBorda, token.imagemId)}
+            map={texturaDoDisco(token.tipo, token.icone, token.corBorda, token.imagemId, escala)}
             transparent
             opacity={0.7}
             depthWrite={false}
@@ -178,7 +180,8 @@ const MATERIAL_DO_PAIRANDO = new MeshBasicMaterial({ color: '#8cc0ff', transpare
 
 /**
  * As células que o token em movimento por blocos alcança, em azul translúcido (como no FFT), uma
- * instância por célula; a célula sob o ponteiro fica mais forte. Só aparece na tela de quem está
+ * instância por célula; o espaço sob o ponteiro fica mais forte. Num token maior que Médio, o azul é
+ * toda a área que o espaço dele pode cobrir, e o destaque mostra o espaço exato onde ele vai parar. Só aparece na tela de quem está
  * movendo. Fica entre o chão das estruturas e o disco do token, e as paredes a cobrem.
  */
 function AlcanceDoToken() {
@@ -196,6 +199,17 @@ function AlcanceDoToken() {
     () => (jogando ? alcanceAtual({ mapa, tokens, estruturas, movendoId, nevoa }) : null),
     [jogando, mapa, tokens, estruturas, movendoId, nevoa],
   )
+  const lado = movendoId && tokens[movendoId] ? ladoDoToken(tokens[movendoId]) : 1
+  // As âncoras alcançáveis viram a área que o espaço do token cobre.
+  const area = useMemo(() => {
+    if (!celulas || lado === 1) return celulas ? [...celulas.keys()] : []
+    const cobertas = new Set<string>()
+    for (const chave of celulas.keys()) {
+      const [x, y] = chave.split(',').map(Number)
+      for (let dy = 0; dy < lado; dy++) for (let dx = 0; dx < lado; dx++) cobertas.add(`${x + dx},${y + dy}`)
+    }
+    return [...cobertas]
+  }, [celulas, lado])
   // Cabe o mapa inteiro: o número de instâncias desenhadas muda sem recriar a malha.
   const capacidade = mapa ? mapa.largura * mapa.altura : 1
 
@@ -205,7 +219,7 @@ function AlcanceDoToken() {
     const auxiliar = new Object3D()
     auxiliar.rotation.x = -Math.PI / 2
     let i = 0
-    for (const chave of celulas?.keys() ?? []) {
+    for (const chave of area) {
       const [x, y] = chave.split(',').map(Number)
       auxiliar.position.set(x + 0.5, ALTURA_DO_ALCANCE, y + 0.5)
       auxiliar.updateMatrix()
@@ -214,7 +228,7 @@ function AlcanceDoToken() {
     instancias.count = i
     instancias.instanceMatrix.needsUpdate = true
     invalidate()
-  }, [celulas, capacidade, invalidate])
+  }, [area, capacidade, invalidate])
 
   const [px, py] = pairando && celulas?.has(pairando) ? pairando.split(',').map(Number) : [null, null]
   return (
@@ -230,8 +244,9 @@ function AlcanceDoToken() {
         <mesh
           geometry={CELULA}
           material={MATERIAL_DO_PAIRANDO}
-          position={[px + 0.5, ALTURA_DO_ALCANCE + 0.001, py! + 0.5]}
+          position={[px + lado / 2, ALTURA_DO_ALCANCE + 0.001, py! + lado / 2]}
           rotation-x={-Math.PI / 2}
+          scale={[lado, lado, 1]}
           renderOrder={3}
         />
       )}

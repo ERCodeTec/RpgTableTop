@@ -59,6 +59,7 @@ public class TokenConfiguration : IEntityTypeConfiguration<Token>
             tabela.HasCheckConstraint("ck_tokens_posicao", "x >= 0 AND y >= 0");
             tabela.HasCheckConstraint("ck_tokens_movimento", "deslocamento BETWEEN 1 AND 30 AND movimento_restante BETWEEN 0 AND CASE WHEN disparada THEN deslocamento * 2 ELSE deslocamento END");
             tabela.HasCheckConstraint("ck_tokens_visao", "visao BETWEEN 0 AND 60");
+            tabela.HasCheckConstraint("ck_tokens_lado_gargantuesco", "lado_gargantuesco IS NULL OR lado_gargantuesco BETWEEN 4 AND 10");
         });
 
         builder.HasKey(t => t.Id);
@@ -80,6 +81,10 @@ public class TokenConfiguration : IEntityTypeConfiguration<Token>
         // Sentinel fora do enum: sem ele, Oculto (o valor 0) contaria como "não informado" e o banco gravaria o padrão.
         builder.Property(t => t.ExibicaoHp).HasConversion<string>().HasMaxLength(20).HasDefaultValue(ExibicaoHp.Barra)
             .HasSentinel((ExibicaoHp)(-1)).IsRequired();
+        // Sentinel fora do enum: sem ele, Minusculo (o valor 0) contaria como "não informado" e o banco gravaria o padrão.
+        builder.Property(t => t.Tamanho).HasConversion<string>().HasMaxLength(20).HasDefaultValue(Tamanhos.Padrao)
+            .HasSentinel((TamanhoDeCriatura)(-1)).IsRequired();
+        builder.Ignore(t => t.Lado);
         builder.Ignore(t => t.Caido);
         builder.Ignore(t => t.HpPercentual);
 

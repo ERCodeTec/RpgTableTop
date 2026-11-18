@@ -182,6 +182,8 @@ public class CriarTokenRequestValidator : AbstractValidator<CriarTokenRequest>
 
         RuleFor(x => x.Deslocamento).DeslocamentoDeToken();
         RuleFor(x => x.Visao).VisaoDeToken();
+        RuleFor(x => x.Tamanho).TamanhoDeToken();
+        RuleFor(x => x.LadoGargantuesco).LadoGargantuesco();
 
         RuleFor(x => x.X)
             .Must((request, x) => (x is null) == (request.Y is null)).WithMessage("Informe X e Y juntos, ou nenhum dos dois.");
@@ -200,6 +202,8 @@ public class EditarTokenRequestValidator : AbstractValidator<EditarTokenRequest>
         RuleFor(x => x.ExibicaoHp).IsInEnum().WithMessage("Modo de exibição inválido.");
         RuleFor(x => x.Deslocamento).DeslocamentoDeToken();
         RuleFor(x => x.Visao).VisaoDeToken();
+        RuleFor(x => x.Tamanho).TamanhoDeToken();
+        RuleFor(x => x.LadoGargantuesco).LadoGargantuesco();
     }
 }
 
@@ -260,6 +264,13 @@ internal static class RegrasDeToken
     public static IRuleBuilderOptions<T, int?> VisaoDeToken<T>(this IRuleBuilder<T, int?> regra) => regra
         .InclusiveBetween(Personagem.VisaoMinima, Personagem.VisaoLimite)
         .WithMessage($"A visão deve ficar entre {Personagem.VisaoMinima} e {Personagem.VisaoLimite} células.");
+
+    public static IRuleBuilderOptions<T, TamanhoDeCriatura?> TamanhoDeToken<T>(this IRuleBuilder<T, TamanhoDeCriatura?> regra) => regra
+        .IsInEnum().WithMessage("Tamanho inválido.");
+
+    public static IRuleBuilderOptions<T, int?> LadoGargantuesco<T>(this IRuleBuilder<T, int?> regra) => regra
+        .InclusiveBetween(Tamanhos.LadoGargantuescoMinimo, Tamanhos.LadoGargantuescoLimite)
+        .WithMessage($"O lado do Gargantuesco deve ficar entre {Tamanhos.LadoGargantuescoMinimo} e {Tamanhos.LadoGargantuescoLimite} células.");
 
     public static IRuleBuilderOptions<T, string?> CorDeToken<T>(this IRuleBuilder<T, string?> regra) => regra
         .Must(cor => string.IsNullOrEmpty(cor) || System.Text.RegularExpressions.Regex.IsMatch(cor, CorHex))

@@ -55,6 +55,10 @@ public class TokensDeJogador(IAppDbContext db, IMapaNotifier notifier, TurnoDaMe
             {
                 var trocouDePersonagem = existente.PersonagemId != personagem.Id;
                 await EspelharAsync(db.Tokens.Where(t => t.Id == existente.Id), personagem, trocouDePersonagem, cancellationToken);
+                if (existente.Lado != LadoDe(personagem))
+                {
+                    await AcomodarAsync(existente.Id, cancellationToken);
+                }
 
                 var atualizado = await db.Tokens.AsNoTracking().FirstOrDefaultAsync(t => t.Id == existente.Id, cancellationToken);
                 if (atualizado is not null)
@@ -68,7 +72,7 @@ public class TokensDeJogador(IAppDbContext db, IMapaNotifier notifier, TurnoDaMe
             // Tokens ocultos não contam: a posição do spawn não pode denunciar onde eles estão.
             var ocupadas = await db.CelulasIndisponiveisAsync(mapa.Id, somenteVisiveis: true, cancellationToken);
             var entradas = await db.EntradasAsync(mapa.Id, cancellationToken);
-            if (Grade.PontoDeSpawn(mapa.Largura, mapa.Altura, entradas, ocupadas) is not { } celula)
+            if (Grade.PontoDeSpawn(mapa.Largura, mapa.Altura, entradas, ocupadas, LadoDe(personagem)) is not { } celula)
             {
                 logger.LogWarning("Mapa {MapaId} cheio: o token do jogador {UsuarioId} não foi criado", mapa.Id, usuarioId);
                 return;
@@ -107,6 +111,10 @@ public class TokensDeJogador(IAppDbContext db, IMapaNotifier notifier, TurnoDaMe
         }
 
         await EspelharAsync(db.Tokens.Where(t => t.PersonagemId == personagem.Id), personagem, reiniciarHp: false, cancellationToken);
+        foreach (var anterior in antes.Values.Where(t => t.Lado != LadoDe(personagem)))
+        {
+            await AcomodarAsync(anterior.Id, cancellationToken);
+        }
 
         var depois = await db.Tokens
             .AsNoTracking()
@@ -179,13 +187,14 @@ public class TokensDeJogador(IAppDbContext db, IMapaNotifier notifier, TurnoDaMe
                 continue;
             }
 
-            if (Grade.PontoDeSpawn(mapa.Largura, mapa.Altura, entradas, ocupadas) is not { } celula)
+            var lado = LadoDe(jogador.PersonagemAtivo!);
+            if (Grade.PontoDeSpawn(mapa.Largura, mapa.Altura, entradas, ocupadas, lado) is not { } celula)
             {
                 logger.LogWarning("Mapa {MapaId} cheio: o token do jogador {UsuarioId} ficou de fora", mapa.Id, jogador.UsuarioId);
                 continue;
             }
 
-            ocupadas.Add(celula);
+            Grade.Ocupar(ocupadas, celula.X, celula.Y, lado);
             if (token is null)
             {
                 db.Tokens.Add(Novo(mapa.Id, jogador.UsuarioId, jogador.PersonagemAtivo!, celula));
@@ -222,6 +231,8 @@ public class TokensDeJogador(IAppDbContext db, IMapaNotifier notifier, TurnoDaMe
         HpMaximo = personagem.HpMaximo,
         X = celula.X,
         Y = celula.Y,
+        Tamanho = personagem.Tamanho,
+        LadoGargantuesco = Tamanhos.NormalizarLado(personagem.Tamanho, personagem.LadoGargantuesco),
         CorBorda = personagem.CorBorda,
         Icone = personagem.Classe.ToString(),
         PersonagemId = personagem.Id,
@@ -245,8 +256,12 @@ public class TokensDeJogador(IAppDbContext db, IMapaNotifier notifier, TurnoDaMe
         var deslocamento = personagem.Deslocamento;
         var visao = personagem.Visao;
         var imagemId = personagem.ImagemId;
+        var tamanho = personagem.Tamanho;
+        var ladoGargantuesco = Tamanhos.NormalizarLado(personagem.Tamanho, personagem.LadoGargantuesco);
         return tokens.ExecuteUpdateAsync(
             s => s.SetProperty(t => t.Nome, personagem.Nome)
+                .SetProperty(t => t.Tamanho, tamanho)
+                .SetProperty(t => t.LadoGargantuesco, ladoGargantuesco)
                 .SetProperty(t => t.Icone, icone)
                 .SetProperty(t => t.CorBorda, personagem.CorBorda)
                 .SetProperty(t => t.PersonagemId, personagem.Id)
@@ -266,6 +281,57 @@ public class TokensDeJogador(IAppDbContext db, IMapaNotifier notifier, TurnoDaMe
                 .SetProperty(t => t.Visao, visao)
                 .SetProperty(t => t.Versao, t => t.Versao + 1),
             cancellationToken);
+    }
+
+    private static int LadoDe(Personagem personagem) => Tamanhos.Celulas(personagem.Tamanho, personagem.LadoGargantuesco);
+
+    /// <summary>
+    /// Depois de o token mudar de tamanho: se o novo espaço não cabe onde ele está, leva-o para o
+    /// espaço livre mais próximo (o movimento pendente deixa de poder ser desfeito). Sem espaço
+    /// nenhum, ele fica onde está: a ficha do personagem não deixa de ser salva por isso.
+    /// Quem chama avisa a mesa com o estado já acomodado.
+    /// </summary>
+    private async Task AcomodarAsync(Guid tokenId, CancellationToken cancellationToken)
+    {
+        var token = await db.Tokens.AsNoTracking().FirstOrDefaultAsync(t => t.Id == tokenId, cancellationToken);
+        if (token is null)
+        {
+            return;
+        }
+
+        var mapa = await db.Mapas.AsNoTracking().FirstAsync(m => m.Id == token.MapaId, cancellationToken);
+
+        // Como no spawn, os ocultos não contam: a posição escolhida não pode denunciar onde eles estão.
+        var espaco = await db.EspacoParaAsync(mapa, token, somenteVisiveis: true, cancellationToken);
+        if (espaco is not { } livre)
+        {
+            logger.LogWarning("Sem espaço para o token {TokenId} no novo tamanho; ele ficou onde estava", token.Id);
+            return;
+        }
+
+        if (livre == (token.X, token.Y))
+        {
+            return;
+        }
+
+        try
+        {
+            await db.Tokens
+                .Where(t => t.Id == token.Id)
+                .ExecuteUpdateAsync(
+                    s => s.SetProperty(t => t.X, livre.X)
+                        .SetProperty(t => t.Y, livre.Y)
+                        .SetProperty(t => t.OrigemPendenteX, (int?)null)
+                        .SetProperty(t => t.OrigemPendenteY, (int?)null)
+                        .SetProperty(t => t.CustoPendente, 0)
+                        .SetProperty(t => t.Versao, t => t.Versao + 1),
+                    cancellationToken);
+        }
+        catch (DbUpdateException)
+        {
+            // Outro token chegou ao canto escolhido ao mesmo tempo: fica onde está.
+            logger.LogWarning("Não foi possível acomodar o token {TokenId} no novo tamanho", token.Id);
+        }
     }
 
     private async Task<IReadOnlyList<TokenRemovido>> RemoverAsync(IQueryable<Token> tokens, CancellationToken cancellationToken)

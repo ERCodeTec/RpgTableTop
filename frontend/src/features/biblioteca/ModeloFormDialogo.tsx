@@ -1,7 +1,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useId, useState, type FormEvent } from 'react'
 import { ApiError } from '../../shared/api/http'
+import { TAMANHO_PADRAO, type TamanhoDeCriatura } from '../../shared/tamanhos'
 import { Campo } from '../../shared/ui/Campo'
+import { CampoDeTamanho, ladoParaEnviar } from '../../shared/ui/CampoDeTamanho'
 import { Dialogo } from '../../shared/ui/Dialogo'
 import { CampoDeImagem, CamposDoConteudo, ICONE_INICIAL, SeletorDeIcone } from '../mapa/CamposDoToken'
 import {
@@ -51,6 +53,8 @@ export function ModeloFormDialogo({ categorias, modelo, categoriaInicial = null,
   const [corBorda, setCorBorda] = useState(modelo?.corBorda ?? COR_TOKEN_PADRAO)
   const [deslocamento, setDeslocamento] = useState(String(modelo?.deslocamento ?? DESLOCAMENTO_PADRAO))
   const [visao, setVisao] = useState(String(modelo?.visao ?? 0))
+  const [tamanho, setTamanho] = useState<TamanhoDeCriatura>(modelo?.tamanho ?? TAMANHO_PADRAO)
+  const [ladoGargantuesco, setLadoGargantuesco] = useState(String(modelo?.ladoGargantuesco ?? ''))
   const [exibicaoHp, setExibicaoHp] = useState<ExibicaoHp>(modelo?.exibicaoHp ?? 'Barra')
   const [descricao, setDescricao] = useState(modelo?.descricao ?? '')
   const [conteudoImagemId, setConteudoImagemId] = useState(modelo?.conteudoImagemId ?? null)
@@ -69,6 +73,8 @@ export function ModeloFormDialogo({ categorias, modelo, categoriaInicial = null,
         corBorda,
         deslocamento: Number(deslocamento) || 0,
         visao: Number(visao) || 0,
+        tamanho,
+        ladoGargantuesco: ladoParaEnviar(tamanho, ladoGargantuesco),
         exibicaoHp,
         descricao: interacao ? descricao.trim() || null : null,
         conteudoImagemId: interacao ? conteudoImagemId : null,
@@ -155,7 +161,7 @@ export function ModeloFormDialogo({ categorias, modelo, categoriaInicial = null,
         {interacao && (
           <>
             <p className="campo-dica">
-              No mapa, o objeto ocupa a célula. Os jogadores examinam o conteúdo clicando nele com o token ao lado, ou de
+              No mapa, o objeto ocupa o espaço do tamanho escolhido. Os jogadores examinam o conteúdo clicando nele com o token ao lado, ou de
               qualquer lugar quando você o revelar a todos.
             </p>
             <CamposDoConteudo
@@ -170,6 +176,13 @@ export function ModeloFormDialogo({ categorias, modelo, categoriaInicial = null,
         )}
 
         <div className="form-linha">
+          <CampoDeTamanho
+            tamanho={tamanho}
+            lado={ladoGargantuesco}
+            aoTrocarTamanho={setTamanho}
+            aoTrocarLado={setLadoGargantuesco}
+            erros={erro?.erros}
+          />
           {!interacao && (
             <>
               <Campo

@@ -38,6 +38,7 @@ public class ModeloDeTokenConfiguration : IEntityTypeConfiguration<ModeloDeToken
             tabela.HasCheckConstraint("ck_modelos_de_token_hp_maximo", "hp_maximo BETWEEN 1 AND 999");
             tabela.HasCheckConstraint("ck_modelos_de_token_deslocamento", "deslocamento BETWEEN 1 AND 30");
             tabela.HasCheckConstraint("ck_modelos_de_token_visao", "visao BETWEEN 0 AND 60");
+            tabela.HasCheckConstraint("ck_modelos_de_token_lado_gargantuesco", "lado_gargantuesco IS NULL OR lado_gargantuesco BETWEEN 4 AND 10");
         });
 
         builder.HasKey(m => m.Id);
@@ -47,6 +48,10 @@ public class ModeloDeTokenConfiguration : IEntityTypeConfiguration<ModeloDeToken
         builder.Property(m => m.Icone).HasMaxLength(Token.IconeTamanhoMaximo).IsRequired();
         builder.Property(m => m.CorBorda).HasMaxLength(7).IsRequired();
         builder.Property(m => m.ExibicaoHp).HasConversion<string>().HasMaxLength(20).IsRequired();
+        // Sentinel fora do enum: sem ele, Minusculo (o valor 0) contaria como "não informado" e o banco gravaria o padrão.
+        builder.Property(m => m.Tamanho).HasConversion<string>().HasMaxLength(20).HasDefaultValue(Tamanhos.Padrao)
+            .HasSentinel((TamanhoDeCriatura)(-1)).IsRequired();
+        builder.Ignore(m => m.Lado);
         builder.Property(m => m.Descricao).HasMaxLength(Token.DescricaoTamanhoMaximo);
 
         builder.HasOne<Usuario>()

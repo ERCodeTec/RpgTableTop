@@ -1,4 +1,5 @@
 import { api } from '../../shared/api/http'
+import type { TamanhoDeCriatura } from '../../shared/tamanhos'
 
 export type TipoToken = 'Personagem' | 'Inimigo' | 'Npc' | 'Interacao'
 
@@ -73,8 +74,13 @@ export interface Token {
   /** Com 0 de HP. Visível a todos, mesmo com o HP oculto. */
   caido: boolean
   exibicaoHp: ExibicaoHp
+  /** O canto superior esquerdo do espaço do token, que tem `ladoDoToken` células de lado. */
   x: number
   y: number
+  /** Ausente em dados antigos: conta como Médio. */
+  tamanho?: TamanhoDeCriatura
+  /** Só no Gargantuesco: o lado do espaço, em células. */
+  ladoGargantuesco?: number | null
   corBorda: string
   /** Classe de D&D nos tokens de personagem; chave de ícone genérico nos demais. */
   icone: string
@@ -210,6 +216,9 @@ export interface DadosDoToken {
   deslocamento?: number
   /** Ignorada no token de um jogador, que usa a visão do personagem. */
   visao?: number
+  /** Ignorado no token de um jogador, que usa o tamanho do personagem. */
+  tamanho?: TamanhoDeCriatura
+  ladoGargantuesco?: number | null
 }
 
 export const NOME_DO_TIPO: Record<TipoToken, string> = {

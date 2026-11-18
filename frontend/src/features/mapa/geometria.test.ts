@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { adjacente, celulasAlcancaveis, chaveDaCelula, possoExaminar } from './geometria'
+import { adjacente, ancoraNoPonto, celulasAlcancaveis, chaveDaCelula, ladoDoToken, possoExaminar, sobrepoem } from './geometria'
 import type { Estrutura, Token } from './mapaApi'
 
 function token(id: string, x: number, y: number): Token {
@@ -193,5 +193,75 @@ describe('possoExaminar', () => {
 
   it('não vale para tokens que não são interação', () => {
     expect(possoExaminar(token('goblin', 5, 5), token('meu', 5, 6))).toBe(false)
+  })
+})
+
+describe('tamanho do token', () => {
+  const grande = (id: string, x: number, y: number): Token => ({ ...token(id, x, y), tamanho: 'Grande' })
+
+  /** Alcance de um token de `lado` em um mapa 10x8, como em Alcance.cs com o mesmo lado. */
+  function alcanceDe(lado: number, origem: { x: number; y: number }, orcamento: number, estruturas: Estrutura[] = [], outros: Token[] = []) {
+    return celulasAlcancaveis({
+      largura: 10,
+      altura: 8,
+      origem,
+      lado,
+      orcamento,
+      estruturas: porId(...estruturas),
+      tokens: porId(token('eu', origem.x, origem.y), ...outros),
+      tokenId: 'eu',
+    })
+  }
+
+  // Uma parede em x = 3 de alto a baixo, com uma passagem só em (3,4): o mesmo cenário do teste do servidor.
+  const corredor = [parede('cima', 3, 0, { profundidade: 4 }), parede('baixo', 3, 5, { profundidade: 3 })]
+
+  it('mede o lado pela categoria, e sem tamanho conta como Médio', () => {
+    expect(ladoDoToken({})).toBe(1)
+    expect(ladoDoToken({ tamanho: 'Minusculo' })).toBe(1)
+    expect(ladoDoToken({ tamanho: 'Grande' })).toBe(2)
+    expect(ladoDoToken({ tamanho: 'Enorme' })).toBe(3)
+    expect(ladoDoToken({ tamanho: 'Gargantuesco' })).toBe(4)
+    expect(ladoDoToken({ tamanho: 'Gargantuesco', ladoGargantuesco: 6 })).toBe(6)
+  })
+
+  it('o Médio passa pelo corredor de uma célula e o Grande não', () => {
+    expect(custo(alcanceDe(1, { x: 0, y: 0 }, 6, corredor), 4, 4)).toBe(6)
+    const doGrande = alcanceDe(2, { x: 0, y: 5 }, 6, corredor)
+    expect([...doGrande.keys()].every((chave) => Number(chave.split(',')[0]) < 3)).toBe(true)
+    expect(custo(doGrande, 1, 2)).toBe(3)
+  })
+
+  it('o Grande não para com o espaço sobre uma estrutura, nem fora do mapa', () => {
+    const celulas = alcanceDe(2, { x: 0, y: 0 }, 9, [parede('p', 4, 1)])
+    expect(custo(celulas, 3, 0)).toBeUndefined()
+    expect(custo(celulas, 9, 0)).toBeUndefined()
+    expect(custo(celulas, 8, 6)).toBeDefined()
+  })
+
+  it('o Grande não para com o espaço sobre outro token, mas passa por ele', () => {
+    const celulas = alcanceDe(2, { x: 0, y: 0 }, 6, [], [token('goblin', 3, 1)])
+    expect(custo(celulas, 2, 0)).toBeUndefined()
+    expect(custo(celulas, 2, 1)).toBeUndefined()
+    expect(custo(celulas, 4, 0)).toBe(4)
+  })
+
+  it('um Médio não para sobre qualquer célula de um Grande', () => {
+    const celulas = alcance({ x: 0, y: 0 }, 6, { outros: [grande('ogro', 2, 2)] })
+    for (const [x, y] of [[2, 2], [3, 2], [2, 3], [3, 3]]) expect(custo(celulas, x, y)).toBeUndefined()
+    expect(custo(celulas, 4, 4)).toBe(4)
+  })
+
+  it('sobrepoem e ancoraNoPonto seguem o espaço do token', () => {
+    expect(sobrepoem({ x: 0, y: 0, lado: 2 }, { x: 1, y: 1, lado: 1 })).toBe(true)
+    expect(sobrepoem({ x: 0, y: 0, lado: 2 }, { x: 2, y: 0, lado: 1 })).toBe(false)
+    expect(ancoraNoPonto(3.7, 2.2, 1)).toEqual([3, 2])
+    // O espaço 2x2 fica centrado no ponteiro: em (4,4) ele cobre 3..4.
+    expect(ancoraNoPonto(4, 4, 2)).toEqual([3, 3])
+  })
+
+  it('a adjacência conta de qualquer célula do espaço', () => {
+    expect(adjacente(grande('ogro', 0, 0), token('carta', 2, 1))).toBe(true)
+    expect(adjacente(grande('ogro', 0, 0), token('carta', 3, 1))).toBe(false)
   })
 })

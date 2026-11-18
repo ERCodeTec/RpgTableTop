@@ -2,10 +2,10 @@ import { Vector3 } from 'three'
 import { foraDaVez } from '../iniciativa/iniciativaStore'
 import { useEditorStore } from './editorStore'
 import { useInteracaoStore } from './interacaoStore'
-import { celulaBloqueada, chaveDaCelula } from './geometria'
+import { ancoraNoPonto, chaveDaCelula, espacoBloqueado, ladoDoToken, sobrepoem } from './geometria'
 import type { Gesto, ModoDeInteracao } from './gestos'
 import type { Estrutura } from './mapaApi'
-import { alcanceAtual, tokenNaCelula, useMapaStore } from './mapaStore'
+import { alcanceAtual, useMapaStore } from './mapaStore'
 import { apontar } from './picking'
 import type { Rig } from './rig'
 
@@ -25,7 +25,8 @@ interface OpcoesDoJogo {
 /**
  * Arrastar um token com snap à célula; um clique sem arrastar o seleciona. Usado no modo de jogo
  * e, pelo Mestre, no editor do mapa. Se o token faz parte do grupo selecionado, o grupo inteiro vai
- * junto, com o mesmo deslocamento, e só pode soltar se todos couberem no destino.
+ * junto, com o mesmo deslocamento, e só pode soltar se todos couberem no destino. Um token maior
+ * que Médio arrasta o espaço inteiro, centrado no ponteiro, e só cabe onde o espaço todo cabe.
  */
 export function arrastarToken(
   rig: Rig,
@@ -40,8 +41,9 @@ export function arrastarToken(
   // O ponteiro pega o disco em pé, não o centro da célula: guarda a diferença para o destino
   // acompanhar o token, e não o ponto do chão que está atrás do ponteiro.
   rig.chao(clienteX, clienteY, ponto)
-  const folgaX = ponto.x - (inicial.x + 0.5)
-  const folgaZ = ponto.z - (inicial.y + 0.5)
+  const lado = ladoDoToken(inicial)
+  const folgaX = ponto.x - (inicial.x + lado / 2)
+  const folgaZ = ponto.z - (inicial.y + lado / 2)
   // O jogador arrasta só o próprio token; o grupo é coisa do Mestre.
   const grupo =
     souMestre && store().grupo.includes(tokenId) ? store().grupo.filter((id) => id !== tokenId && store().tokens[id]) : []
@@ -50,33 +52,31 @@ export function arrastarToken(
   return {
     arrastar(x, y) {
       rig.chao(x, y, ponto)
-      const celulaX = Math.floor(ponto.x - folgaX)
-      const celulaY = Math.floor(ponto.z - folgaZ)
+      const [celulaX, celulaY] = ancoraNoPonto(ponto.x - folgaX, ponto.z - folgaZ, lado)
       const atual = store().arraste
       if (atual && atual.x === celulaX && atual.y === celulaY) return
 
       const { mapa, tokens, estruturas } = store()
       const [dx, dy] = [celulaX - tokens[tokenId].x, celulaY - tokens[tokenId].y]
       const destinos = grupo.map((id) => ({ tokenId: id, x: tokens[id].x + dx, y: tokens[id].y + dy }))
-      const cabe = ({ x: cx, y: cy }: { x: number; y: number }) => {
-        const ocupante = tokenNaCelula(tokens, cx, cy)
-        return (
-          mapa !== null &&
-          cx >= 0 &&
-          cy >= 0 &&
-          cx < mapa.largura &&
-          cy < mapa.altura &&
-          // Um token do próprio grupo sai da célula junto com os outros.
-          (!ocupante || movidos.has(ocupante.id)) &&
-          // As estruturas barram só os jogadores; o servidor confere de novo.
-          (souMestre || !celulaBloqueada(estruturas, cx, cy))
-        )
+      const cabe = ({ tokenId: id, x: cx, y: cy }: { tokenId: string; x: number; y: number }) => {
+        const ladoDele = ladoDoToken(tokens[id])
+        const espaco = { x: cx, y: cy, lado: ladoDele }
+        if (mapa === null || cx < 0 || cy < 0 || cx + ladoDele > mapa.largura || cy + ladoDele > mapa.altura) return false
+        for (const outroId in tokens) {
+          // Um token do próprio grupo sai do lugar junto com os outros.
+          if (movidos.has(outroId)) continue
+          const outro = tokens[outroId]
+          if (sobrepoem(espaco, { x: outro.x, y: outro.y, lado: ladoDoToken(outro) })) return false
+        }
+        // As estruturas barram só os jogadores; o servidor confere de novo.
+        return souMestre || !espacoBloqueado(estruturas, cx, cy, ladoDele)
       }
       store().definirArraste({
         tokenId,
         x: celulaX,
         y: celulaY,
-        valido: cabe({ x: celulaX, y: celulaY }) && destinos.every(cabe),
+        valido: cabe({ tokenId, x: celulaX, y: celulaY }) && destinos.every(cabe),
         grupo: destinos.length ? destinos : undefined,
       })
     },
@@ -125,12 +125,17 @@ export function criarModoDeJogo(
     if (!movimentoLivre && possoMover(tokenId) && !foraDaVez(tokenId, movimentoLivre)) store().mover(tokenId)
   }
 
-  /** A célula alcançável sob o ponteiro, se houver token em movimento. */
+  /**
+   * A âncora alcançável sob o ponteiro, se houver token em movimento. Para um token maior que
+   * Médio, é a do espaço centrado no ponteiro.
+   */
   const celulaAlcancavel = (clienteX: number, clienteY: number) => {
-    const alcance = alcanceAtual(store())
-    if (!alcance) return null
+    const estado = store()
+    const alcance = alcanceAtual(estado)
+    const movendo = estado.movendoId ? estado.tokens[estado.movendoId] : undefined
+    if (!alcance || !movendo) return null
     rig.chao(clienteX, clienteY, ponto)
-    const [x, y] = [Math.floor(ponto.x), Math.floor(ponto.z)]
+    const [x, y] = ancoraNoPonto(ponto.x, ponto.z, ladoDoToken(movendo))
     const chave = chaveDaCelula(x, y)
     return alcance.has(chave) ? { x, y, chave } : null
   }

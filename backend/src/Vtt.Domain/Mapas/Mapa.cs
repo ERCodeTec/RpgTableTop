@@ -48,4 +48,7 @@ public class Mapa
     public int Celulas => Largura * Altura;
 
     public bool Contem(int x, int y) => x >= 0 && y >= 0 && x < Largura && y < Altura;
+
+    /// <summary>true se o quadrado de <paramref name="lado"/> células a partir de (x, y) cabe inteiro no mapa.</summary>
+    public bool Comporta(int x, int y, int lado) => x >= 0 && y >= 0 && x + lado <= Largura && y + lado <= Altura;
 }

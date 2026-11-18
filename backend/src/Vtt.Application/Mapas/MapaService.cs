@@ -98,8 +98,18 @@ public class MapaService(
             return erro!;
         }
 
+        // Conta o espaço inteiro do token (Grande, Enorme...), na mesma regra de Tamanhos.Celulas, traduzida para SQL.
         var haTokenDeFora = await db.Tokens.AnyAsync(
-            token => token.MapaId == mapaId && (token.X >= request.Largura || token.Y >= request.Altura), cancellationToken);
+            token => token.MapaId == mapaId
+                && (token.X + (token.Tamanho == TamanhoDeCriatura.Grande ? 2
+                        : token.Tamanho == TamanhoDeCriatura.Enorme ? 3
+                        : token.Tamanho == TamanhoDeCriatura.Gargantuesco ? token.LadoGargantuesco ?? Tamanhos.LadoGargantuescoMinimo
+                        : 1) > request.Largura
+                    || token.Y + (token.Tamanho == TamanhoDeCriatura.Grande ? 2
+                        : token.Tamanho == TamanhoDeCriatura.Enorme ? 3
+                        : token.Tamanho == TamanhoDeCriatura.Gargantuesco ? token.LadoGargantuesco ?? Tamanhos.LadoGargantuescoMinimo
+                        : 1) > request.Altura),
+            cancellationToken);
         if (haTokenDeFora)
         {
             return Erro.Conflito("Há tokens fora dos novos limites. Mova-os antes de reduzir o mapa.");

@@ -1,7 +1,7 @@
 import { useFrame, useThree } from '@react-three/fiber'
 import { memo, useLayoutEffect, useRef } from 'react'
 import { CircleGeometry, Color, PlaneGeometry, RingGeometry, type Group, type Mesh, type MeshBasicMaterial } from 'three'
-import { elevacaoDoToken, RAIO_DO_TOKEN } from './geometria'
+import { elevacaoDoToken, escalaDoToken, ladoDoToken, RAIO_DO_TOKEN } from './geometria'
 import { useMapaStore } from './mapaStore'
 import { tokenEscondido } from './nevoa'
 import { useRig } from './rig'
@@ -13,20 +13,43 @@ const ALTURA_DO_NOME = 0.24
 
 // Geometrias compartilhadas por todos os tokens.
 const DISCO = new CircleGeometry(RAIO_DO_TOKEN, 48)
-const ANEL_PROPRIO = new RingGeometry(RAIO_DO_TOKEN + 0.01, RAIO_DO_TOKEN + 0.06, 48)
-const ANEL_SELECAO = new RingGeometry(RAIO_DO_TOKEN + 0.07, RAIO_DO_TOKEN + 0.1, 48)
-// Marca dos objetos de interação: oito arcos em volta do disco, que lembram "dá para examinar".
-const ANEL_INTERACAO = Array.from(
-  { length: 8 },
-  (_, i) => new RingGeometry(RAIO_DO_TOKEN + 0.015, RAIO_DO_TOKEN + 0.055, 8, 1, (i * Math.PI) / 4, Math.PI / 6),
-)
+
+interface Aneis {
+  proprio: RingGeometry
+  selecao: RingGeometry
+  /** Marca dos objetos de interação: oito arcos em volta do disco, que lembram "dá para examinar". */
+  interacao: RingGeometry[]
+}
+
+/**
+ * Os anéis em volta de um disco de `raio`: a espessura não acompanha o tamanho do token, então
+ * cada raio tem os seus, compartilhados pelos tokens do mesmo tamanho.
+ */
+const aneis = new Map<number, Aneis>()
+function aneisDoRaio(raio: number): Aneis {
+  let existentes = aneis.get(raio)
+  if (!existentes) {
+    const segmentos = Math.round(48 * Math.max(1, raio / RAIO_DO_TOKEN))
+    existentes = {
+      proprio: new RingGeometry(raio + 0.01, raio + 0.06, segmentos),
+      selecao: new RingGeometry(raio + 0.07, raio + 0.1, segmentos),
+      interacao: Array.from(
+        { length: 8 },
+        (_, i) => new RingGeometry(raio + 0.015, raio + 0.055, 8, 1, (i * Math.PI) / 4, Math.PI / 6),
+      ),
+    }
+    aneis.set(raio, existentes)
+  }
+  return existentes
+}
 const ETIQUETA = new PlaneGeometry(ALTURA_DO_NOME * PROPORCAO_DO_NOME, ALTURA_DO_NOME)
 const RETANGULO = new PlaneGeometry(1, 1)
 
 // Barra de HP, logo acima do disco.
 const LARGURA_DA_BARRA = 0.64
 const ALTURA_DA_BARRA = 0.07
-const ALTURA_DO_CENTRO_DA_BARRA = RAIO_DO_TOKEN + 0.09
+// Acima da borda do disco, que cresce com o tamanho do token.
+const FOLGA_DA_BARRA = 0.09
 const VERMELHO = new Color('#e05a47')
 const AMARELO = new Color('#e2b23c')
 const VERDE = new Color('#5fd38a')
@@ -56,7 +79,8 @@ interface TokenNoMapaProps {
  * Um token no mapa. Assina só o próprio registro no store, então o movimento de outro token não o
  * renderiza de novo; a posição é interpolada no laço de quadros, fora do React.
  * O corpo é um billboard: fica sempre de frente para a câmera, deitado na visão superior e em pé
- * conforme ela inclina.
+ * conforme ela inclina. O disco ocupa o espaço do tamanho do token (2x2 no Grande, menor no
+ * Minúsculo), centrado nele; a barra de HP e o nome mantêm o tamanho e acompanham a borda do disco.
  * Mostra só o que o servidor enviou a este usuário: a barra e os números de HP aparecem para
  * quem os recebeu, e um token oculto (que só chega ao Mestre e ao dono) fica translúcido.
  */
@@ -83,12 +107,17 @@ export const TokenNoMapa = memo(function TokenNoMapa({ id, meuUsuarioId }: Token
 
   const x = token?.x ?? 0
   const y = token?.y ?? 0
+  const lado = token ? ladoDoToken(token) : 1
+  const escala = token ? escalaDoToken(token) : 1
+  const raio = RAIO_DO_TOKEN * escala
+  const anel = aneisDoRaio(raio)
+  useLayoutEffect(() => invalidate(), [escala, invalidate])
 
   useLayoutEffect(() => {
     const alvo = grupo.current
     if (!alvo) return
-    const ateX = x + 0.5
-    const ateZ = y + 0.5
+    const ateX = x + lado / 2
+    const ateZ = y + lado / 2
     if (!posicionado.current || semAnimacao()) {
       alvo.position.set(ateX, 0, ateZ)
       animacao.current = null
@@ -97,7 +126,7 @@ export const TokenNoMapa = memo(function TokenNoMapa({ id, meuUsuarioId }: Token
       animacao.current = { deX: alvo.position.x, deZ: alvo.position.z, ateX, ateZ, inicio: performance.now() }
     }
     invalidate()
-  }, [x, y, invalidate])
+  }, [x, y, lado, invalidate])
 
   useFrame(({ camera }, delta) => {
     // A barra de HP desliza até o novo valor, mudando de cor no caminho.
@@ -116,7 +145,7 @@ export const TokenNoMapa = memo(function TokenNoMapa({ id, meuUsuarioId }: Token
     // Billboard: mesma orientação da câmera, e sobe o bastante para a borda de baixo não afundar no chão.
     if (corpo.current) {
       corpo.current.quaternion.copy(camera.quaternion)
-      corpo.current.position.y = elevacaoDoToken(rig.inclinacao)
+      corpo.current.position.y = elevacaoDoToken(rig.inclinacao, escala)
     }
 
     const atual = animacao.current
@@ -148,51 +177,54 @@ export const TokenNoMapa = memo(function TokenNoMapa({ id, meuUsuarioId }: Token
     <group ref={grupo} visible={!escondido}>
       <group ref={corpo}>
         {token.donoUsuarioId === meuUsuarioId && (
-          <mesh geometry={ANEL_PROPRIO} position-z={-0.004}>
+          <mesh geometry={anel.proprio} position-z={-0.004}>
             <meshBasicMaterial color="#e2b23c" />
           </mesh>
         )}
         {interacao &&
-          ANEL_INTERACAO.map((arco, i) => (
+          anel.interacao.map((arco, i) => (
             <mesh key={i} geometry={arco} position-z={-0.004}>
               {/* Revelado a todos, o anel acende. */}
               <meshBasicMaterial color={token.revelado ? '#ffe08a' : '#8fc7d6'} />
             </mesh>
           ))}
         {selecionado && (
-          <mesh geometry={ANEL_SELECAO} position-z={-0.004}>
+          <mesh geometry={anel.selecao} position-z={-0.004}>
             <meshBasicMaterial color="#ffffff" />
           </mesh>
         )}
-        <mesh geometry={DISCO}>
-          {/* O recorte por alfa grava profundidade: uma parede alta na frente esconde parte do disco,
-              sem ordenar nada à mão. Durante o arraste o disco fica translúcido, e aí não grava. */}
-          <meshBasicMaterial
-            key={translucido ? 'translucido' : 'opaco'}
-            map={texturaDoDisco(token.tipo, token.icone, token.corBorda, token.imagemId)}
-            // Caído: o disco escurece e perde a cor.
-            color={token.caido ? '#6f6f6f' : '#ffffff'}
-            transparent={translucido}
-            opacity={arrastando ? 0.4 : translucido ? 0.5 : 1}
-            alphaTest={translucido ? 0 : 0.5}
-            depthWrite={!translucido}
-          />
-        </mesh>
-        {token.caido &&
-          [1, -1].map((sentido) => (
-            // Um X sobre o disco: caído se reconhece pela marca, não só pelo tom.
-            <mesh
-              key={sentido}
-              geometry={RETANGULO}
-              position-z={0.006}
-              rotation-z={(sentido * Math.PI) / 4}
-              scale={[RAIO_DO_TOKEN * 1.5, 0.07, 1]}
-            >
-              <meshBasicMaterial color="#f08a75" />
-            </mesh>
-          ))}
+        {/* Só o disco e a marca de caído crescem com o tamanho; os anéis têm espessura fixa. */}
+        <group scale={escala}>
+          <mesh geometry={DISCO}>
+            {/* O recorte por alfa grava profundidade: uma parede alta na frente esconde parte do disco,
+                sem ordenar nada à mão. Durante o arraste o disco fica translúcido, e aí não grava. */}
+            <meshBasicMaterial
+              key={translucido ? 'translucido' : 'opaco'}
+              map={texturaDoDisco(token.tipo, token.icone, token.corBorda, token.imagemId, escala)}
+              // Caído: o disco escurece e perde a cor.
+              color={token.caido ? '#6f6f6f' : '#ffffff'}
+              transparent={translucido}
+              opacity={arrastando ? 0.4 : translucido ? 0.5 : 1}
+              alphaTest={translucido ? 0 : 0.5}
+              depthWrite={!translucido}
+            />
+          </mesh>
+          {token.caido &&
+            [1, -1].map((sentido) => (
+              // Um X sobre o disco: caído se reconhece pela marca, não só pelo tom.
+              <mesh
+                key={sentido}
+                geometry={RETANGULO}
+                position-z={0.006}
+                rotation-z={(sentido * Math.PI) / 4}
+                scale={[RAIO_DO_TOKEN * 1.5, 0.07, 1]}
+              >
+                <meshBasicMaterial color="#f08a75" />
+              </mesh>
+            ))}
+        </group>
         {fracao !== null && (
-          <group position-y={ALTURA_DO_CENTRO_DA_BARRA}>
+          <group position-y={raio + FOLGA_DA_BARRA}>
             <mesh geometry={RETANGULO} scale={[LARGURA_DA_BARRA + 0.04, ALTURA_DA_BARRA + 0.04, 1]}>
               <meshBasicMaterial color="#0f1a1d" />
             </mesh>
@@ -202,7 +234,7 @@ export const TokenNoMapa = memo(function TokenNoMapa({ id, meuUsuarioId }: Token
           </group>
         )}
         {/* O nome fica sempre legível: é desenhado por cima da cena, sem teste de profundidade. */}
-        <mesh geometry={ETIQUETA} position={[0, -(RAIO_DO_TOKEN + ALTURA_DO_NOME / 2), 0]} renderOrder={10}>
+        <mesh geometry={ETIQUETA} position={[0, -(raio + ALTURA_DO_NOME / 2), 0]} renderOrder={10}>
           <meshBasicMaterial map={texturaDoNome(rotulo)} transparent depthTest={false} depthWrite={false} />
         </mesh>
       </group>

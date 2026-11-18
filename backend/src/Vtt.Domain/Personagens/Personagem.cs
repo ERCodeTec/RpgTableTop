@@ -1,3 +1,5 @@
+using Vtt.Domain.Mapas;
+
 namespace Vtt.Domain.Personagens;
 
 public class Personagem
@@ -36,6 +38,12 @@ public class Personagem
 
     /// <summary>Até onde o personagem enxerga, em células, quando o mapa tem névoa; o token dele usa este valor.</summary>
     public int Visao { get; set; } = VisaoPadrao;
+
+    /// <summary>A categoria de tamanho do personagem; o token dele ocupa o espaço correspondente.</summary>
+    public TamanhoDeCriatura Tamanho { get; set; } = Tamanhos.Padrao;
+
+    /// <summary>Só no Gargantuesco: o lado do quadrado, em células.</summary>
+    public int? LadoGargantuesco { get; set; }
 
     /// <summary>A foto do personagem: uma imagem pessoal do dono. O token do jogador a espelha.</summary>
     public Guid? ImagemId { get; set; }

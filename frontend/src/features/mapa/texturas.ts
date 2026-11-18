@@ -32,25 +32,40 @@ function criarTextura(largura: number, altura: number) {
  * ou ícone genérico). Com imagem, ela aparece recortada em círculo dentro da borda colorida; o
  * ícone fica de reserva enquanto a imagem carrega ou se o download falhar.
  * Uma textura por combinação, reaproveitada entre tokens.
+ * `escala` é o quanto o disco será ampliado no mapa: a borda colorida fica mais fina na textura na
+ * mesma proporção, para ter na tela a mesma espessura em qualquer tamanho de token.
  */
-export function texturaDoDisco(tipo: TipoToken, icone: string, corBorda: string, imagemId: string | null = null): CanvasTexture {
-  const chave = `${tipo}|${icone}|${corBorda}|${imagemId ?? ''}`
+export function texturaDoDisco(
+  tipo: TipoToken,
+  icone: string,
+  corBorda: string,
+  imagemId: string | null = null,
+  escala = 1,
+): CanvasTexture {
+  // Medidas do disco em SVG, numa caixa de 48: borda de 4 com a face externa no raio 23.
+  const espessura = Math.round((4 / Math.max(escala, 1)) * 100) / 100
+  const raioDaBorda = 23 - espessura / 2
+  // Um disco que cobre vários quadrados pede mais pixels para a imagem não borrar.
+  const resolucao = escala > 1 ? LADO_DO_DISCO * 2 : LADO_DO_DISCO
+  const chave = `${tipo}|${icone}|${corBorda}|${imagemId ?? ''}|${espessura}`
   const existente = discos.get(chave)
   if (existente) return existente
 
-  const { canvas, textura } = criarTextura(LADO_DO_DISCO, LADO_DO_DISCO)
+  const { canvas, textura } = criarTextura(resolucao, resolucao)
   discos.set(chave, textura)
   const contexto = canvas.getContext('2d')
 
-  const svg = renderToStaticMarkup(createElement(TokenIcone, { tipo, icone, corBorda, tamanho: LADO_DO_DISCO })).replace(
-    '<svg ',
-    '<svg xmlns="http://www.w3.org/2000/svg" ',
-  )
+  const svg = renderToStaticMarkup(createElement(TokenIcone, { tipo, icone, corBorda, tamanho: resolucao }))
+    .replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" ')
+    .replace(
+      `r="21" fill="#0f1a1d" stroke="${corBorda}" stroke-width="4"`,
+      `r="${raioDaBorda}" fill="#0f1a1d" stroke="${corBorda}" stroke-width="${espessura}"`,
+    )
   let comImagem = false
   const icone_ = new Image()
   icone_.onload = () => {
     if (comImagem) return
-    contexto?.drawImage(icone_, 0, 0, LADO_DO_DISCO, LADO_DO_DISCO)
+    contexto?.drawImage(icone_, 0, 0, resolucao, resolucao)
     textura.needsUpdate = true
     invalidate()
   }
@@ -60,10 +75,10 @@ export function texturaDoDisco(tipo: TipoToken, icone: string, corBorda: string,
     carregarImagem(imagemId)
       .then((imagem) => {
         comImagem = true
-        // Mesmas medidas do disco em SVG: raio 21 e borda 4 em uma caixa de 48.
-        const escala = LADO_DO_DISCO / 48
-        const [centro, raio, borda] = [24 * escala, 21 * escala, 4 * escala]
-        contexto.clearRect(0, 0, LADO_DO_DISCO, LADO_DO_DISCO)
+        // Mesmas medidas do disco em SVG, na caixa de 48.
+        const proporcao = resolucao / 48
+        const [centro, raio, borda] = [24 * proporcao, raioDaBorda * proporcao, espessura * proporcao]
+        contexto.clearRect(0, 0, resolucao, resolucao)
         contexto.save()
         contexto.beginPath()
         contexto.arc(centro, centro, raio, 0, Math.PI * 2)

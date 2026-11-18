@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { celulasAlcancaveis } from './geometria'
+import { celulasAlcancaveis, ladoDoToken } from './geometria'
 import type { Estrutura, HpDoToken, Mapa, MapaEstado, MemoriaDeNevoa, MovimentoDoToken, Token } from './mapaApi'
 import { chaveDaMemoria, deBase64, NUNCA_VISTA, porChave, type Nevoa, type Observador } from './nevoa'
 
@@ -281,29 +281,42 @@ export function alcanceAtual({
 }: Pick<EstadoDoMapa, 'mapa' | 'tokens' | 'estruturas' | 'movendoId' | 'nevoa'>): Map<string, number> | null {
   const token = movendoId ? tokens[movendoId] : undefined
   if (!mapa || !token || token.movimentoRestante === null || token.movimentoPendente) return null
+  const lado = ladoDoToken(token)
   const alcance = celulasAlcancaveis({
     largura: mapa.largura,
     altura: mapa.altura,
     origem: token,
+    lado,
     orcamento: token.movimentoRestante,
     estruturas,
     tokens,
     tokenId: token.id,
   })
   if (nevoa && !nevoa.translucida && nevoa.largura === mapa.largura) {
-    for (const chave of alcance.keys()) {
+    for (const chave of [...alcance.keys()]) {
       const [x, y] = chave.split(',').map(Number)
-      if (nevoa.estado[y * nevoa.largura + x] === NUNCA_VISTA) alcance.delete(chave)
+      // O espaço inteiro precisa já ter sido visto: um token grande também não denuncia o escuro.
+      let nuncaVista = false
+      for (let cy = y; cy < y + lado && !nuncaVista; cy++) {
+        for (let cx = x; cx < x + lado; cx++) {
+          if (nevoa.estado[cy * nevoa.largura + cx] === NUNCA_VISTA) {
+            nuncaVista = true
+            break
+          }
+        }
+      }
+      if (nuncaVista) alcance.delete(chave)
     }
   }
   return alcance
 }
 
-/** O token que ocupa a célula, se houver. */
+/** O token cujo espaço cobre a célula, se houver (um Grande cobre 2x2 a partir de x, y). */
 export function tokenNaCelula(tokens: Record<string, Token>, x: number, y: number): Token | undefined {
   for (const id in tokens) {
     const token = tokens[id]
-    if (token.x === x && token.y === y) return token
+    const lado = ladoDoToken(token)
+    if (x >= token.x && y >= token.y && x < token.x + lado && y < token.y + lado) return token
   }
   return undefined
 }

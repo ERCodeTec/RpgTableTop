@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Vtt.Domain.Imagens;
+using Vtt.Domain.Mapas;
 using Vtt.Domain.Personagens;
 using Vtt.Infrastructure.Identity;
 
@@ -16,6 +17,7 @@ public class PersonagemConfiguration : IEntityTypeConfiguration<Personagem>
             tabela.HasCheckConstraint("ck_personagens_hp_maximo", "hp_maximo BETWEEN 1 AND 999");
             tabela.HasCheckConstraint("ck_personagens_deslocamento", "deslocamento BETWEEN 1 AND 30");
             tabela.HasCheckConstraint("ck_personagens_visao", "visao BETWEEN 0 AND 60");
+            tabela.HasCheckConstraint("ck_personagens_lado_gargantuesco", "lado_gargantuesco IS NULL OR lado_gargantuesco BETWEEN 4 AND 10");
         });
 
         builder.HasKey(p => p.Id);
@@ -25,6 +27,9 @@ public class PersonagemConfiguration : IEntityTypeConfiguration<Personagem>
         builder.Property(p => p.CorBorda).HasMaxLength(7).IsRequired();
         builder.Property(p => p.Deslocamento).HasDefaultValue(Personagem.DeslocamentoPadrao);
         builder.Property(p => p.Visao).HasDefaultValue(Personagem.VisaoPadrao);
+        // Sentinel fora do enum: sem ele, Minusculo (o valor 0) contaria como "não informado" e o banco gravaria o padrão.
+        builder.Property(p => p.Tamanho).HasConversion<string>().HasMaxLength(20).HasDefaultValue(Tamanhos.Padrao)
+            .HasSentinel((TamanhoDeCriatura)(-1)).IsRequired();
 
         builder.HasOne<Usuario>()
             .WithMany()

@@ -22,6 +22,26 @@ public class Token
     public int X { get; set; }
 
     public int Y { get; set; }
+
+    /// <summary>A categoria de tamanho. No token de jogador, espelha o personagem; nos demais, o Mestre define.</summary>
+    public TamanhoDeCriatura Tamanho { get; set; } = Tamanhos.Padrao;
+
+    /// <summary>Só no Gargantuesco: o lado do quadrado, em células. Nulo nos demais tamanhos.</summary>
+    public int? LadoGargantuesco { get; set; }
+
+    /// <summary>O lado, em células, do quadrado que o token ocupa a partir de (X, Y).</summary>
+    public int Lado => Tamanhos.Celulas(Tamanho, LadoGargantuesco);
+
+    /// <summary>true se a célula está no espaço do token.</summary>
+    public bool Ocupa(int x, int y) => x >= X && y >= Y && x < X + Lado && y < Y + Lado;
+
+    /// <summary>Define o tamanho, guardando o lado só no Gargantuesco.</summary>
+    public void DefinirTamanho(TamanhoDeCriatura tamanho, int? ladoGargantuesco)
+    {
+        Tamanho = tamanho;
+        LadoGargantuesco = Tamanhos.NormalizarLado(tamanho, ladoGargantuesco);
+    }
+
     public string CorBorda { get; set; } = CorBordaPadrao;
 
     /// <summary>Nome da classe de D&amp;D para tokens de personagem; chave de <see cref="IconesGenericos"/> para os demais.</summary>
@@ -142,13 +162,14 @@ public class Token
 
     /// <summary>
     /// Um jogador cujo token é <paramref name="doJogador"/> pode ver o conteúdo desta Interação: ela
-    /// está revelada, ou o token dele está visível numa das 8 células ao redor (diagonal conta).
+    /// está revelada, ou o token dele está visível encostado nela (diagonal conta), por qualquer
+    /// célula do espaço de cada um.
     /// </summary>
     public bool PodeSerExaminadaPor(Token? doJogador) =>
         EhInteracao && Visivel && (Revelado || doJogador is not null
             && doJogador.MapaId == MapaId
             && doJogador.Visivel
-            && Math.Max(Math.Abs(doJogador.X - X), Math.Abs(doJogador.Y - Y)) <= 1);
+            && Tamanhos.Distancia(doJogador.X, doJogador.Y, doJogador.Lado, X, Y, Lado) <= 1);
 
     /// <summary>
     /// A Interação não tem HP nem movimento, mas as colunas exigem valores mínimos: fica com o

@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Vtt.Application.Common;
 using Vtt.Application.Imagens;
 using Vtt.Application.Mapas;
+using Vtt.Domain.Mapas;
 using Vtt.Domain.Personagens;
 
 namespace Vtt.Application.Personagens;
@@ -143,6 +144,8 @@ public class PersonagemService(IAppDbContext db, TokensDeJogador tokensDeJogador
         personagem.HpMaximo = request.HpMaximo;
         personagem.Deslocamento = request.Deslocamento;
         personagem.Visao = request.Visao;
+        personagem.Tamanho = request.Tamanho;
+        personagem.LadoGargantuesco = Tamanhos.NormalizarLado(request.Tamanho, request.LadoGargantuesco);
         personagem.CorBorda = string.IsNullOrEmpty(request.CorBorda)
             ? Personagem.CorBordaPadrao
             : request.CorBorda.ToUpperInvariant();

@@ -1,4 +1,5 @@
 using FluentValidation;
+using Vtt.Application.Mapas;
 using Vtt.Domain.Personagens;
 
 namespace Vtt.Application.Personagens;
@@ -31,6 +32,9 @@ public class PersonagemRequestValidator : AbstractValidator<PersonagemRequest>
         RuleFor(x => x.Visao)
             .InclusiveBetween(Personagem.VisaoMinima, Personagem.VisaoLimite)
             .WithMessage($"A visão deve ficar entre {Personagem.VisaoMinima} e {Personagem.VisaoLimite} células.");
+
+        RuleFor(x => x.Tamanho).IsInEnum().WithMessage("Tamanho inválido.");
+        RuleFor(x => x.LadoGargantuesco).LadoGargantuesco();
 
         RuleFor(x => x.CorBorda)
             .Matches("^#[0-9A-Fa-f]{6}$").WithMessage("A cor da borda deve estar no formato #RRGGBB.")

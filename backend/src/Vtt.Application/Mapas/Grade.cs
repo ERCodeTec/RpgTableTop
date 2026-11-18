@@ -2,28 +2,65 @@ using Vtt.Domain.Mapas;
 
 namespace Vtt.Application.Mapas;
 
-/// <summary>Busca de células livres em um mapa de <c>largura</c> x <c>altura</c>.</summary>
+/// <summary>
+/// Busca de espaços livres em um mapa de <c>largura</c> x <c>altura</c>. Um espaço é o quadrado de
+/// <c>lado</c> células a partir do canto superior esquerdo (x, y): para o token Médio, uma célula.
+/// </summary>
 internal static class Grade
 {
+    /// <summary>true se o quadrado de <paramref name="lado"/> a partir de (x, y) cabe no mapa sem tocar nenhuma célula indisponível.</summary>
+    public static bool Cabe(int largura, int altura, IReadOnlySet<(int X, int Y)> ocupadas, int x, int y, int lado = 1)
+    {
+        if (x < 0 || y < 0 || x + lado > largura || y + lado > altura)
+        {
+            return false;
+        }
+
+        for (var cy = y; cy < y + lado; cy++)
+        {
+            for (var cx = x; cx < x + lado; cx++)
+            {
+                if (ocupadas.Contains((cx, cy)))
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>Marca como ocupadas as células do quadrado de <paramref name="lado"/> a partir de (x, y).</summary>
+    public static void Ocupar(HashSet<(int X, int Y)> ocupadas, int x, int y, int lado = 1)
+    {
+        for (var cy = y; cy < y + lado; cy++)
+        {
+            for (var cx = x; cx < x + lado; cx++)
+            {
+                ocupadas.Add((cx, cy));
+            }
+        }
+    }
+
     /// <summary>
-    /// Onde nasce o token de um jogador: a primeira célula livre dentro das entradas, na ordem
-    /// recebida; com elas cheias, a livre mais próxima da primeira entrada. Sem entradas, <see cref="PrimeiraLivre"/>.
+    /// Onde nasce o token de um jogador: o primeiro espaço livre dentro das entradas, na ordem
+    /// recebida; com elas cheias (ou pequenas demais), o livre mais próximo da primeira entrada. Sem entradas, <see cref="PrimeiraLivre"/>.
     /// </summary>
     public static (int X, int Y)? PontoDeSpawn(
-        int largura, int altura, IReadOnlyList<Estrutura> entradas, IReadOnlySet<(int X, int Y)> ocupadas)
+        int largura, int altura, IReadOnlyList<Estrutura> entradas, IReadOnlySet<(int X, int Y)> ocupadas, int lado = 1)
     {
         if (entradas.Count == 0)
         {
-            return PrimeiraLivre(largura, altura, ocupadas);
+            return PrimeiraLivre(largura, altura, ocupadas, lado);
         }
 
         foreach (var entrada in entradas)
         {
-            for (var y = Math.Max(0, entrada.Y); y < Math.Min(altura, entrada.Y + entrada.Profundidade); y++)
+            for (var y = Math.Max(0, entrada.Y); y + lado <= Math.Min(altura, entrada.Y + entrada.Profundidade); y++)
             {
-                for (var x = Math.Max(0, entrada.X); x < Math.Min(largura, entrada.X + entrada.Largura); x++)
+                for (var x = Math.Max(0, entrada.X); x + lado <= Math.Min(largura, entrada.X + entrada.Largura); x++)
                 {
-                    if (!ocupadas.Contains((x, y)))
+                    if (Cabe(largura, altura, ocupadas, x, y, lado))
                     {
                         return (x, y);
                     }
@@ -34,17 +71,17 @@ internal static class Grade
         var primeira = entradas[0];
         var centroX = Math.Clamp(primeira.X + primeira.Largura / 2, 0, largura - 1);
         var centroY = Math.Clamp(primeira.Y + primeira.Profundidade / 2, 0, altura - 1);
-        return LivreMaisProxima(largura, altura, ocupadas, centroX, centroY);
+        return LivreMaisProxima(largura, altura, ocupadas, centroX, centroY, lado);
     }
 
-    /// <summary>A primeira célula livre varrendo linha a linha a partir de (0,0).</summary>
-    public static (int X, int Y)? PrimeiraLivre(int largura, int altura, IReadOnlySet<(int X, int Y)> ocupadas)
+    /// <summary>O primeiro espaço livre varrendo linha a linha a partir de (0,0).</summary>
+    public static (int X, int Y)? PrimeiraLivre(int largura, int altura, IReadOnlySet<(int X, int Y)> ocupadas, int lado = 1)
     {
-        for (var y = 0; y < altura; y++)
+        for (var y = 0; y + lado <= altura; y++)
         {
-            for (var x = 0; x < largura; x++)
+            for (var x = 0; x + lado <= largura; x++)
             {
-                if (!ocupadas.Contains((x, y)))
+                if (Cabe(largura, altura, ocupadas, x, y, lado))
                 {
                     return (x, y);
                 }
@@ -55,11 +92,18 @@ internal static class Grade
     }
 
     /// <summary>
-    /// A célula livre mais próxima de (x, y), procurando em anéis de distância crescente
+    /// O espaço livre mais próximo de (x, y), procurando em anéis de distância crescente
     /// (diagonal conta como 1, como no grid de D&amp;D). Empates: de cima para baixo, da esquerda para a direita.
     /// </summary>
-    public static (int X, int Y)? LivreMaisProxima(int largura, int altura, IReadOnlySet<(int X, int Y)> ocupadas, int x, int y)
+    /// <param name="incluirOrigem">true para aceitar o próprio (x, y), quando o token só precisa caber onde já está.</param>
+    public static (int X, int Y)? LivreMaisProxima(
+        int largura, int altura, IReadOnlySet<(int X, int Y)> ocupadas, int x, int y, int lado = 1, bool incluirOrigem = false)
     {
+        if (incluirOrigem && Cabe(largura, altura, ocupadas, x, y, lado))
+        {
+            return (x, y);
+        }
+
         var maiorDistancia = Math.Max(largura, altura);
         for (var distancia = 1; distancia <= maiorDistancia; distancia++)
         {
@@ -73,7 +117,7 @@ internal static class Grade
                     }
 
                     var (cx, cy) = (x + dx, y + dy);
-                    if (cx >= 0 && cy >= 0 && cx < largura && cy < altura && !ocupadas.Contains((cx, cy)))
+                    if (Cabe(largura, altura, ocupadas, cx, cy, lado))
                     {
                         return (cx, cy);
                     }

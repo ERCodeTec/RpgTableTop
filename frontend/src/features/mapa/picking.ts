@@ -1,5 +1,5 @@
 import { Box3, Vector3 } from 'three'
-import { alturaDesenhada, centroDoToken, RAIO_DO_TOKEN } from './geometria'
+import { alturaDesenhada, centroDoToken, escalaDoToken, RAIO_DO_TOKEN } from './geometria'
 import { useEditorStore } from './editorStore'
 import { useMapaStore } from './mapaStore'
 import { estruturaEscondida, tokenEscondido } from './nevoa'
@@ -36,8 +36,9 @@ export function apontar(
     for (const id in tokens) {
       if (tokenEscondido(nevoa, tokens[id])) continue
       centroDoToken(tokens[id], rig.inclinacao, centro)
-      // O disco é perpendicular ao raio: basta a distância do centro até a reta.
-      if (raio.distanceSqToPoint(centro) > RAIO_DO_TOKEN * RAIO_DO_TOKEN) continue
+      // O disco é perpendicular ao raio: basta a distância do centro até a reta. Ele cresce com o tamanho do token.
+      const raioDoDisco = RAIO_DO_TOKEN * escalaDoToken(tokens[id])
+      if (raio.distanceSqToPoint(centro) > raioDoDisco * raioDoDisco) continue
       const distancia = centro.sub(raio.origin).dot(raio.direction)
       if (distancia < menorDistancia) {
         menorDistancia = distancia

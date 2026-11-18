@@ -189,11 +189,23 @@ namespace Vtt.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("imagem_id");
 
+                    b.Property<int?>("LadoGargantuesco")
+                        .HasColumnType("integer")
+                        .HasColumnName("lado_gargantuesco");
+
                     b.Property<string>("Nome")
                         .IsRequired()
                         .HasMaxLength(60)
                         .HasColumnType("character varying(60)")
                         .HasColumnName("nome");
+
+                    b.Property<string>("Tamanho")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("Medio")
+                        .HasColumnName("tamanho");
 
                     b.Property<string>("Tipo")
                         .IsRequired()
@@ -229,6 +241,8 @@ namespace Vtt.Infrastructure.Persistence.Migrations
                             t.HasCheckConstraint("ck_modelos_de_token_deslocamento", "deslocamento BETWEEN 1 AND 30");
 
                             t.HasCheckConstraint("ck_modelos_de_token_hp_maximo", "hp_maximo BETWEEN 1 AND 999");
+
+                            t.HasCheckConstraint("ck_modelos_de_token_lado_gargantuesco", "lado_gargantuesco IS NULL OR lado_gargantuesco BETWEEN 4 AND 10");
 
                             t.HasCheckConstraint("ck_modelos_de_token_tipo", "tipo IN ('Inimigo', 'Npc', 'Interacao')");
 
@@ -612,6 +626,10 @@ namespace Vtt.Infrastructure.Persistence.Migrations
                         .HasDefaultValue(false)
                         .HasColumnName("jogou_na_rodada");
 
+                    b.Property<int?>("LadoGargantuesco")
+                        .HasColumnType("integer")
+                        .HasColumnName("lado_gargantuesco");
+
                     b.Property<Guid>("MapaId")
                         .HasColumnType("uuid")
                         .HasColumnName("mapa_id");
@@ -643,6 +661,14 @@ namespace Vtt.Infrastructure.Persistence.Migrations
                         .HasColumnType("boolean")
                         .HasDefaultValue(false)
                         .HasColumnName("revelado");
+
+                    b.Property<string>("Tamanho")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("Medio")
+                        .HasColumnName("tamanho");
 
                     b.Property<string>("Tipo")
                         .IsRequired()
@@ -703,6 +729,8 @@ namespace Vtt.Infrastructure.Persistence.Migrations
                     b.ToTable("tokens", null, t =>
                         {
                             t.HasCheckConstraint("ck_tokens_hp", "hp_maximo BETWEEN 1 AND 999 AND hp_atual BETWEEN 0 AND hp_maximo");
+
+                            t.HasCheckConstraint("ck_tokens_lado_gargantuesco", "lado_gargantuesco IS NULL OR lado_gargantuesco BETWEEN 4 AND 10");
 
                             t.HasCheckConstraint("ck_tokens_movimento", "deslocamento BETWEEN 1 AND 30 AND movimento_restante BETWEEN 0 AND CASE WHEN disparada THEN deslocamento * 2 ELSE deslocamento END");
 
@@ -963,6 +991,10 @@ namespace Vtt.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("imagem_id");
 
+                    b.Property<int?>("LadoGargantuesco")
+                        .HasColumnType("integer")
+                        .HasColumnName("lado_gargantuesco");
+
                     b.Property<int>("Nivel")
                         .HasColumnType("integer")
                         .HasColumnName("nivel");
@@ -972,6 +1004,14 @@ namespace Vtt.Infrastructure.Persistence.Migrations
                         .HasMaxLength(60)
                         .HasColumnType("character varying(60)")
                         .HasColumnName("nome");
+
+                    b.Property<string>("Tamanho")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("Medio")
+                        .HasColumnName("tamanho");
 
                     b.Property<Guid>("UsuarioId")
                         .HasColumnType("uuid")
@@ -997,6 +1037,8 @@ namespace Vtt.Infrastructure.Persistence.Migrations
                             t.HasCheckConstraint("ck_personagens_deslocamento", "deslocamento BETWEEN 1 AND 30");
 
                             t.HasCheckConstraint("ck_personagens_hp_maximo", "hp_maximo BETWEEN 1 AND 999");
+
+                            t.HasCheckConstraint("ck_personagens_lado_gargantuesco", "lado_gargantuesco IS NULL OR lado_gargantuesco BETWEEN 4 AND 10");
 
                             t.HasCheckConstraint("ck_personagens_nivel", "nivel BETWEEN 1 AND 20");
 

@@ -1,7 +1,9 @@
 import { useMutation } from '@tanstack/react-query'
 import { useId, useState, type FormEvent } from 'react'
 import { ApiError } from '../../shared/api/http'
+import { NOME_DO_TAMANHO, TAMANHO_PADRAO, type TamanhoDeCriatura } from '../../shared/tamanhos'
 import { Campo } from '../../shared/ui/Campo'
+import { CampoDeTamanho, ladoParaEnviar } from '../../shared/ui/CampoDeTamanho'
 import { Dialogo } from '../../shared/ui/Dialogo'
 import {
   COR_TOKEN_PADRAO,
@@ -44,6 +46,8 @@ export function TokenFormDialogo({ mesaId, mapaId, token, aoFechar }: TokenFormD
   const [imagemId, setImagemId] = useState(token?.imagemId ?? null)
   const [deslocamento, setDeslocamento] = useState(String(token?.deslocamento ?? DESLOCAMENTO_PADRAO))
   const [visao, setVisao] = useState(String(token?.visao ?? 0))
+  const [tamanho, setTamanho] = useState<TamanhoDeCriatura>(token?.tamanho ?? TAMANHO_PADRAO)
+  const [ladoGargantuesco, setLadoGargantuesco] = useState(String(token?.ladoGargantuesco ?? ''))
 
   const salvar = useMutation({
     mutationFn: () => {
@@ -55,7 +59,14 @@ export function TokenFormDialogo({ mesaId, mapaId, token, aoFechar }: TokenFormD
         corBorda,
         imagemId,
         // O do token de um jogador vem do personagem; o servidor ignoraria.
-        ...(deJogador ? {} : { deslocamento: Number(deslocamento) || 0, visao: Number(visao) || 0 }),
+        ...(deJogador
+          ? {}
+          : {
+              deslocamento: Number(deslocamento) || 0,
+              visao: Number(visao) || 0,
+              tamanho,
+              ladoGargantuesco: ladoParaEnviar(tamanho, ladoGargantuesco),
+            }),
       }
       return token ? editarToken(token.id, dados) : criarToken(mapaId, { ...dados, tipo })
     },
@@ -102,7 +113,8 @@ export function TokenFormDialogo({ mesaId, mapaId, token, aoFechar }: TokenFormD
           <>
             <p className="campo-dica">
               Este é o token de um jogador. Nome, ícone, foto, cor, HP máximo ({token!.hpMaximo}), deslocamento
-              ({token!.deslocamento} células) e visão ({token!.visao} células) acompanham o personagem dele.
+              ({token!.deslocamento} células), visão ({token!.visao} células) e tamanho (
+              {NOME_DO_TAMANHO[token!.tamanho ?? TAMANHO_PADRAO]}) acompanham o personagem dele.
             </p>
             <Campo
               rotulo="HP atual"
@@ -200,6 +212,13 @@ export function TokenFormDialogo({ mesaId, mapaId, token, aoFechar }: TokenFormD
                   />
                 </>
               )}
+              <CampoDeTamanho
+                tamanho={tamanho}
+                lado={ladoGargantuesco}
+                aoTrocarTamanho={setTamanho}
+                aoTrocarLado={setLadoGargantuesco}
+                erros={erro?.erros}
+              />
               <div className="campo campo-cor">
                 <label htmlFor={idCor}>Cor da borda</label>
                 <input

@@ -15,6 +15,8 @@ public class TokenService(
 {
     private const string TokenNaoEncontrado = "Token não encontrado.";
     private const string CelulaOcupada = "Já existe um token nesta célula.";
+    private const string NaoCabeNoMapa = "O token não cabe no mapa neste tamanho.";
+    private const string SemEspacoNoTamanho = "Não há espaço no mapa para o token neste tamanho.";
     private const string ImagemDeOutraMesa = "Escolha uma imagem da galeria desta mesa.";
     private const string VersaoDesatualizada = "O token foi alterado por outra pessoa. A posição foi atualizada.";
     private const string AlteradoAoMesmoTempo = "O token foi alterado ao mesmo tempo por outra ação. Tente de novo.";
@@ -43,6 +45,9 @@ public class TokenService(
             return Erro.Invalido("imagemId", ImagemDeOutraMesa);
         }
 
+        var tamanho = request.Tamanho ?? Tamanhos.Padrao;
+        var lado = Tamanhos.Celulas(tamanho, Tamanhos.NormalizarLado(tamanho, request.LadoGargantuesco));
+
         // O Mestre vê os tokens ocultos, então para ele todos contam como ocupação.
         (int X, int Y) celula;
         if (request.X is { } x && request.Y is { } y)
@@ -52,15 +57,20 @@ public class TokenService(
                 return Erro.Invalido("x", "A posição fica fora do mapa.");
             }
 
+            if (!mapa.Comporta(x, y, lado))
+            {
+                return Erro.Invalido("x", "O token não cabe no mapa nesta posição.");
+            }
+
             // Com a posição escolhida, o Mestre pode colocar o token até sobre uma estrutura.
-            if ((await db.CelulasOcupadasAsync(mapaId, somenteVisiveis: false, cancellationToken)).Contains((x, y)))
+            if (!Grade.Cabe(mapa.Largura, mapa.Altura, await db.CelulasOcupadasAsync(mapaId, somenteVisiveis: false, cancellationToken), x, y, lado))
             {
                 return Erro.Conflito(CelulaOcupada);
             }
 
             celula = (x, y);
         }
-        else if (Grade.PrimeiraLivre(mapa.Largura, mapa.Altura, await db.CelulasIndisponiveisAsync(mapaId, somenteVisiveis: false, cancellationToken)) is { } livre)
+        else if (Grade.PrimeiraLivre(mapa.Largura, mapa.Altura, await db.CelulasIndisponiveisAsync(mapaId, somenteVisiveis: false, cancellationToken), lado) is { } livre)
         {
             celula = livre;
         }
@@ -88,6 +98,7 @@ public class TokenService(
             MovimentoRestante = request.Deslocamento ?? Personagem.DeslocamentoPadrao,
             Visao = request.Visao ?? 0
         };
+        token.DefinirTamanho(tamanho, request.LadoGargantuesco);
 
         return await InserirAsync(token, mapa, usuarioId, cancellationToken);
     }
@@ -116,14 +127,19 @@ public class TokenService(
         // Como no CriarAsync: para o Mestre, os tokens ocultos também ocupam a célula.
         var indisponiveis = await db.CelulasIndisponiveisAsync(mapaId, somenteVisiveis: false, cancellationToken);
         var celulas = new List<(int X, int Y)>();
-        while (celulas.Count < request.Quantidade && Grade.PrimeiraLivre(mapa.Largura, mapa.Altura, indisponiveis) is { } livre)
+        while (celulas.Count < request.Quantidade && Grade.PrimeiraLivre(mapa.Largura, mapa.Altura, indisponiveis, modelo.Lado) is { } livre)
         {
             celulas.Add(livre);
-            indisponiveis.Add(livre);
+            Grade.Ocupar(indisponiveis, livre.X, livre.Y, modelo.Lado);
         }
 
         if (celulas.Count < request.Quantidade)
         {
+            if (!mapa.Comporta(0, 0, modelo.Lado))
+            {
+                return Erro.Conflito(NaoCabeNoMapa);
+            }
+
             return Erro.Conflito(celulas.Count == 0
                 ? "O mapa está cheio: não há célula livre para os tokens."
                 : $"O mapa só tem {celulas.Count} {(celulas.Count == 1 ? "célula livre" : "células livres")}.");
@@ -229,6 +245,19 @@ public class TokenService(
 
             token.Visao = request.Visao ?? token.Visao;
             token.ImagemId = request.ImagemId;
+
+            var ladoAntes = token.Lado;
+            token.DefinirTamanho(
+                request.Tamanho ?? token.Tamanho,
+                request.Tamanho is null ? token.LadoGargantuesco : request.LadoGargantuesco);
+            if (token.Lado != ladoAntes)
+            {
+                erro = await AcomodarNoTamanhoAsync(token, mapa!, cancellationToken);
+                if (erro is not null)
+                {
+                    return erro;
+                }
+            }
         }
 
         token.HpAtual = request.HpAtual;
@@ -337,7 +366,7 @@ public class TokenService(
         }
 
         var ocupadas = await db.CelulasIndisponiveisAsync(token.MapaId, somenteVisiveis: false, cancellationToken);
-        if (Grade.LivreMaisProxima(mapa!.Largura, mapa.Altura, ocupadas, token.X, token.Y) is not { } celula)
+        if (Grade.LivreMaisProxima(mapa!.Largura, mapa.Altura, ocupadas, token.X, token.Y, token.Lado) is not { } celula)
         {
             return Erro.Conflito("O mapa está cheio: não há célula livre para a cópia.");
         }
@@ -352,6 +381,8 @@ public class TokenService(
             HpMaximo = token.HpMaximo,
             X = celula.X,
             Y = celula.Y,
+            Tamanho = token.Tamanho,
+            LadoGargantuesco = token.LadoGargantuesco,
             CorBorda = token.CorBorda,
             Icone = token.Icone,
             ImagemId = token.ImagemId,
@@ -471,7 +502,7 @@ public class TokenService(
             }
         }
 
-        if (!mapa!.Contem(x, y))
+        if (!mapa!.Comporta(x, y, token.Lado))
         {
             return MovimentoResultado.Rejeitado(ForaDoMapa, token, visao);
         }
@@ -488,25 +519,15 @@ public class TokenService(
 
         // O Mestre vê todos os tokens, então para ele todos ocupam, e as estruturas não o barram. Para o
         // jogador, como no movimento por blocos, um token oculto não ocupa e as estruturas barram.
-        if (jogador)
-        {
-            var ocupadas = await db.CelulasOcupadasAsync(token.MapaId, somenteVisiveis: true, cancellationToken);
-            ocupadas.Remove((token.X, token.Y));
-            if (ocupadas.Contains((x, y)))
-            {
-                return MovimentoResultado.Rejeitado(CelulaOcupada, token, visao);
-            }
-
-            if ((await db.CelulasBloqueadasAsync(token.MapaId, cancellationToken)).Contains((x, y)))
-            {
-                return MovimentoResultado.Rejeitado(EstruturaBloqueando, token, visao);
-            }
-        }
-        else if (await db.Tokens.AnyAsync(
-                     t => t.MapaId == token.MapaId && t.Id != token.Id && t.X == x && t.Y == y,
-                     cancellationToken))
+        var ocupadas = await db.CelulasOcupadasAsync(token.MapaId, somenteVisiveis: jogador, cancellationToken, exceto: token.Id);
+        if (!Grade.Cabe(mapa.Largura, mapa.Altura, ocupadas, x, y, token.Lado))
         {
             return MovimentoResultado.Rejeitado(CelulaOcupada, token, visao);
+        }
+
+        if (jogador && !Grade.Cabe(mapa.Largura, mapa.Altura, await db.CelulasBloqueadasAsync(token.MapaId, cancellationToken), x, y, token.Lado))
+        {
+            return MovimentoResultado.Rejeitado(EstruturaBloqueando, token, visao);
         }
 
         token.X = x;
@@ -526,7 +547,7 @@ public class TokenService(
             return falha!.Value;
         }
 
-        if (!mapa!.Contem(x, y))
+        if (!mapa!.Comporta(x, y, token.Lado))
         {
             return MovimentoResultado.Rejeitado(ForaDoMapa, token, visao);
         }
@@ -548,20 +569,19 @@ public class TokenService(
 
         // Para o jogador, um token oculto não ocupa a célula: barrar o movimento denunciaria que há
         // algo escondido ali. O Mestre vê todos, então para ele todos contam.
-        var ocupadas = await db.CelulasOcupadasAsync(token.MapaId, somenteVisiveis: papel == PapelNaMesa.Jogador, cancellationToken);
-        ocupadas.Remove((token.X, token.Y));
-        if (ocupadas.Contains((x, y)))
+        var ocupadas = await db.CelulasOcupadasAsync(token.MapaId, somenteVisiveis: papel == PapelNaMesa.Jogador, cancellationToken, exceto: token.Id);
+        if (!Grade.Cabe(mapa.Largura, mapa.Altura, ocupadas, x, y, token.Lado))
         {
             return MovimentoResultado.Rejeitado(CelulaOcupada, token, visao);
         }
 
         var bloqueadas = await db.CelulasBloqueadasAsync(token.MapaId, cancellationToken);
-        if (bloqueadas.Contains((x, y)))
+        if (!Grade.Cabe(mapa.Largura, mapa.Altura, bloqueadas, x, y, token.Lado))
         {
             return MovimentoResultado.Rejeitado(EstruturaBloqueando, token, visao);
         }
 
-        var alcance = Alcance.Calcular(mapa.Largura, mapa.Altura, (token.X, token.Y), token.MovimentoRestante, bloqueadas, ocupadas);
+        var alcance = Alcance.Calcular(mapa.Largura, mapa.Altura, (token.X, token.Y), token.MovimentoRestante, bloqueadas, ocupadas, token.Lado);
         if (!alcance.TryGetValue((x, y), out var custo))
         {
             return MovimentoResultado.Rejeitado(
@@ -600,10 +620,8 @@ public class TokenService(
         }
 
         // Mesma regra de ocupação do movimento: para o jogador, os ocultos não contam.
-        var contaOcultos = papel == PapelNaMesa.Mestre;
-        if (await db.Tokens.AnyAsync(
-                t => t.MapaId == token.MapaId && t.Id != token.Id && t.X == origemX && t.Y == origemY && (contaOcultos || t.Visivel),
-                cancellationToken))
+        var ocupadas = await db.CelulasOcupadasAsync(token.MapaId, somenteVisiveis: papel != PapelNaMesa.Mestre, cancellationToken, exceto: token.Id);
+        if (!Grade.Cabe(mapa!.Largura, mapa.Altura, ocupadas, origemX, origemY, token.Lado))
         {
             return MovimentoResultado.Rejeitado("A célula de origem foi ocupada. Não dá para desfazer.", token, visao);
         }
@@ -735,15 +753,14 @@ public class TokenService(
             return null;
         }
 
-        var ocupada = await db.Tokens.AnyAsync(
-            t => t.MapaId == token.MapaId && t.Id != token.Id && t.Visivel && t.X == token.X && t.Y == token.Y, cancellationToken);
-        if (!ocupada)
+        var visiveis = await db.CelulasOcupadasAsync(token.MapaId, somenteVisiveis: true, cancellationToken, exceto: token.Id);
+        if (Grade.Cabe(mapa.Largura, mapa.Altura, visiveis, token.X, token.Y, token.Lado))
         {
             return null;
         }
 
-        var indisponiveis = await db.CelulasIndisponiveisAsync(token.MapaId, somenteVisiveis: true, cancellationToken);
-        if (Grade.LivreMaisProxima(mapa.Largura, mapa.Altura, indisponiveis, token.X, token.Y) is not { } livre)
+        var indisponiveis = await db.CelulasIndisponiveisAsync(token.MapaId, somenteVisiveis: true, cancellationToken, exceto: token.Id);
+        if (Grade.LivreMaisProxima(mapa.Largura, mapa.Altura, indisponiveis, token.X, token.Y, token.Lado) is not { } livre)
         {
             return Erro.Conflito("Não há célula livre para revelar o token.");
         }
@@ -751,6 +768,33 @@ public class TokenService(
         token.X = livre.X;
         token.Y = livre.Y;
         token.ConcluirMovimento();
+        return null;
+    }
+
+    /// <summary>
+    /// Depois de o Mestre mudar o tamanho: se o novo espaço não cabe onde o token está (borda, outro
+    /// token, estrutura), ele vai para o espaço livre mais próximo, como ao revelar.
+    /// </summary>
+    private async Task<Erro?> AcomodarNoTamanhoAsync(Token token, Mapa mapa, CancellationToken cancellationToken)
+    {
+        if (!mapa.Comporta(0, 0, token.Lado))
+        {
+            return Erro.Conflito(NaoCabeNoMapa);
+        }
+
+        // Para o Mestre, como ao criar, os tokens ocultos também ocupam.
+        if (await db.EspacoParaAsync(mapa, token, somenteVisiveis: false, cancellationToken) is not { } livre)
+        {
+            return Erro.Conflito(SemEspacoNoTamanho);
+        }
+
+        if (livre != (token.X, token.Y))
+        {
+            token.X = livre.X;
+            token.Y = livre.Y;
+            token.ConcluirMovimento();
+        }
+
         return null;
     }
 
