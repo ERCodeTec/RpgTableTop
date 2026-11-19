@@ -15,6 +15,7 @@ public interface IAppDbContext
     DbSet<MesaMembro> MesaMembros { get; }
     DbSet<Convite> Convites { get; }
     DbSet<Mapa> Mapas { get; }
+    DbSet<PastaDeMapas> PastasDeMapas { get; }
     DbSet<Token> Tokens { get; }
     DbSet<Estrutura> Estruturas { get; }
     DbSet<ImagemUpload> Imagens { get; }

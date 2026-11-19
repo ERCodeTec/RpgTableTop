@@ -18,6 +18,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<MesaMembro> MesaMembros => Set<MesaMembro>();
     public DbSet<Convite> Convites => Set<Convite>();
     public DbSet<Mapa> Mapas => Set<Mapa>();
+    public DbSet<PastaDeMapas> PastasDeMapas => Set<PastaDeMapas>();
     public DbSet<Token> Tokens => Set<Token>();
     public DbSet<Estrutura> Estruturas => Set<Estrutura>();
     public DbSet<ImagemUpload> Imagens => Set<ImagemUpload>();

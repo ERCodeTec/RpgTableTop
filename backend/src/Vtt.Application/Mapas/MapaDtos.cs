@@ -112,7 +112,8 @@ public record MapaDto(
     double FundoOffsetX,
     double FundoOffsetY,
     ModoDeNevoa Nevoa,
-    double? FundoEscalaAltura)
+    double? FundoEscalaAltura,
+    Guid? PastaId = null)
 {
     public static MapaDto De(Mapa mapa) => new(
         mapa.Id,
@@ -128,8 +129,17 @@ public record MapaDto(
         mapa.FundoOffsetX,
         mapa.FundoOffsetY,
         mapa.Nevoa,
-        mapa.FundoEscalaAltura);
+        mapa.FundoEscalaAltura,
+        mapa.PastaId);
 }
+
+/// <param name="Cor">#RRGGBB; sem ela, <see cref="PastaDeMapas.CorPadrao"/>.</param>
+public record PastaDeMapasRequest(string? Nome, string? Cor = null);
+
+public record PastaDeMapasDto(Guid Id, string Nome, int QuantidadeDeMapas, string Cor);
+
+/// <param name="PastaId">Nulo: tira o mapa da pasta ("Sem pasta").</param>
+public record PastaDoMapaRequest(Guid? PastaId);
 
 /// <summary>Para quem um token está sendo montado: é o que decide o que entra no payload.</summary>
 public enum VisaoDoToken

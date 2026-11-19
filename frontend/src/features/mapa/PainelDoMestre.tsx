@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { memo, useEffect, useRef, useState } from 'react'
+import { memo, useEffect, useRef, useState, type CSSProperties } from 'react'
 import { ConfirmarDialogo } from '../../shared/ui/ConfirmarDialogo'
 import { PainelDeIniciativa } from '../iniciativa/PainelDeIniciativa'
 import { ColocarDaBibliotecaDialogo } from './ColocarDaBibliotecaDialogo'
@@ -9,17 +9,24 @@ import { useEditorStore } from './editorStore'
 import { GaleriaDeImagens } from './GaleriaDeImagens'
 import {
   ativarMapa,
+  chaveDasPastas,
   chaveDosMapas,
   definirExibicao,
+  definirPastaDoMapa,
   duplicarToken,
   excluirMapa,
+  excluirPasta,
   listarMapas,
+  listarPastas,
   obterEstadoDoMapa,
   removerToken,
   type Mapa,
+  type PastaDeMapas,
   type Token,
 } from './mapaApi'
 import { MapaFormDialogo } from './MapaFormDialogo'
+import { PastaDeMapasDialogo } from './PastaDeMapasDialogo'
+import { agruparPorPasta, gravarRecolhidas, lerRecolhidas, type GrupoDeMapas } from './pastas'
 import { useMapaStore } from './mapaStore'
 import { PainelDaNevoa } from './PainelDaNevoa'
 import { PainelDeEstruturas } from './PainelDeEstruturas'
@@ -31,6 +38,9 @@ import type { AcoesDeMovimento } from './useMapaTempoReal'
 type DialogoAberto =
   | { tipo: 'editar-mapa'; mapa: Mapa }
   | { tipo: 'excluir-mapa'; mapa: Mapa }
+  | { tipo: 'nova-pasta' }
+  | { tipo: 'renomear-pasta'; pasta: PastaDeMapas }
+  | { tipo: 'excluir-pasta'; pasta: PastaDeMapas }
   | { tipo: 'novo-token' }
   | { tipo: 'da-biblioteca' }
   | { tipo: 'editar-token'; token: Token }
@@ -46,6 +56,8 @@ const ABAS: { id: Aba; nome: string }[] = [
   { id: 'nevoa', nome: 'Névoa' },
   { id: 'imagens', nome: 'Imagens' },
 ]
+
+const chaveDoGrupo = (grupo: GrupoDeMapas) => grupo.pasta?.id ?? 'sem-pasta'
 
 interface PainelDoMestreProps {
   mesaId: string
@@ -64,11 +76,23 @@ interface PainelDoMestreProps {
 export function PainelDoMestre({ mesaId, movimento, aoCriarMapa, aoGerarMapa, gerandoMapa, aoAvisar }: PainelDoMestreProps) {
   const queryClient = useQueryClient()
   const mapas = useQuery({ queryKey: chaveDosMapas(mesaId), queryFn: () => listarMapas(mesaId) })
+  const pastas = useQuery({ queryKey: chaveDasPastas(mesaId), queryFn: () => listarPastas(mesaId) })
   const mapaNaTela = useMapaStore((estado) => estado.mapa)
   const ordem = useMapaStore((estado) => estado.ordem)
   const [dialogo, setDialogo] = useState<DialogoAberto | null>(null)
   const fechar = () => setDialogo(null)
   const [aba, setAba] = useState<Aba>('mapas')
+  /** Pastas recolhidas na aba Mapas (o id, ou 'sem-pasta'). Lembradas neste navegador, por mesa; não vão ao servidor. */
+  const [recolhidasDaMesa, setRecolhidasDaMesa] = useState(() => ({ mesaId, recolhidas: lerRecolhidas(mesaId) }))
+  // Trocou de mesa sem desmontar o painel: carrega as da mesa nova.
+  if (recolhidasDaMesa.mesaId !== mesaId) setRecolhidasDaMesa({ mesaId, recolhidas: lerRecolhidas(mesaId) })
+  const recolhidas = recolhidasDaMesa.recolhidas
+  const setRecolhidas = (mudar: Set<string> | ((atual: Set<string>) => Set<string>)) =>
+    setRecolhidasDaMesa((estado) => {
+      const recolhidas = typeof mudar === 'function' ? mudar(estado.recolhidas) : mudar
+      return recolhidas === estado.recolhidas ? estado : { mesaId: estado.mesaId, recolhidas }
+    })
+  useEffect(() => gravarRecolhidas(recolhidasDaMesa.mesaId, recolhidasDaMesa.recolhidas), [recolhidasDaMesa])
   const editando = useEditorStore((estado) => estado.modo === 'editar')
   const painelRef = useRef<HTMLElement>(null)
 
@@ -155,7 +179,92 @@ export function PainelDoMestre({ mesaId, movimento, aoCriarMapa, aoGerarMapa, ge
     onSuccess: (token) => useMapaStore.getState().aplicarToken(token),
   })
 
-  const erroDeAcao = abrir.error ?? ativar.error ?? duplicar.error ?? alternarVisibilidade.error
+  const recarregarPastas = () =>
+    Promise.all([recarregarLista(), queryClient.invalidateQueries({ queryKey: chaveDasPastas(mesaId) })])
+
+  const mover = useMutation({
+    mutationFn: ({ mapa, pastaId }: { mapa: Mapa; pastaId: string | null }) => definirPastaDoMapa(mapa.id, pastaId),
+    onSuccess: async (salvo) => {
+      useMapaStore.getState().mapaAtualizado(salvo)
+      await recarregarPastas()
+    },
+  })
+
+  const removerPasta = useMutation({
+    mutationFn: (pasta: PastaDeMapas) => excluirPasta(pasta.id),
+    onSuccess: async () => {
+      await recarregarPastas()
+      fechar()
+    },
+  })
+
+  const listaDePastas = pastas.data ?? []
+  const grupos = mapas.data && listaDePastas.length > 0 ? agruparPorPasta(mapas.data, listaDePastas) : []
+  const todasRecolhidas = grupos.length > 0 && grupos.every((grupo) => recolhidas.has(chaveDoGrupo(grupo)))
+
+  // Sincroniza com o clique direto no título da pasta; só muda o estado se for diferente.
+  const alternarPasta = (chave: string, recolhida: boolean) =>
+    setRecolhidas((atual) => {
+      if (atual.has(chave) === recolhida) return atual
+      const novas = new Set(atual)
+      if (recolhida) novas.add(chave)
+      else novas.delete(chave)
+      return novas
+    })
+
+  const linhaDoMapa = (mapa: Mapa) => {
+    const naTela = mapa.id === mapaNaTela?.id
+    return (
+      <li key={mapa.id} className={`painel-item ${naTela ? 'painel-item-atual' : ''}`}>
+        <div className="painel-item-dados">
+          <p className="painel-item-nome">
+            <strong>{mapa.nome}</strong>
+            {mapa.ativo && <span className="selo selo-ativo">Ativo</span>}
+          </p>
+          <p className="painel-item-detalhe">
+            {mapa.largura} × {mapa.altura} células{naTela ? ' · na tela' : ''}
+          </p>
+        </div>
+        <div className="painel-item-acoes">
+          {!naTela && (
+            <button className="botao botao-discreto" type="button" disabled={abrir.isPending} onClick={() => abrir.mutate(mapa.id)}>
+              Abrir
+            </button>
+          )}
+          {!mapa.ativo && (
+            <button className="botao botao-discreto" type="button" disabled={ativar.isPending} onClick={() => ativar.mutate(mapa.id)}>
+              Ativar
+            </button>
+          )}
+          <button className="botao botao-discreto" type="button" onClick={() => setDialogo({ tipo: 'editar-mapa', mapa })}>
+            Editar
+          </button>
+          <button className="botao botao-discreto botao-perigo" type="button" onClick={() => setDialogo({ tipo: 'excluir-mapa', mapa })}>
+            Excluir
+          </button>
+        </div>
+        {listaDePastas.length > 0 && (
+          <div className="campo">
+            <select
+              aria-label={`Pasta de ${mapa.nome}`}
+              value={mapa.pastaId ?? ''}
+              disabled={mover.isPending}
+              onChange={(evento) => mover.mutate({ mapa, pastaId: evento.target.value || null })}
+            >
+              <option value="">Sem pasta</option>
+              {listaDePastas.map((pasta) => (
+                <option key={pasta.id} value={pasta.id}>
+                  {pasta.nome}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+      </li>
+    )
+  }
+
+  const erroDeAcao = abrir.error ?? ativar.error ?? duplicar.error ?? alternarVisibilidade.error ?? mover.error ?? pastas.error
 
   return (
     <aside ref={painelRef} className="painel-mestre" aria-label="Painel do Mestre">
@@ -191,6 +300,9 @@ export function PainelDoMestre({ mesaId, movimento, aoCriarMapa, aoGerarMapa, ge
               <button className="botao botao-discreto" type="button" onClick={aoCriarMapa}>
                 Novo mapa
               </button>
+              <button className="botao botao-discreto" type="button" onClick={() => setDialogo({ tipo: 'nova-pasta' })}>
+                Nova pasta
+              </button>
             </div>
           </div>
           {mapas.isPending ? (
@@ -201,57 +313,59 @@ export function PainelDoMestre({ mesaId, movimento, aoCriarMapa, aoGerarMapa, ge
             </p>
           ) : mapas.data.length === 0 ? (
             <p className="painel-mestre-vazio">Nenhum mapa ainda.</p>
+          ) : listaDePastas.length === 0 ? (
+            <ul className="painel-lista">{mapas.data.map(linhaDoMapa)}</ul>
           ) : (
-            <ul className="painel-lista">
-              {mapas.data.map((mapa) => {
-                const naTela = mapa.id === mapaNaTela?.id
-                return (
-                  <li key={mapa.id} className={`painel-item ${naTela ? 'painel-item-atual' : ''}`}>
-                    <div className="painel-item-dados">
-                      <p className="painel-item-nome">
-                        <strong>{mapa.nome}</strong>
-                        {mapa.ativo && <span className="selo selo-ativo">Ativo</span>}
-                      </p>
-                      <p className="painel-item-detalhe">
-                        {mapa.largura} × {mapa.altura} células{naTela ? ' · na tela' : ''}
-                      </p>
-                    </div>
+            <div className="painel-pastas">
+              <div className="painel-pastas-barra">
+                <button
+                  className="botao botao-discreto"
+                  type="button"
+                  onClick={() => setRecolhidas(todasRecolhidas ? new Set() : new Set(grupos.map(chaveDoGrupo)))}
+                >
+                  {todasRecolhidas ? 'Expandir todas' : 'Recolher todas'}
+                </button>
+              </div>
+              {grupos.map(({ pasta, mapas: doGrupo }) => (
+                <details
+                  key={pasta?.id ?? 'sem-pasta'}
+                  className={`painel-pasta ${pasta ? '' : 'painel-pasta-sem-pasta'}`}
+                  style={pasta ? ({ '--cor-da-pasta': pasta.cor } as CSSProperties) : undefined}
+                  open={!recolhidas.has(pasta?.id ?? 'sem-pasta')}
+                  onToggle={(evento) => alternarPasta(pasta?.id ?? 'sem-pasta', !evento.currentTarget.open)}
+                >
+                  <summary className="painel-pasta-titulo">
+                    <strong>{pasta?.nome ?? 'Sem pasta'}</strong>
+                    <span className="painel-item-detalhe">
+                      {doGrupo.length} {doGrupo.length === 1 ? 'mapa' : 'mapas'}
+                    </span>
+                  </summary>
+                  {pasta && (
                     <div className="painel-item-acoes">
-                      {!naTela && (
-                        <button
-                          className="botao botao-discreto"
-                          type="button"
-                          disabled={abrir.isPending}
-                          onClick={() => abrir.mutate(mapa.id)}
-                        >
-                          Abrir
-                        </button>
-                      )}
-                      {!mapa.ativo && (
-                        <button
-                          className="botao botao-discreto"
-                          type="button"
-                          disabled={ativar.isPending}
-                          onClick={() => ativar.mutate(mapa.id)}
-                        >
-                          Ativar
-                        </button>
-                      )}
-                      <button className="botao botao-discreto" type="button" onClick={() => setDialogo({ tipo: 'editar-mapa', mapa })}>
-                        Editar
+                      <button
+                        className="botao botao-discreto"
+                        type="button"
+                        onClick={() => setDialogo({ tipo: 'renomear-pasta', pasta })}
+                      >
+                        Editar pasta
                       </button>
                       <button
                         className="botao botao-discreto botao-perigo"
                         type="button"
-                        onClick={() => setDialogo({ tipo: 'excluir-mapa', mapa })}
+                        onClick={() => setDialogo({ tipo: 'excluir-pasta', pasta })}
                       >
-                        Excluir
+                        Excluir pasta
                       </button>
                     </div>
-                  </li>
-                )
-              })}
-            </ul>
+                  )}
+                  {doGrupo.length === 0 ? (
+                    <p className="painel-mestre-vazio">Nenhum mapa nesta pasta.</p>
+                  ) : (
+                    <ul className="painel-lista">{doGrupo.map(linhaDoMapa)}</ul>
+                  )}
+                </details>
+              ))}
+            </div>
           )}
         </section>
       )}
@@ -321,6 +435,23 @@ export function PainelDoMestre({ mesaId, movimento, aoCriarMapa, aoGerarMapa, ge
             {dialogo.mapa.ativo && ' Como ele é o mapa ativo, os jogadores ficam sem mapa até você ativar outro.'} Não dá
             para desfazer.
           </p>
+        </ConfirmarDialogo>
+      )}
+
+      {dialogo?.tipo === 'nova-pasta' && <PastaDeMapasDialogo mesaId={mesaId} aoFechar={fechar} />}
+      {dialogo?.tipo === 'renomear-pasta' && <PastaDeMapasDialogo mesaId={mesaId} pasta={dialogo.pasta} aoFechar={fechar} />}
+
+      {dialogo?.tipo === 'excluir-pasta' && (
+        <ConfirmarDialogo
+          titulo={`Excluir a pasta "${dialogo.pasta.nome}"?`}
+          rotuloConfirmar="Excluir pasta"
+          rotuloEmAndamento="Excluindo…"
+          emAndamento={removerPasta.isPending}
+          erro={removerPasta.error?.message}
+          aoConfirmar={() => removerPasta.mutate(dialogo.pasta)}
+          aoFechar={fechar}
+        >
+          <p>Os mapas desta pasta não são excluídos: eles vão para "Sem pasta".</p>
         </ConfirmarDialogo>
       )}
 

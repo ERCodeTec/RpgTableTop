@@ -41,11 +41,40 @@ public class MapaConfiguration : IEntityTypeConfiguration<Mapa>
 
         builder.HasIndex(m => m.MesaId);
 
+        // Excluir a pasta deixa os mapas em "Sem pasta".
+        builder.HasOne<PastaDeMapas>()
+            .WithMany()
+            .HasForeignKey(m => m.PastaId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasIndex(m => m.PastaId);
+
         // No máximo um mapa ativo por mesa, garantido pelo banco.
         builder.HasIndex(m => m.MesaId, "ix_mapas_mesa_id_ativo")
             .HasDatabaseName("ix_mapas_mesa_id_ativo")
             .IsUnique()
             .HasFilter("ativo");
+    }
+}
+
+public class PastaDeMapasConfiguration : IEntityTypeConfiguration<PastaDeMapas>
+{
+    public void Configure(EntityTypeBuilder<PastaDeMapas> builder)
+    {
+        builder.ToTable("pastas_de_mapas");
+
+        builder.HasKey(p => p.Id);
+        builder.Property(p => p.Id).ValueGeneratedNever();
+        builder.Property(p => p.Nome).HasMaxLength(PastaDeMapas.NomeTamanhoMaximo).IsRequired();
+        builder.Property(p => p.Cor).HasMaxLength(7).HasDefaultValue(PastaDeMapas.CorPadrao).IsRequired();
+
+        builder.HasOne<Mesa>()
+            .WithMany()
+            .HasForeignKey(p => p.MesaId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // A unicidade do nome sem diferenciar maiúsculas é um índice sobre lower(nome), criado na migration.
+        builder.HasIndex(p => p.MesaId);
     }
 }
 

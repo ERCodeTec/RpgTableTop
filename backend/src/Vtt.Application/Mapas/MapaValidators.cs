@@ -27,7 +27,22 @@ public class MapaRequestValidator : AbstractValidator<MapaRequest>
     }
 }
 
-public class MapaProceduralRequestValidator : AbstractValidator<MapaProceduralRequest>
+public class PastaDeMapasRequestValidator : AbstractValidator<PastaDeMapasRequest>
+{
+    public PastaDeMapasRequestValidator()
+    {
+        RuleFor(x => x.Nome)
+            .Must(nome => !string.IsNullOrWhiteSpace(nome)).WithMessage("Informe o nome da pasta.")
+            .Must(nome => nome is null || nome.Trim().Length <= PastaDeMapas.NomeTamanhoMaximo)
+            .WithMessage($"O nome deve ter até {PastaDeMapas.NomeTamanhoMaximo} caracteres.");
+
+        RuleFor(x => x.Cor)
+            .Matches(RegrasDeToken.CorHex).WithMessage("A cor deve estar no formato #RRGGBB.")
+            .When(x => !string.IsNullOrEmpty(x.Cor));
+    }
+}
+
+public class MapaProceduralRequestValidator: AbstractValidator<MapaProceduralRequest>
 {
     public MapaProceduralRequestValidator()
     {

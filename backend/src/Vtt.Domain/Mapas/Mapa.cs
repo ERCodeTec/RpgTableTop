@@ -11,6 +11,9 @@ public class Mapa
     public Guid MesaId { get; set; }
     public string Nome { get; set; } = string.Empty;
 
+    /// <summary>Nulo: "Sem pasta". Só organiza a lista do Mestre.</summary>
+    public Guid? PastaId { get; set; }
+
     /// <summary>Em células.</summary>
     public int Largura { get; set; }
 

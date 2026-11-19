@@ -1,16 +1,19 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useId, useState, type FormEvent } from 'react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useId, useRef, useState, type FormEvent } from 'react'
 import { ApiError } from '../../shared/api/http'
 import { Campo } from '../../shared/ui/Campo'
 import { Dialogo } from '../../shared/ui/Dialogo'
 import {
   atualizarMapa,
+  chaveDasPastas,
   chaveDosMapas,
   COR_FUNDO_PADRAO,
   criarMapa,
+  definirPastaDoMapa,
   DIMENSAO_MAXIMA,
   DIMENSAO_MINIMA,
   type DadosDoMapa,
+  listarPastas,
   type Mapa,
 } from './mapaApi'
 import { useMapaStore } from './mapaStore'
@@ -26,16 +29,30 @@ interface MapaFormDialogoProps {
 export function MapaFormDialogo({ mesaId, mapa, aoFechar, aoSalvar }: MapaFormDialogoProps) {
   const queryClient = useQueryClient()
   const idCor = useId()
+  const idPasta = useId()
   const [nome, setNome] = useState(mapa?.nome ?? '')
   const [largura, setLargura] = useState(String(mapa?.largura ?? 20))
   const [altura, setAltura] = useState(String(mapa?.altura ?? 15))
   const [corFundo, setCorFundo] = useState(mapa?.corFundo ?? COR_FUNDO_PADRAO)
+  const [pastaId, setPastaId] = useState(mapa?.pastaId ?? '')
+  const pastas = useQuery({ queryKey: chaveDasPastas(mesaId), queryFn: () => listarPastas(mesaId) })
+  // Se o mapa foi criado e só a ida para a pasta falhou, tentar de novo não cria outro mapa.
+  const criadoRef = useRef<Mapa | null>(null)
 
   const salvar = useMutation({
-    mutationFn: (dados: DadosDoMapa) => (mapa ? atualizarMapa(mapa.id, dados) : criarMapa(mesaId, dados)),
+    mutationFn: async (dados: DadosDoMapa) => {
+      const alvo = mapa ?? criadoRef.current
+      const salvo = alvo ? await atualizarMapa(alvo.id, dados) : await criarMapa(mesaId, dados)
+      if (!mapa) criadoRef.current = salvo
+      const destino = pastaId || null
+      return destino === (salvo.pastaId ?? null) ? salvo : definirPastaDoMapa(salvo.id, destino)
+    },
     onSuccess: async (salvo) => {
       useMapaStore.getState().mapaAtualizado(salvo)
-      await queryClient.invalidateQueries({ queryKey: chaveDosMapas(mesaId) })
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: chaveDosMapas(mesaId) }),
+        queryClient.invalidateQueries({ queryKey: chaveDasPastas(mesaId) }),
+      ])
       aoFechar()
       aoSalvar?.(salvo)
     },
@@ -104,6 +121,20 @@ export function MapaFormDialogo({ mesaId, mapa, aoFechar, aoSalvar }: MapaFormDi
             {erro?.erros.corFundo && <p className="campo-erro">{erro.erros.corFundo[0]}</p>}
           </div>
         </div>
+        {(pastas.data?.length ?? 0) > 0 && (
+          <div className="campo">
+            <label htmlFor={idPasta}>Pasta</label>
+            <select id={idPasta} value={pastaId} onChange={(evento) => setPastaId(evento.target.value)}>
+              <option value="">Sem pasta</option>
+              {pastas.data!.map((pasta) => (
+                <option key={pasta.id} value={pasta.id}>
+                  {pasta.nome}
+                </option>
+              ))}
+            </select>
+            {erro?.erros.pastaId && <p className="campo-erro">{erro.erros.pastaId[0]}</p>}
+          </div>
+        )}
         <div className="dialogo-acoes">
           <button className="botao" type="button" onClick={aoFechar}>
             Cancelar

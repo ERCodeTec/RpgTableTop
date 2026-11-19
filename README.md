@@ -166,6 +166,9 @@ Use três sessões separadas: o Mestre em uma janela normal, um jogador em uma j
 | `PUT /api/tokens/{id}/hp` | Mestre | dano e cura (`delta`), HP atual ou HP máximo; o resultado fica entre 0 e o máximo |
 | `PUT /api/tokens/{id}/exibicao` | Mestre | oculta ou revela o token e define o que os jogadores veem do HP |
 | `DELETE /api/tokens/{id}` | Mestre | remove o token |
+| `GET/POST /api/mesas/{id}/pastas-de-mapas` | Mestre | lista (com a quantidade de mapas) ou cria pastas para organizar a aba Mapas; nome único na mesa, sem diferenciar maiúsculas (409); até 100 |
+| `PUT/DELETE /api/pastas-de-mapas/{id}` | Mestre | renomeia ou exclui a pasta; ao excluir, os mapas dela ficam em "Sem pasta" |
+| `PUT /api/mapas/{id}/pasta` | Mestre | `{ pastaId }` põe o mapa numa pasta da mesma mesa; `null` tira de qualquer pasta. Sem evento em tempo real |
 | `PUT /api/mapas/{id}/fundo` | Mestre | define ou remove a imagem de fundo, a escala e o deslocamento |
 | `PUT /api/mapas/{id}/nevoa` | Mestre | liga, desliga ou troca o modo da névoa (`Desligada`, `Compartilhada`, `Individual`) |
 | `PUT /api/mapas/{id}/nevoa/revelada` | Mestre | o pincel: `{ celulas, revelar }` revela as células para todos ou as cobre (apagando também o explorado) |

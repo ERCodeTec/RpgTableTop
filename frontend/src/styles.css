@@ -1332,6 +1332,51 @@ a.botao {
   padding: 0 0.625rem;
 }
 
+/* Pastas da aba Mapas: um nível, recolhível. */
+.painel-pastas {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.painel-pasta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.5rem 0.625rem;
+  /* A cor vem de cada pasta (style); "Sem pasta" fica neutra. */
+  border: 1px solid color-mix(in srgb, var(--cor-da-pasta, var(--latao)) 45%, transparent);
+  border-left: 3px solid var(--cor-da-pasta, var(--latao));
+  border-radius: var(--raio);
+  background: var(--mesa-funda);
+}
+
+.painel-pasta-sem-pasta {
+  --cor-da-pasta: var(--texto-suave);
+}
+
+.painel-pastas-barra {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.painel-pasta[open] > summary {
+  margin-bottom: 0.5rem;
+}
+
+.painel-pasta > .painel-item-acoes {
+  margin-bottom: 0.5rem;
+}
+
+.painel-pasta-titulo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+
 .painel-token {
   display: flex;
   align-items: center;

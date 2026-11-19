@@ -59,7 +59,21 @@ export interface Mapa {
   fundoOffsetX: number
   fundoOffsetY: number
   nevoa: ModoDeNevoa
+  /** Nulo (ou ausente em dados antigos): "Sem pasta". Só organiza a lista do Mestre. */
+  pastaId?: string | null
 }
+
+/** Uma pasta da aba Mapas. Nome único na mesa, sem diferenciar maiúsculas. */
+export interface PastaDeMapas {
+  id: string
+  nome: string
+  quantidadeDeMapas: number
+  /** #RRGGBB: a borda da pasta na lista. */
+  cor: string
+}
+
+export const NOME_MAXIMO_DA_PASTA = 40
+export const COR_PASTA_PADRAO = '#E2B23C'
 
 export interface Token {
   id: string
@@ -292,6 +306,23 @@ export const excluirMapa = (id: string) => api<void>(`/api/mapas/${id}`, { metho
 export const ativarMapa = (id: string) => api<MapaEstado>(`/api/mapas/${id}/ativar`, { method: 'PUT' })
 
 export const obterEstadoDoMapa = (id: string) => api<MapaEstado>(`/api/mapas/${id}/estado`)
+
+export const chaveDasPastas = (mesaId: string) => ['mesas', mesaId, 'pastas-de-mapas'] as const
+
+export const listarPastas = (mesaId: string) => api<PastaDeMapas[]>(`/api/mesas/${mesaId}/pastas-de-mapas`)
+
+export const criarPasta = (mesaId: string, nome: string, cor: string) =>
+  api<PastaDeMapas>(`/api/mesas/${mesaId}/pastas-de-mapas`, { method: 'POST', body: { nome, cor } })
+
+/** Troca o nome e a cor. */
+export const renomearPasta = (id: string, nome: string, cor: string) =>
+  api<PastaDeMapas>(`/api/pastas-de-mapas/${id}`, { method: 'PUT', body: { nome, cor } })
+
+export const excluirPasta = (id: string) => api<void>(`/api/pastas-de-mapas/${id}`, { method: 'DELETE' })
+
+/** pastaId nulo tira o mapa da pasta. */
+export const definirPastaDoMapa = (mapaId: string, pastaId: string | null) =>
+  api<Mapa>(`/api/mapas/${mapaId}/pasta`, { method: 'PUT', body: { pastaId } })
 
 /** Sem posição, o servidor coloca o token na primeira célula livre. */
 export const criarToken = (mapaId: string, dados: DadosDoToken & { tipo: TipoToken }) =>

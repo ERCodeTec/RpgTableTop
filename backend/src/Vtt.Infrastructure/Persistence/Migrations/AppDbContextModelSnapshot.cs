@@ -488,6 +488,10 @@ namespace Vtt.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(80)")
                         .HasColumnName("nome");
 
+                    b.Property<Guid?>("PastaId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("pasta_id");
+
                     b.HasKey("Id")
                         .HasName("pk_mapas");
 
@@ -496,6 +500,9 @@ namespace Vtt.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("MesaId")
                         .HasDatabaseName("ix_mapas_mesa_id");
+
+                    b.HasIndex("PastaId")
+                        .HasDatabaseName("ix_mapas_pasta_id");
 
                     b.HasIndex(new[] { "MesaId" }, "ix_mapas_mesa_id_ativo")
                         .IsUnique()
@@ -553,6 +560,43 @@ namespace Vtt.Infrastructure.Persistence.Migrations
                     NpgsqlIndexBuilderExtensions.AreNullsDistinct(b.HasIndex("MapaId", "Tipo", "UsuarioId"), false);
 
                     b.ToTable("memorias_de_nevoa", (string)null);
+                });
+
+            modelBuilder.Entity("Vtt.Domain.Mapas.PastaDeMapas", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Cor")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(7)
+                        .HasColumnType("character varying(7)")
+                        .HasDefaultValue("#E2B23C")
+                        .HasColumnName("cor");
+
+                    b.Property<DateTimeOffset>("CriadaEm")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("criada_em");
+
+                    b.Property<Guid>("MesaId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("mesa_id");
+
+                    b.Property<string>("Nome")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("nome");
+
+                    b.HasKey("Id")
+                        .HasName("pk_pastas_de_mapas");
+
+                    b.HasIndex("MesaId")
+                        .HasDatabaseName("ix_pastas_de_mapas_mesa_id");
+
+                    b.ToTable("pastas_de_mapas", (string)null);
                 });
 
             modelBuilder.Entity("Vtt.Domain.Mapas.Token", b =>
@@ -1258,6 +1302,12 @@ namespace Vtt.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_mapas_mesas_mesa_id");
+
+                    b.HasOne("Vtt.Domain.Mapas.PastaDeMapas", null)
+                        .WithMany()
+                        .HasForeignKey("PastaId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_mapas_pastas_de_mapas_pasta_id");
                 });
 
             modelBuilder.Entity("Vtt.Domain.Mapas.MemoriaDeNevoa", b =>
@@ -1274,6 +1324,16 @@ namespace Vtt.Infrastructure.Persistence.Migrations
                         .HasForeignKey("UsuarioId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .HasConstraintName("fk_memorias_de_nevoa_usuarios_usuario_id");
+                });
+
+            modelBuilder.Entity("Vtt.Domain.Mapas.PastaDeMapas", b =>
+                {
+                    b.HasOne("Vtt.Domain.Mesas.Mesa", null)
+                        .WithMany()
+                        .HasForeignKey("MesaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_pastas_de_mapas_mesas_mesa_id");
                 });
 
             modelBuilder.Entity("Vtt.Domain.Mapas.Token", b =>

@@ -19,6 +19,7 @@ public static class DependencyInjection
         services.AddScoped<IMesaService, MesaService>();
         services.AddScoped<IConviteService, ConviteService>();
         services.AddScoped<IMapaService, MapaService>();
+        services.AddScoped<IPastaDeMapasService, PastaDeMapasService>();
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<TokensDeJogador>();
         services.AddScoped<MovimentoDaRodada>();
